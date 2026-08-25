@@ -15,8 +15,8 @@ Bienvenidos al repositorio de **Joyería y Perfumería Edén**, el espacio digit
 
 ## 🛠️ Tecnologías Utilizadas
 
-* **Frontend:** HTML, CSS
-* **Backend:** Java
+* **Frontend:** react
+* **Backend:**  c#
 * **Base de Datos:** SQL
 
 ## ⚙️ Funcionalidades del sistema
