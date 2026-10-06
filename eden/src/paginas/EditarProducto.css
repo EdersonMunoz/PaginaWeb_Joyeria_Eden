@@ -1,0 +1,274 @@
+.pagina-editar {
+  min-height: 100vh;
+  background-color: #fbf9f4;
+  padding: 0 0 34px;
+  box-sizing: border-box;
+}
+
+.pagina-editar .encabezado {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 132px;
+  padding: 8px 60px 0;
+  background-color: transparent;
+}
+
+.pagina-editar .encabezado-izquierda,
+.pagina-editar .encabezado-derecha {
+  gap: 12px;
+}
+
+.pagina-editar .encabezado-derecha {
+  justify-self: end;
+}
+
+.pagina-editar .encabezado-icono {
+  width: 30px;
+  height: 30px;
+}
+
+.pagina-editar .icono-subrayado {
+  padding: 0 6px 5px;
+  border-bottom-width: 1px;
+}
+
+.pagina-editar .contenedor-logo {
+  width: 180px;
+  height: 132px;
+  padding: 14px 0 6px;
+  border-bottom-width: 1px;
+}
+
+.pagina-editar .encabezado-logo {
+  width: 320px;
+  height: auto;
+  max-width: none;
+  flex: 0 0 auto;
+}
+
+.pagina-editar .boton-login {
+  gap: 10px;
+  padding: 10px 19px;
+  font-size: 16px;
+}
+
+.pagina-editar .boton-login svg {
+  width: 23px;
+  height: 23px;
+}
+
+.miga-pan {
+  width: min(960px, calc(100% - 64px));
+  font-size: 16px;
+  color: #456e64;
+  margin: 8px auto 26px;
+  font-weight: 500;
+}
+
+.contenido {
+  display: grid;
+  grid-template-columns: minmax(0, 430px) 1px minmax(0, 490px);
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  width: min(1020px, calc(100% - 64px));
+  margin: 0 auto;
+}
+
+.contenido::before {
+  content: "";
+  grid-column: 2;
+  grid-row: 1;
+  width: 1px;
+  height: 420px;
+  background-color: #222222;
+}
+
+.contenido > .panel-formulario {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+}
+
+.contenido > .panel-derecho {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.overlay-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-contenido {
+  background-color: #ffffff;
+  padding: 22px 32px;
+  border: 3px solid #1b4d3e;
+  border-radius: 26px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.modal-exito span {
+  color: #1b4d3e;
+  font-weight: 400;
+  font-size: 22px;
+}
+
+.icono-modal-exito {
+  width: 28px;
+  height: 28px;
+}
+
+.texto-modal-error p {
+  margin: 2px 0;
+  color: #222222;
+  font-weight: 400;
+  font-size: 20px;
+}
+
+.icono-modal-error {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+}
+
+.modal-error {
+  max-width: min(550px, calc(100vw - 32px));
+  border-color: #f33727;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 960px) {
+  .pagina-editar .encabezado {
+    height: 106px;
+    padding: 0 24px;
+  }
+
+  .pagina-editar .contenedor-logo {
+    width: 142px;
+    height: 106px;
+    padding-top: 10px;
+  }
+
+  .pagina-editar .encabezado-logo {
+    width: 280px;
+  }
+
+  .pagina-editar .encabezado-derecha {
+    gap: 8px;
+  }
+
+  .pagina-editar .boton-login {
+    padding: 8px 11px;
+    font-size: 13px;
+  }
+
+  .contenido {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .contenido::before {
+    display: none;
+  }
+
+  .contenido > .panel-formulario {
+    grid-column: 1;
+  }
+
+  .contenido > .panel-derecho {
+    grid-column: 2;
+  }
+
+  .formulario-campos {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .pagina-editar .encabezado {
+    grid-template-columns: 1fr auto;
+    height: 86px;
+    padding: 0 16px;
+  }
+
+  .pagina-editar .encabezado-izquierda {
+    display: none;
+  }
+
+  .pagina-editar .contenedor-logo {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    width: 110px;
+    height: 86px;
+  }
+
+  .pagina-editar .encabezado-logo {
+    width: 230px;
+  }
+
+  .pagina-editar .encabezado-derecha {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .pagina-editar .encabezado-derecha .icono-subrayado {
+    display: none;
+  }
+
+  .miga-pan,
+  .contenido {
+    width: calc(100% - 32px);
+  }
+
+  .miga-pan {
+    font-size: 15px;
+  }
+
+  .contenido {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .contenido > .panel-formulario,
+  .contenido > .panel-derecho {
+    grid-column: 1;
+  }
+
+  .contenido > .panel-derecho {
+    grid-row: 2;
+  }
+
+  .formulario-campos {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+}
