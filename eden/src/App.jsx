@@ -7,34 +7,36 @@ import RegistrarProducto from "./paginas/RegistrarProducto";
 import EditarProducto from "./paginas/EditarProducto";
 
 function App() {
-  const [productos, setProductos] = useState(productosIniciales);
+    const [productos, setProductos] = useState(productosIniciales);
 
-  const agregarProducto = (nuevo) => {
-    setProductos([...productos, { ...nuevo, id: Date.now() }]);
-  };
+    const agregarProducto = (nuevo) => {
+        setProductos([...productos, { ...nuevo, id: Date.now() }]);
+    };
 
-  const editarProducto = (id, cambios) => {
-    setProductos(productos.map((p) => (p.id === id ? { ...p, ...cambios } : p)));
-  };
+    const editarProducto = (id, cambios) => {
+        setProductos(productos.map((p) => (p.id === id ? { ...p, ...cambios } : p)));
+    };
 
-  return (
-    <Routes>
-      <Route path="/" element={<Catalogo productos={productos} />} />
-      <Route path="/catalogo" element={<Catalogo productos={productos} />} />
+    return (
+        <Routes>
+            <Route path="/" element={<Catalogo productos={productos} />} />
+            <Route path="/catalogo" element={<Catalogo productos={productos} />} />
 
-      {/* Pantallas de administrador: comparten el header */}
-      <Route element={<LayoutAdmin />}>
-        <Route
-          path="/admin/productos/crear"
-          element={<RegistrarProducto agregarProducto={agregarProducto} productos={productos} />}
-        />
-        <Route
-          path="/admin/productos/editar/:id"
-          element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
-        />
-      </Route>
-    </Routes>
-  );
+            {/* Pantallas de administrador: comparten el header */}
+            <Route element={<LayoutAdmin />}>
+                <Route
+                    path="/admin/productos/crear"
+                    element={<RegistrarProducto agregarProducto={agregarProducto} productos={productos} />}
+                />
+            </Route>
+
+            {/* La página de editar trae su propio Encabezado */}
+            <Route
+                path="/admin/productos/editar/:id"
+                element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
+            />
+        </Routes>
+    );
 }
 
 export default App;
