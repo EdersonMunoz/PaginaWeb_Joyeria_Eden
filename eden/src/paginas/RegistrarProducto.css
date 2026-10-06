@@ -1,0 +1,462 @@
+/* Medidas tomadas del Figma (frame de 1440 px). 1rem = 16 px. */
+
+/* ---------- Ruta (Menú \ Registrar_Producto) ---------- */
+.ruta {
+  display: flex;
+  gap: 0.15rem;
+  margin: 1.3rem 0 0 3.05rem;
+  font-size: 0.75rem;
+  color: var(--verde);
+}
+
+.ruta a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ruta a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Estructura: formulario | línea | fotos ---------- */
+.registro {
+  display: grid;
+  grid-template-columns: 33.9rem 5.8rem 1px 3.65rem 36.6rem;
+  grid-template-areas:
+    "tarjeta . divisor . media"
+    "boton   . divisor . media";
+  align-items: start;
+  margin-top: 2.2rem;
+}
+
+/* ---------- Tarjeta del formulario ---------- */
+.tarjeta {
+  grid-area: tarjeta;
+  padding: 0.3rem 3.25rem 2.1rem;
+  border-radius: 0.85rem;
+  background: var(--blanco);
+}
+
+.tarjeta__titulo {
+  margin: 0 0 1.65rem;
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 2.15rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.65rem;
+}
+
+.campo:last-child {
+  margin-bottom: 0;
+}
+
+.campo label {
+  font-size: 1.2rem;
+  line-height: 1.6rem;
+}
+
+.campo__req {
+  color: var(--rojo);
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  border: 0.1rem solid var(--negro);
+  border-radius: 0.6rem;
+  background: var(--blanco);
+  font: inherit;
+  font-size: 1rem;
+  color: var(--negro);
+}
+
+.campo input,
+.campo select {
+  height: 3.45rem;
+  padding: 0 0.85rem;
+}
+
+.campo textarea {
+  height: 11.8rem;
+  padding: 0.75rem 0.85rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.campo input::placeholder,
+.campo textarea::placeholder {
+  color: var(--gris-texto);
+  font-size: 0.9rem;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: none;
+  border-color: var(--verde);
+  box-shadow: 0 0 0 0.15rem rgba(0, 77, 64, 0.25);
+}
+
+.campo--error input,
+.campo--error select,
+.campo--error textarea,
+.campo--error input:focus,
+.campo--error select:focus,
+.campo--error textarea:focus {
+  border-color: var(--rojo);
+  box-shadow: 0 0 0 0.05rem var(--rojo);
+}
+
+/* Select con la flecha a la izquierda, como en el Figma */
+.campo__select {
+  position: relative;
+}
+
+.campo__select select {
+  appearance: none;
+  padding-left: 2.4rem;
+  cursor: pointer;
+}
+
+.campo__select--vacio select {
+  color: var(--gris-texto);
+  font-size: 0.9rem;
+}
+
+.campo__select option {
+  color: var(--negro);
+}
+
+.campo__chevron {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* ---------- Botón Registrar producto ---------- */
+.btn-registrar {
+  grid-area: boton;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  width: 17.6rem;
+  height: 4rem;
+  border: none;
+  border-radius: 0.6rem;
+  background: var(--negro);
+  color: var(--blanco);
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.btn-registrar svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.btn-registrar:hover:not(:disabled) {
+  background: #000000;
+}
+
+/* ---------- Línea divisoria ---------- */
+.registro__divisor {
+  grid-area: divisor;
+  width: 1px;
+  height: 35.2rem;
+  margin-top: 2.7rem;
+  background: var(--negro);
+}
+
+/* ---------- Columna derecha ---------- */
+.registro__media {
+  grid-area: media;
+}
+
+.marca {
+  display: flex;
+  flex-direction: column;
+  margin: 0.25rem 0 0 4.45rem;
+  font-family: "Poppins", "Inter", system-ui, sans-serif;
+  color: var(--verde);
+}
+
+.marca__subtitulo {
+  font-size: 1.75rem;
+  line-height: 2.1rem;
+}
+
+.marca__titulo {
+  margin: -0.3rem 0 0 11.1rem;
+  font-size: 6rem;
+  line-height: 1;
+}
+
+.galeria {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.9rem;
+  margin-top: 2rem;
+}
+
+.galeria__principal {
+  flex-shrink: 0;
+  width: 23.2rem;
+  background: var(--blanco);
+  border-radius: 0.55rem;
+  box-shadow: 0.15rem 0.2rem 0.35rem rgba(26, 26, 26, 0.25);
+  overflow: hidden;
+}
+
+.galeria__imagen {
+  height: 22.4rem;
+  background: var(--gris-azul);
+}
+
+.galeria__imagen img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.galeria__miniaturas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.7rem;
+  padding: 0.5rem 0.7rem;
+}
+
+.miniatura-contenedor {
+  position: relative;
+}
+
+.miniatura {
+  display: block;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 0.3rem;
+  overflow: hidden;
+  background: none;
+}
+
+.miniatura--activa {
+  border-color: var(--verde);
+}
+
+.miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.miniatura__quitar {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  display: grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--negro);
+  color: var(--blanco);
+}
+
+.miniatura__quitar svg {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.galeria__agregar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 10.55rem;
+  margin-top: 7.4rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.3rem;
+  background: var(--blanco);
+  box-shadow: 0.15rem 0.2rem 0.35rem rgba(26, 26, 26, 0.25);
+  overflow: hidden;
+}
+
+.galeria__agregar:hover .agregar__icono {
+  background: var(--gris-azul-oscuro);
+}
+
+.agregar__icono {
+  display: grid;
+  place-items: center;
+  height: 8.45rem;
+  background: var(--gris-azul);
+  color: var(--negro);
+}
+
+.agregar__icono svg {
+  width: 2.1rem;
+  height: 2.1rem;
+}
+
+.agregar__texto {
+  display: grid;
+  place-items: center;
+  height: 2.55rem;
+  font-size: 0.75rem;
+  color: var(--negro);
+}
+
+/* ---------- Campo Ref ---------- */
+.ref {
+  display: flex;
+  width: 18.1rem;
+  height: 3rem;
+  margin: 3rem auto 0;
+  border: 0.1rem solid var(--negro);
+  border-radius: 999px;
+  background: var(--blanco);
+  overflow: hidden;
+}
+
+.ref__etiqueta {
+  display: grid;
+  grid-auto-flow: column;
+  place-content: center;
+  width: 5.4rem;
+  flex-shrink: 0;
+  border-right: 0.1rem solid var(--negro);
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+
+.ref input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 1rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  color: var(--negro);
+}
+
+.ref input:focus {
+  outline: none;
+}
+
+.ref:focus-within {
+  border-color: var(--verde);
+  box-shadow: 0 0 0 0.15rem rgba(0, 77, 64, 0.25);
+}
+
+.ref--error,
+.ref--error:focus-within {
+  border-color: var(--rojo);
+  box-shadow: 0 0 0 0.05rem var(--rojo);
+}
+
+/* ---------- Pantallas angostas: una sola columna ---------- */
+@media (max-width: 1099px) {
+  .registro {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "tarjeta"
+      "media"
+      "boton";
+    row-gap: 2rem;
+    max-width: 40rem;
+    margin: 2rem auto 0;
+  }
+
+  .ruta {
+    margin-left: 0;
+  }
+
+  .registro__divisor {
+    display: none;
+  }
+
+  .marca {
+    margin-left: 0;
+    align-items: center;
+  }
+
+  .marca__titulo {
+    margin-left: 0;
+    font-size: 4.5rem;
+  }
+
+  .galeria {
+    gap: 1.5rem;
+  }
+
+  .galeria__principal {
+    flex: 1;
+    width: auto;
+    flex-shrink: 1;
+  }
+
+  .galeria__agregar {
+    margin-top: 0;
+  }
+
+  .btn-registrar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .tarjeta {
+    padding: 0.5rem 1.2rem 1.6rem;
+  }
+
+  .galeria {
+    flex-direction: column;
+  }
+
+  .galeria__principal {
+    width: 100%;
+  }
+
+  .galeria__imagen {
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .galeria__agregar {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .agregar__icono {
+    width: 5rem;
+    height: 3.6rem;
+  }
+
+  .agregar__texto {
+    height: auto;
+    padding: 0 1rem;
+    font-size: 1.1rem;
+  }
+}

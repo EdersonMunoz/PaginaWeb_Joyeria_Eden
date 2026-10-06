@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { productosIniciales } from "./datos/productos";
+import LayoutAdmin from "./componentes/LayoutAdmin";
 import Catalogo from "./paginas/Catalogo";
 import RegistrarProducto from "./paginas/RegistrarProducto";
 import EditarProducto from "./paginas/EditarProducto";
@@ -20,14 +21,18 @@ function App() {
     <Routes>
       <Route path="/" element={<Catalogo productos={productos} />} />
       <Route path="/catalogo" element={<Catalogo productos={productos} />} />
-      <Route
-        path="/admin/productos/crear"
-        element={<RegistrarProducto agregarProducto={agregarProducto} />}
-      />
-      <Route
-        path="/admin/productos/editar/:id"
-        element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
-      />
+
+      {/* Pantallas de administrador: comparten el header */}
+      <Route element={<LayoutAdmin />}>
+        <Route
+          path="/admin/productos/crear"
+          element={<RegistrarProducto agregarProducto={agregarProducto} productos={productos} />}
+        />
+        <Route
+          path="/admin/productos/editar/:id"
+          element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
+        />
+      </Route>
     </Routes>
   );
 }

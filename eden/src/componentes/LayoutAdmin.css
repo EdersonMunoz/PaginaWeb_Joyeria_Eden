@@ -1,0 +1,139 @@
+/* Medidas tomadas del Figma (frame de 1440 px). 1rem = 16 px. */
+
+.app {
+  min-height: 100vh;
+}
+
+.main {
+  padding: 0 4.7rem 3rem 5.4rem;
+}
+
+/* ---------- Encabezado ---------- */
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  padding: 0.75rem 5.25rem 0 3.9rem;
+}
+
+.header__izquierda {
+  justify-self: start;
+  display: flex;
+  align-items: flex-end;
+  gap: 1.7rem;
+  margin-top: 2.9rem;
+}
+
+.header__icono {
+  display: grid;
+  place-items: center;
+  padding: 0 0.3rem 0.25rem;
+  border: none;
+  border-bottom: 1px solid var(--verde);
+  background: transparent;
+  color: var(--verde);
+}
+
+.header__icono--menu svg {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.header__icono--buscar svg {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.header__icono--carrito svg {
+  width: 2.1rem;
+  height: 2.1rem;
+}
+
+.header__icono--corazon svg {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.header__logo {
+  position: relative;
+  left: 0.7rem; /* en el Figma el logo está centrado sobre todo el frame */
+  display: flex;
+  justify-content: center;
+  width: 13.8rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--verde);
+}
+
+.header__logo-img {
+  display: block;
+  height: 6.7rem;
+  width: auto;
+}
+
+.header__derecha {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 1.05rem;
+  margin-top: 2.6rem;
+}
+
+.btn-login {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  height: 2.9rem;
+  padding: 0 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--verde);
+  color: var(--blanco);
+  font-size: 1rem;
+}
+
+.btn-login svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.btn-login:hover {
+  background: var(--verde-oscuro);
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 600px) {
+  .main {
+    padding: 0 1rem 2rem;
+  }
+
+  .header {
+    padding: 0.5rem 1rem 0;
+  }
+
+  .header__izquierda {
+    gap: 0.6rem;
+    margin-top: 1.8rem;
+  }
+
+  .header__logo {
+    left: 0;
+    width: 7rem;
+  }
+
+  .header__logo-img {
+    height: 4.5rem;
+  }
+
+  .header__derecha {
+    gap: 0.5rem;
+    margin-top: 1.6rem;
+  }
+
+  .btn-login {
+    padding: 0 0.75rem;
+  }
+
+  .btn-login__texto {
+    display: none;
+  }
+}
