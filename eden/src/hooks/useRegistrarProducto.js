@@ -5,20 +5,18 @@ import {
   limpiarRef,
   validarProducto,
 } from "../utilidades/producto";
-import useImagenesProducto from "./useImagenesProducto";
 
 // Tiempo que se muestra cada mensaje antes de cerrarse solo
 const DURACION_MENSAJE = { exito: 3000, error: 5000, "error-servidor": 5000 };
 
-// Toda la lógica de la HU1 - Registrar producto.
+// Toda la lógica de la HE1-HU1 - Registrar producto.
 // Recibe de App.jsx la función agregarProducto y la lista de productos
 // (para no repetir referencias). La pantalla solo se encarga de mostrar.
 export default function useRegistrarProducto({ agregarProducto, productos = [] }) {
   const [form, setForm] = useState(PRODUCTO_VACIO);
+  const [imagen, setImagen] = useState(null); // { url, archivo }
   const [errores, setErrores] = useState({});
   const [estado, setEstado] = useState(null); // null | "exito" | "error" | "error-servidor"
-  const [enviando, setEnviando] = useState(false);
-  const galeria = useImagenesProducto();
 
   // Los mensajes se cierran solos después de un tiempo
   useEffect(() => {
@@ -28,6 +26,11 @@ export default function useRegistrarProducto({ agregarProducto, productos = [] }
   }, [estado]);
 
   const cerrarMensaje = () => setEstado(null);
+
+  const cambiarImagen = (url, archivo) => {
+    if (imagen) URL.revokeObjectURL(imagen.url); // libera la foto anterior
+    setImagen({ url, archivo });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,10 +58,7 @@ export default function useRegistrarProducto({ agregarProducto, productos = [] }
       return;
     }
 
-    const urls = galeria.imagenes.map((i) => i.url);
-
     try {
-      setEnviando(true);
       // Mismo formato que los productos de datos/productos.js.
       // Cuando exista el backend en C#, aquí se cambia por la llamada a la API.
       await agregarProducto({
@@ -68,27 +68,24 @@ export default function useRegistrarProducto({ agregarProducto, productos = [] }
         categoria: form.categoria,
         stock: Number(form.stock),
         descripcion: form.descripcion.trim(),
-        imagen: urls[0] ?? "",
-        imagenes: urls,
+        imagen: imagen?.url ?? "",
         estado: "Activo",
       });
       setForm(PRODUCTO_VACIO);
-      galeria.limpiarImagenes({ liberar: false });
+      setImagen(null); // la URL no se libera: el catálogo sigue mostrando la foto
       setEstado("exito");
     } catch (err) {
       console.error(err);
       setEstado("error-servidor");
-    } finally {
-      setEnviando(false);
     }
   };
 
   return {
     form,
+    imagen,
     errores,
     estado,
-    enviando,
-    galeria,
+    cambiarImagen,
     handleChange,
     handleSubmit,
     cerrarMensaje,

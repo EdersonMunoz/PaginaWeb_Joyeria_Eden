@@ -4,7 +4,7 @@ import { productosIniciales } from "../datos/productos";
 import Encabezado from "../componentes/Encabezado";
 import FormularioProducto from "../componentes/FormularioProducto";
 import PanelDerechoProducto from "../componentes/PanelDerechoProducto";
-import "./EditarProducto.css";
+import "./PaginaProducto.css";
 
 function EditarProducto() {
   const { id } = useParams();
@@ -111,7 +111,7 @@ function EditarProducto() {
   };
 
   return (
-    <div className="pagina-editar">
+    <div className="pagina-producto">
       <Encabezado />
 
       <p className="miga-pan">Inicio \ Editar_Producto</p>

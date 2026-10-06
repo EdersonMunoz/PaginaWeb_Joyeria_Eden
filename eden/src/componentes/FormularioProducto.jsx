@@ -1,4 +1,5 @@
 import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
+import { CATEGORIAS } from "../utilidades/producto";
 import "./FormularioProducto.css";
 
 function FormularioProducto({
@@ -16,11 +17,12 @@ function FormularioProducto({
 
       <form className="formulario" onSubmit={onSubmit}>
         <div className="formulario-campos">
-          <label>
+          <label htmlFor="nombre">
             Nombre del producto<span className="asterisco-rojo">*</span>
           </label>
           <input
             type="text"
+            id="nombre"
             name="nombre"
             value={producto.nombre || ""}
             onChange={onChange}
@@ -28,11 +30,12 @@ function FormularioProducto({
             className={errores.nombre ? "campo-error" : ""}
           />
 
-          <label>
+          <label htmlFor="precio">
             Precio<span className="asterisco-rojo">*</span>
           </label>
           <input
             type="text"
+            id="precio"
             name="precio"
             value={producto.precio || ""}
             onChange={onChange}
@@ -40,27 +43,32 @@ function FormularioProducto({
             className={errores.precio ? "campo-error" : ""}
           />
 
-          <label>
+          <label htmlFor="categoria">
             Categoría<span className="asterisco-rojo">*</span>
           </label>
           <select
+            id="categoria"
             name="categoria"
-            value={producto.categoria || "Brazalete"}
+            value={producto.categoria || ""}
             onChange={onChange}
             className={errores.categoria ? "campo-error" : ""}
           >
-            <option value="Brazalete">Brazalete</option>
-            <option value="Cadenas">Cadenas</option>
-            <option value="Anillos">Anillos</option>
-            <option value="Aretes">Aretes</option>
-            <option value="Pulseras">Pulseras</option>
+            <option value="" disabled>
+              Presione para deslizar
+            </option>
+            {CATEGORIAS.map((categoria) => (
+              <option key={categoria} value={categoria}>
+                {categoria}
+              </option>
+            ))}
           </select>
 
-          <label>
+          <label htmlFor="stock">
             Stock<span className="asterisco-rojo">*</span>
           </label>
           <input
             type="text"
+            id="stock"
             name="stock"
             value={producto.stock || ""}
             onChange={onChange}
@@ -68,14 +76,15 @@ function FormularioProducto({
             className={errores.stock ? "campo-error" : ""}
           />
 
-          <label>
+          <label htmlFor="descripcion">
             Descripción<span className="asterisco-rojo">*</span>
           </label>
           <textarea
+            id="descripcion"
             name="descripcion"
             value={producto.descripcion || ""}
             onChange={onChange}
-            placeholder="Escriba la descripción..."
+            placeholder="Escriba aquí la descripción del producto: contexto, materiales detallados específicamente (composición y peso)"
             className={errores.descripcion ? "campo-error" : ""}
           />
         </div>

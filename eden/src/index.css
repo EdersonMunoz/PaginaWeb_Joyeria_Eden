@@ -1,66 +1,13 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@400;500&display=swap");
-
-/*
-  Escalado proporcional al Figma:
-  el prototipo está diseñado en un frame de 1440 px de ancho.
-  1rem = 16 px del Figma, y en pantallas más angostas todo se
-  reduce en la misma proporción, así se ve igual al prototipo.
-*/
-html {
-  font-size: min(16px, calc(100vw / 91.5));
-}
-
-@media (max-width: 1099px) {
-  html {
-    font-size: 12px;
-  }
-}
-
-:root {
-  /* Paleta oficial de Edén (coloresWEB) */
-  --crema: #fdfbf7;        /* fondo de la página */
-  --dorado: #e6cf9e;       /* detalles dorados */
-  --verde: #004d40;        /* botón login, líneas del header */
-  --cafe: #362219;         /* barra lateral */
-  --negro: #1a1a1a;        /* texto, bordes y botón principal */
-  --gris-azul: #e0e6ed;    /* espacio vacío de imágenes */
-  --blanco: #ffffff;
-
-  /* Derivados de la paleta (hover y foco) */
-  --verde-oscuro: #003a30;
-  --gris-azul-oscuro: #cfd8e2;
-
-  /* Colores de apoyo, tomados del Figma (no están en la paleta) */
-  --rojo: #e5262d;         /* campos con error y mensaje de error */
-  --gris-texto: #8a8a8a;   /* textos de ayuda (placeholder) */
-
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  color: var(--negro);
-  background: var(--crema);
-}
-
-*,
-*::before,
-*::after {
+/* Reseteo completo para ocupar toda la pantalla */
+* {
   box-sizing: border-box;
 }
 
-body {
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
   margin: 0;
-  background: var(--crema);
-}
-
-button {
-  font: inherit;
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-:focus-visible {
-  outline: 2px solid var(--verde);
-  outline-offset: 2px;
+  padding: 0;
+  background-color: #fbf9f4; 
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

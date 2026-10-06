@@ -1,8 +1,8 @@
 // Reglas y formatos del producto.
 // Se comparten entre Registrar producto (HU1) y Modificar producto (HU2).
 
-// Las mismas categorías que usan los productos de datos/productos.js
-export const CATEGORIAS = ["Anillos", "Aretes", "Brazaletes", "Cadenas", "Perfumería"];
+// Une las categorías de datos/productos.js con las que ya tenía el formulario de la HU2
+export const CATEGORIAS = ["Anillos", "Aretes", "Brazalete", "Cadenas", "Perfumería", "Pulseras"];
 
 export const PRODUCTO_VACIO = {
   nombre: "",
