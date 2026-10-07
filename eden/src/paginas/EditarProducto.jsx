@@ -1,47 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { productosIniciales } from "../datos/productos";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
 import FormularioProducto from "../componentes/FormularioProducto";
 import PanelDerechoProducto from "../componentes/PanelDerechoProducto";
 import "./EditarProducto.css";
 
-function EditarProducto() {
+function EditarProducto({ productos, editarProducto }) {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const productoExistente = productos.find((p) => String(p.id) === id);
 
-  const [producto, setProducto] = useState({
-    nombre: "",
-    precio: "",
-    categoria: "Brazalete",
-    stock: "",
-    descripcion: "",
-    ref: "",
-  });
+  const [producto, setProducto] = useState(() => ({
+    nombre: productoExistente?.nombre || "",
+    precio: productoExistente?.precio ? String(productoExistente.precio) : "",
+    categoria: productoExistente?.categoria || "Brazalete",
+    stock: productoExistente?.stock ? String(productoExistente.stock) : "",
+    descripcion: productoExistente?.descripcion || "",
+    ref: productoExistente?.ref || "",
+  }));
 
   const [errores, setErrores] = useState({});
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
   const [mostrarModalError, setMostrarModalError] = useState(false);
-  const [imagenPreview, setImagenPreview] = useState(null);
-
-  // Cargar datos dinámicos si existe un ID
-  useEffect(() => {
-    if (id && productosIniciales) {
-      const prodEncontrado = productosIniciales.find(
-        (p) => p.id === parseInt(id) || p.id === id
-      );
-      if (prodEncontrado) {
-        setProducto({
-          nombre: prodEncontrado.nombre || "",
-          precio: prodEncontrado.precio ? String(prodEncontrado.precio) : "",
-          categoria: prodEncontrado.categoria || "Brazalete",
-          stock: prodEncontrado.stock ? String(prodEncontrado.stock) : "",
-          descripcion: prodEncontrado.descripcion || "",
-          ref: prodEncontrado.ref || "",
-        });
-        if (prodEncontrado.imagen) setImagenPreview(prodEncontrado.imagen);
-      }
-    }
-  }, [id]);
+  const [imagenPreview, setImagenPreview] = useState(productoExistente?.imagen || null);
 
   // Cierre automático de modales tras 3 segundos
   useEffect(() => {
@@ -106,9 +87,22 @@ function EditarProducto() {
     if (Object.values(nuevosErrores).some(Boolean)) {
       setMostrarModalError(true);
     } else {
+      editarProducto(Number(id), {
+        ...producto,
+        precio: Number(producto.precio),
+        stock: Number(producto.stock),
+        imagen: imagenPreview,
+      });
       setMostrarModalExito(true);
     }
   };
+
+  useEffect(() => {
+    if (!mostrarModalExito) return undefined;
+
+    const timer = setTimeout(() => navigate("/catalogo"), 1500);
+    return () => clearTimeout(timer);
+  }, [mostrarModalExito, navigate]);
 
   return (
     <div className="pagina-editar">
