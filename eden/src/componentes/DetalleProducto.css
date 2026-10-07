@@ -1,0 +1,236 @@
+.detalle-producto-fondo {
+  position: fixed;
+  z-index: 900;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: rgb(251 249 244 / 56%);
+  backdrop-filter: blur(5px);
+}
+
+.detalle-producto-panel {
+  position: relative;
+  width: min(900px, 100%);
+  min-height: 540px;
+  padding: 48px 24px 32px;
+  background: #fffdfa;
+  box-shadow: 0 12px 48px rgb(0 0 0 / 14%);
+}
+
+.detalle-producto-cerrar,
+.detalle-producto-favorito {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.detalle-producto-cerrar {
+  top: 18px;
+  left: 18px;
+  color: #202020;
+}
+
+.detalle-producto-cerrar svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.detalle-producto-favorito {
+  top: 18px;
+  right: 22px;
+  width: 28px;
+  height: 28px;
+}
+
+.detalle-producto-favorito img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.detalle-producto-favorito.seleccionado {
+  filter: sepia(1) saturate(5) hue-rotate(290deg);
+}
+
+.detalle-producto-contenido {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 460px;
+}
+
+.detalle-producto-imagen-contenedor {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 380px;
+  background: #fff;
+}
+
+.detalle-producto-imagen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.detalle-producto-informacion {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-self: stretch;
+  padding: 48px 12px 8px 0;
+}
+
+.detalle-producto-informacion h2 {
+  margin: 0 0 4px;
+  font-size: clamp(22px, 2.8vw, 30px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.detalle-producto-descripcion {
+  margin: 0;
+  color: #6e6e6e;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.detalle-producto-precio {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 12px 0 2px;
+  color: #555;
+  font-size: 14px;
+}
+
+.detalle-producto-precio strong {
+  color: #202020;
+  font-size: clamp(23px, 3vw, 30px);
+}
+
+.detalle-producto-cantidad {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+.detalle-producto-control-cantidad {
+  display: inline-grid;
+  grid-template-columns: 42px 42px 42px;
+  min-height: 34px;
+  overflow: hidden;
+  background: #e5eaf0;
+  border-radius: 20px;
+  color: #202020;
+}
+
+.detalle-producto-control-cantidad button,
+.detalle-producto-control-cantidad output {
+  display: grid;
+  place-items: center;
+  border: 0;
+  font: inherit;
+}
+
+.detalle-producto-control-cantidad button {
+  background: transparent;
+  cursor: pointer;
+}
+
+.detalle-producto-control-cantidad button:disabled {
+  color: #9ba0a6;
+  cursor: not-allowed;
+}
+
+.detalle-producto-control-cantidad output {
+  background: #fff;
+}
+
+.detalle-producto-referencia {
+  margin: 32px 0 0;
+  color: #555;
+  font-size: 11px;
+}
+
+.detalle-producto-comprar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 150px;
+  min-height: 44px;
+  margin: auto 0 4px auto;
+  padding: 0 18px;
+  color: #fff;
+  background: #171717;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detalle-producto-comprar img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.detalle-producto-panel :focus-visible {
+  outline: 2px solid #1b4d3e;
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .detalle-producto-fondo {
+    padding: 12px;
+  }
+
+  .detalle-producto-panel {
+    max-height: calc(100vh - 24px);
+    min-height: 0;
+    padding: 48px 18px 18px;
+    overflow-y: auto;
+  }
+
+  .detalle-producto-contenido {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .detalle-producto-imagen-contenedor {
+    height: min(42vh, 300px);
+  }
+
+  .detalle-producto-informacion {
+    padding: 0;
+  }
+
+  .detalle-producto-referencia {
+    margin-top: 20px;
+  }
+
+  .detalle-producto-comprar {
+    margin-top: 22px;
+  }
+}
