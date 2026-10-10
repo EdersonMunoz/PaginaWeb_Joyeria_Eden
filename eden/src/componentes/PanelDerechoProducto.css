@@ -89,6 +89,16 @@
   color: #222222;
 }
 
+.boton-agregar-foto:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.boton-agregar-foto-error {
+  outline: 2px solid #d93025;
+  outline-offset: 2px;
+}
+
 .area-icono {
   width: 100%;
   flex: 1;
@@ -144,6 +154,14 @@
 
 .campo-ref-error input {
   border-left: 1.5px solid #d93025;
+}
+
+.campo-ref-mensaje {
+  width: min(100%, 300px);
+  margin: 8px auto 0;
+  color: #d93025;
+  font-size: 13px;
+  text-align: center;
 }
 
 @media (max-width: 960px) {

@@ -17,6 +17,9 @@
   padding: 6px 40px 30px;
   background-color: #ffffff;
   border-radius: 0 0 14px 14px;
+  border: 0;
+  margin: 0;
+  min-width: 0;
 }
 
 .formulario {
@@ -46,7 +49,7 @@
   width: 100%;
   height: 51px;
   padding: 10px 14px;
-  border: 1.5px solid #333333;
+  border: 1.5px solid #a6a6a6;
   border-radius: 8px;
   background-color: #ffffff;
   color: #222222;
@@ -54,6 +57,16 @@
   font-family: inherit;
   outline: none;
   transition: border-color 0.2s ease;
+}
+
+.formulario input:disabled,
+.formulario select:disabled,
+.formulario textarea:disabled {
+  color: #666;
+  background-color: #fff;
+  border-color: #a6a6a6;
+  opacity: 1;
+  -webkit-text-fill-color: #666;
 }
 
 .formulario input::placeholder,
@@ -93,6 +106,11 @@
 
 .boton-guardar:hover {
   background-color: #333333;
+}
+
+.boton-guardar:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .icono-lapiz {

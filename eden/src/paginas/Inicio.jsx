@@ -1,11 +1,9 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import Encabezado from "../componentes/Encabezado";
 import "./Inicio.css";
 
 import fondoMenu from "../assets/fondoMenu.png";
-import iconoAjustes from "../assets/iconoAjustes.png";
-import iconoX from "../assets/iconoX.png";
+import iconoMas from "../assets/Iconos_HU2/iconoMas.png";
+import iconoCorazon from "../assets/Iconos_HU2/iconoCorazon.png";
 
 const productosDestacados = [
   {
@@ -25,173 +23,96 @@ const productosDestacados = [
   },
 ];
 
-function Inicio({ administrador = false }) {
-  const navigate = useNavigate();
-  const [menuAbierto, setMenuAbierto] = useState(false);
-  const [perfilAbierto, setPerfilAbierto] = useState(false);
+const productosMasVendidos = [
+  {
+    nombre: "Valentino Uomo Born in Roma",
+    marca: "VALENTINO",
+    imagen: "/productos/LocionValentino.jpg",
+    precio: "$789.900",
+  },
+  {
+    nombre: "Valentino Uomo Born in Roma",
+    marca: "VALENTINO",
+    imagen: "/productos/LocionValentino.jpg",
+    precio: "$789.900",
+  },
+  {
+    nombre: "Valentino Uomo Born in Roma",
+    marca: "VALENTINO",
+    imagen: "/productos/LocionValentino.jpg",
+    precio: "$789.900",
+  },
+];
 
-  useEffect(() => {
-    if (!menuAbierto && !perfilAbierto) {
-      return undefined;
-    }
-
-    const cerrarConEscape = (event) => {
-      if (event.key === "Escape") {
-        setMenuAbierto(false);
-        setPerfilAbierto(false);
-      }
-    };
-
-    document.addEventListener("keydown", cerrarConEscape);
-    return () => document.removeEventListener("keydown", cerrarConEscape);
-  }, [menuAbierto, perfilAbierto]);
+function Inicio({ administrador = false, usuario = false }) {
+  const sesionIniciada = administrador || usuario;
 
   return (
     <main className="pagina-inicio">
       <Encabezado
         administrador={administrador}
-        onAbrirBusqueda={() =>
-          navigate("/catalogo", {
-            state: {
-              abrirBusqueda: true,
-              regresarA: administrador ? "/admin" : "/",
-            },
-          })
-        }
-        onAbrirMenu={() => setMenuAbierto(true)}
-        onVerPerfil={administrador ? () => setPerfilAbierto(true) : undefined}
+        sesionIniciada={sesionIniciada}
+        mostrarLogin={!sesionIniciada}
+        ocultarTendencias
       />
 
-      <section
-        className="inicio-portada"
-        style={{ backgroundImage: `url("${fondoMenu}")` }}
-        aria-labelledby="inicio-titulo"
-      >
-        <div className="inicio-portada-contenido">
-          <p>Joyería y perfumería</p>
-          <h1 id="inicio-titulo">EDEN</h1>
-        </div>
-      </section>
-
-      <section className="inicio-destacados" aria-label="Productos destacados">
-        {productosDestacados.map((producto) => (
-          <Link
-            className="inicio-tarjeta-destacada"
-            key={producto.nombre}
-            to="/catalogo"
-            state={{ regresarA: administrador ? "/admin" : "/" }}
-            aria-label={`Explorar catálogo: ${producto.nombre}`}
-          >
-            <img src={producto.imagen} alt={producto.descripcion} />
-          </Link>
-        ))}
-      </section>
-
-      {menuAbierto && (
+      <section className="inicio-principal" aria-labelledby="inicio-titulo">
         <div
-          className="inicio-menu-fondo"
-          onClick={() => setMenuAbierto(false)}
+          className="inicio-portada"
+          style={{ backgroundImage: `url("${fondoMenu}")` }}
         >
-          <aside
-            className="inicio-menu-admin"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="inicio-menu-titulo"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="inicio-menu-encabezado">
-              <h2 id="inicio-menu-titulo">Menú</h2>
-              <button
-                type="button"
-                aria-label="Cerrar menú"
-                onClick={() => setMenuAbierto(false)}
-              >
-                <img src={iconoX} alt="" />
-              </button>
-            </div>
+          <div className="inicio-portada-contenido">
+            <p>Joyería y perfumería</p>
+            <h1 id="inicio-titulo">EDEN</h1>
+          </div>
+        </div>
 
-            <nav
-              className="inicio-menu-enlaces"
-              aria-label={administrador ? "Administración" : "Navegación principal"}
+        <div className="inicio-destacados" aria-label="Productos destacados">
+          {productosDestacados.map((producto) => (
+            <div
+              className="inicio-tarjeta-destacada"
+              key={producto.nombre}
             >
-              <Link
-                to="/catalogo"
-                state={{ regresarA: administrador ? "/admin" : "/" }}
-                onClick={() => setMenuAbierto(false)}
-              >
-                Catálogo
-              </Link>
-              {administrador && (
-                <>
-                  <Link
-                    to="/admin/productos/crear"
-                    onClick={() => setMenuAbierto(false)}
-                  >
-                    Agregar producto/os
-                  </Link>
-                  <button type="button" disabled>
-                    Editar producto/os
-                  </button>
-                  <button type="button" disabled>
-                    Eliminar producto/os
-                  </button>
-                  <Link
-                    to="/catalogo"
-                    state={{ regresarA: "/admin" }}
-                    onClick={() => setMenuAbierto(false)}
-                  >
-                    Gestión de productos
-                  </Link>
-                </>
-              )}
-            </nav>
-
-            {administrador && (
-              <div className="inicio-menu-pie">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuAbierto(false);
-                    setPerfilAbierto(true);
-                  }}
-                >
-                  Cuenta <img src={iconoAjustes} alt="" />
-                </button>
-                <Link to="/" onClick={() => setMenuAbierto(false)}>
-                  Cerrar sesión
-                </Link>
-              </div>
-            )}
-          </aside>
-        </div>
-      )}
-
-      {administrador && perfilAbierto && (
-        <div
-          className="inicio-perfil-fondo"
-          onClick={() => setPerfilAbierto(false)}
-        >
-          <section
-            className="inicio-perfil-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="inicio-perfil-titulo"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="inicio-menu-encabezado">
-              <h2 id="inicio-perfil-titulo">Perfil administrador</h2>
-              <button
-                type="button"
-                aria-label="Cerrar perfil"
-                onClick={() => setPerfilAbierto(false)}
-              >
-                <img src={iconoX} alt="" />
-              </button>
+              <img src={producto.imagen} alt={producto.descripcion} />
             </div>
-            <p>Vista de demostración. El inicio de sesión aún no está conectado.</p>
-          </section>
+          ))}
         </div>
-      )}
+      </section>
+
+      <section className="inicio-mas-vendidos" aria-labelledby="mas-vendidos-titulo">
+        <h2 id="mas-vendidos-titulo">
+          <span>Nuestros productos favoritos</span>
+          <strong><span>Los</span> más vendidos</strong>
+        </h2>
+        <div className="inicio-mas-vendidos-lista">
+          {productosMasVendidos.map((producto, indice) => (
+            <article
+              className="inicio-tarjeta-mas-vendido"
+              key={`${producto.nombre}-${indice}`}
+            >
+              <img
+                className="inicio-mas-vendido-imagen"
+                src={producto.imagen}
+                alt={producto.nombre}
+              />
+              <span className="inicio-mas-vendido-marca">{producto.marca}</span>
+              <span className="inicio-mas-vendido-descripcion">
+                <span className="inicio-mas-vendido-nombre">{producto.nombre}</span>
+                <span className="inicio-mas-vendido-agregar">
+                  <img src={iconoMas} alt="" />
+                </span>
+              </span>
+              <span className="inicio-mas-vendido-pie">
+                <span className="inicio-mas-vendido-precio">{producto.precio}</span>
+                <span className="inicio-mas-vendido-favorito" aria-hidden="true">
+                  <img src={iconoCorazon} alt="" />
+                </span>
+              </span>
+            </article>
+          ))}
+        </div>
+      </section>
+
     </main>
   );
 }

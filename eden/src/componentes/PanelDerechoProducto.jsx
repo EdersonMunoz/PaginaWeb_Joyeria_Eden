@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import iconoMas from "../assets/Iconos_HU2/iconoMas.png";
 import "./PanelDerechoProducto.css";
 
@@ -7,7 +7,12 @@ function PanelDerechoProducto({
   onCambiarImagen,
   refValor = "",
   refError = false,
+  refMensaje = "",
+  imagenError = false,
+  onChangeReferencia,
   onChangeInput,
+  deshabilitarFoto = false,
+  esBuscarReferencia = false,
 }) {
   const fileInputRef = useRef(null);
 
@@ -56,9 +61,12 @@ function PanelDerechoProducto({
         </div>
 
         <button
-          className="boton-agregar-foto"
+          className={`boton-agregar-foto${imagenError ? " boton-agregar-foto-error" : ""}`}
           type="button"
           onClick={manejarClickFoto}
+          disabled={deshabilitarFoto}
+          aria-invalid={imagenError}
+          aria-label={imagenError ? "Agregar foto, campo obligatorio" : "Agregar foto"}
         >
           <div className="area-icono">
             <img src={iconoMas} alt="Agregar foto" />
@@ -68,16 +76,26 @@ function PanelDerechoProducto({
       </div>
 
       <div className={`campo-ref ${refError ? "campo-ref-error" : ""}`}>
-        <label>
+        <label htmlFor="referencia-producto">
           Ref<span className="asterisco-rojo">*</span>
         </label>
         <input
           type="text"
+          id="referencia-producto"
           name="ref"
           value={refValor}
-          onChange={onChangeInput}
+          onChange={onChangeReferencia || onChangeInput}
+          placeholder={esBuscarReferencia ? "Buscar por referencia" : ""}
+          autoComplete="off"
+          aria-invalid={refError}
+          aria-describedby={refMensaje ? "referencia-mensaje" : undefined}
         />
       </div>
+      {refMensaje && (
+        <p className="campo-ref-mensaje" id="referencia-mensaje" role="status">
+          {refMensaje}
+        </p>
+      )}
     </div>
   );
 }

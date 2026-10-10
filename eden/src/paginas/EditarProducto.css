@@ -5,6 +5,19 @@
   box-sizing: border-box;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .pagina-editar .encabezado-icono,
+  .pagina-editar .boton-login img,
+  .pagina-editar .foto-principal,
+  .pagina-editar .boton-agregar-foto,
+  .pagina-editar .boton-guardar,
+  .pagina-editar .imagen-cargada,
+  .pagina-editar .area-icono img,
+  .pagina-editar .icono-lapiz {
+    transition: none;
+  }
+}
+
 .pagina-editar .encabezado {
   position: relative;
   display: grid;
@@ -27,6 +40,12 @@
 .pagina-editar .encabezado-icono {
   width: 30px;
   height: 30px;
+  transition: transform 160ms ease;
+}
+
+.pagina-editar .icono-subrayado:hover .encabezado-icono,
+.pagina-editar .boton-login:hover img {
+  transform: translateY(-2px) scale(1.06);
 }
 
 .pagina-editar .icono-subrayado {
@@ -59,12 +78,76 @@
   height: 23px;
 }
 
+.pagina-editar .boton-login img {
+  transition: transform 160ms ease;
+}
+
+.pagina-editar:not(.pagina-registrar) .boton-guardar,
+.pagina-editar:not(.pagina-registrar) .boton-guardar:hover,
+.pagina-editar:not(.pagina-registrar) .boton-guardar:disabled {
+  background-color: #000;
+  color: #fff;
+}
+
+.pagina-editar:not(.pagina-registrar) .boton-guardar:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.pagina-editar:not(.pagina-registrar) .boton-guardar {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.pagina-editar:not(.pagina-registrar) .boton-guardar:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgb(0 0 0 / 20%);
+}
+
+.pagina-editar .foto-principal,
+.pagina-editar .boton-agregar-foto {
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.pagina-editar .foto-principal:hover,
+.pagina-editar .boton-agregar-foto:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 14px rgb(0 0 0 / 18%);
+}
+
+.pagina-editar .imagen-cargada {
+  transition: transform 180ms ease;
+}
+
+.pagina-editar .foto-principal:hover .imagen-cargada {
+  transform: scale(1.035);
+}
+
+.pagina-editar .area-icono img,
+.pagina-editar .icono-lapiz {
+  transition: transform 160ms ease;
+}
+
+.pagina-editar .boton-agregar-foto:not(:disabled):hover .area-icono img,
+.pagina-editar .boton-guardar:not(:disabled):hover .icono-lapiz {
+  transform: scale(1.12);
+}
+
 .miga-pan {
   width: min(960px, calc(100% - 64px));
   font-size: 16px;
   color: #456e64;
   margin: 8px auto 26px;
   font-weight: 500;
+}
+
+.miga-pan a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.miga-pan a:hover,
+.miga-pan a:focus-visible {
+  text-decoration: underline;
 }
 
 .contenido {
@@ -150,6 +233,238 @@
 .modal-error {
   max-width: min(550px, calc(100vw - 32px));
   border-color: #f33727;
+}
+
+@media (min-width: 961px) {
+  html:has(.pagina-editar:not(.pagina-registrar)),
+  body:has(.pagina-editar:not(.pagina-registrar)) {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .pagina-editar:not(.pagina-registrar) {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .encabezado {
+    flex: 0 0 132px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .miga-pan {
+    flex: 0 0 auto;
+    margin-bottom: 12px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .contenido {
+    flex: 1;
+    min-height: 0;
+    align-items: center;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .contenido::before {
+    height: min(420px, calc(100dvh - 320px));
+  }
+
+  .pagina-editar:not(.pagina-registrar) .panel-formulario h1 {
+    padding: 5px 0 3px;
+    font-size: 23px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .formulario-campos {
+    padding: 4px 30px 12px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .formulario label {
+    margin: 4px 0 2px;
+    font-size: 15px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .formulario input,
+  .pagina-editar:not(.pagina-registrar) .formulario select,
+  .pagina-editar:not(.pagina-registrar) .formulario textarea {
+    height: 39px;
+    padding: 7px 11px;
+    font-size: 14px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .formulario textarea {
+    height: 96px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .boton-guardar {
+    margin-top: 4px;
+    padding: 10px 22px;
+    font-size: 15px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .icono-lapiz {
+    width: 18px;
+    height: 18px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .titulo-marca {
+    margin: 0 32px 16px 0;
+    font-size: 24px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .titulo-marca span {
+    font-size: 70px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .zona-foto {
+    gap: 24px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .foto-principal {
+    width: 260px;
+    height: 280px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .base-blanca {
+    height: 40px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .boton-agregar-foto {
+    width: 116px;
+    height: 130px;
+    font-size: 14px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .campo-ref {
+    height: 42px;
+    margin-top: 20px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .campo-ref label {
+    padding: 0 11px;
+    font-size: 22px;
+  }
+
+  .pagina-editar:not(.pagina-registrar) .campo-ref input {
+    width: 158px;
+    font-size: 19px;
+  }
+
+  html:has(.pagina-registrar),
+  body:has(.pagina-registrar) {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .pagina-registrar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  .pagina-registrar .encabezado {
+    flex: 0 0 132px;
+  }
+
+  .pagina-registrar .miga-pan {
+    flex: 0 0 auto;
+    margin-bottom: 12px;
+  }
+
+  .pagina-registrar .contenido {
+    flex: 1;
+    min-height: 0;
+    align-items: center;
+  }
+
+  .pagina-registrar .contenido::before {
+    height: min(420px, calc(100dvh - 320px));
+  }
+
+  .pagina-registrar .panel-formulario h1 {
+    padding: 5px 0 3px;
+    font-size: 23px;
+  }
+
+  .pagina-registrar .formulario-campos {
+    padding: 4px 30px 12px;
+  }
+
+  .pagina-registrar .formulario label {
+    margin: 4px 0 2px;
+    font-size: 15px;
+  }
+
+  .pagina-registrar .formulario input,
+  .pagina-registrar .formulario select,
+  .pagina-registrar .formulario textarea {
+    height: 39px;
+    padding: 7px 11px;
+    font-size: 14px;
+  }
+
+  .pagina-registrar .formulario textarea {
+    height: 96px;
+  }
+
+  .pagina-registrar .boton-guardar {
+    margin-top: 4px;
+    padding: 10px 22px;
+    font-size: 15px;
+  }
+
+  .pagina-registrar .icono-lapiz {
+    width: 18px;
+    height: 18px;
+  }
+
+  .pagina-registrar .titulo-marca {
+    margin: 0 32px 16px 0;
+    font-size: 24px;
+  }
+
+  .pagina-registrar .titulo-marca span {
+    font-size: 70px;
+  }
+
+  .pagina-registrar .zona-foto {
+    gap: 24px;
+  }
+
+  .pagina-registrar .foto-principal {
+    width: 260px;
+    height: 280px;
+  }
+
+  .pagina-registrar .base-blanca {
+    height: 40px;
+  }
+
+  .pagina-registrar .boton-agregar-foto {
+    width: 116px;
+    height: 130px;
+    font-size: 14px;
+  }
+
+  .pagina-registrar .campo-ref {
+    height: 42px;
+    margin-top: 20px;
+  }
+
+  .pagina-registrar .campo-ref label {
+    padding: 0 11px;
+    font-size: 22px;
+  }
+
+  .pagina-registrar .campo-ref input {
+    width: 158px;
+    font-size: 19px;
+  }
 }
 
 @keyframes fadeIn {
