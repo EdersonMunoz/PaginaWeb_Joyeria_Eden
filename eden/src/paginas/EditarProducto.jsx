@@ -1,28 +1,46 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
 import FormularioProducto from "../componentes/FormularioProducto";
 import PanelDerechoProducto from "../componentes/PanelDerechoProducto";
 import "./EditarProducto.css";
 
+const productoVacio = {
+  nombre: "",
+  precio: "",
+  categoria: "",
+  stock: "",
+  descripcion: "",
+};
+
+const obtenerCamposProducto = (producto) =>
+  producto
+    ? {
+        nombre: producto.nombre,
+        precio: String(producto.precio),
+        categoria: producto.categoria,
+        stock: String(producto.stock),
+        descripcion: producto.descripcion,
+      }
+    : productoVacio;
+
 function EditarProducto({ productos, editarProducto }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const productoExistente = productos.find((p) => String(p.id) === id);
+  const productoInicial = id
+    ? productos.find((item) => String(item.id) === id) || null
+    : null;
 
-  const [producto, setProducto] = useState(() => ({
-    nombre: productoExistente?.nombre || "",
-    precio: productoExistente?.precio ? String(productoExistente.precio) : "",
-    categoria: productoExistente?.categoria || "Brazalete",
-    stock: productoExistente?.stock ? String(productoExistente.stock) : "",
-    descripcion: productoExistente?.descripcion || "",
-    ref: productoExistente?.ref || "",
-  }));
+  const [productoSeleccionado, setProductoSeleccionado] = useState(productoInicial);
+  const [producto, setProducto] = useState(() => obtenerCamposProducto(productoInicial));
+  const [referencia, setReferencia] = useState(productoInicial?.ref || "");
+  const [referenciaNoEncontrada, setReferenciaNoEncontrada] = useState(false);
 
-  const [errores, setErrores] = useState({});
+  const [mostrarErrores, setMostrarErrores] = useState(false);
+  const [precioTocado, setPrecioTocado] = useState(false);
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
   const [mostrarModalError, setMostrarModalError] = useState(false);
-  const [imagenPreview, setImagenPreview] = useState(productoExistente?.imagen || null);
+  const [imagenPreview, setImagenPreview] = useState(productoInicial?.imagen || null);
 
   // Cierre automático de modales tras 3 segundos
   useEffect(() => {
@@ -67,48 +85,79 @@ function EditarProducto({ productos, editarProducto }) {
   const manejarCambioInput = (e) => {
     const { name, value } = e.target;
     setProducto((prev) => ({ ...prev, [name]: value }));
-    setErrores((prev) => ({ ...prev, [name]: esCampoInvalido(name, value) }));
   };
+
+  const manejarBusquedaReferencia = (event) => {
+    const valor = event.target.value;
+    setReferencia(valor);
+
+    const consulta = valor.trim().toLocaleLowerCase();
+    const coincidencia = consulta
+      ? productos.find(
+          (item) => item.ref.trim().toLocaleLowerCase() === consulta,
+        ) || null
+      : null;
+
+    setProductoSeleccionado(coincidencia);
+    setProducto(obtenerCamposProducto(coincidencia));
+    setImagenPreview(coincidencia?.imagen || null);
+    setMostrarErrores(false);
+    setPrecioTocado(false);
+    setReferenciaNoEncontrada(Boolean(consulta) && !coincidencia);
+    setMostrarModalExito(false);
+    setMostrarModalError(false);
+  };
+
+  const errores = Object.fromEntries(
+    Object.entries(producto).map(([nombre, valor]) => [
+      nombre,
+      esCampoInvalido(nombre, valor) &&
+        (mostrarErrores ||
+          (nombre === "precio" &&
+            precioTocado &&
+            String(valor).trim() !== "")),
+    ]),
+  );
 
   const manejarGuardar = (e) => {
     e.preventDefault();
-
-    const nuevosErrores = {
-      nombre: esCampoInvalido("nombre", producto.nombre),
-      precio: esCampoInvalido("precio", producto.precio),
-      categoria: esCampoInvalido("categoria", producto.categoria),
-      stock: esCampoInvalido("stock", producto.stock),
-      descripcion: esCampoInvalido("descripcion", producto.descripcion),
-      ref: esCampoInvalido("ref", producto.ref),
-    };
-
-    setErrores(nuevosErrores);
-
-    if (Object.values(nuevosErrores).some(Boolean)) {
-      setMostrarModalError(true);
-    } else {
-      editarProducto(Number(id), {
-        ...producto,
-        precio: Number(producto.precio),
-        stock: Number(producto.stock),
-        imagen: imagenPreview,
-      });
-      setMostrarModalExito(true);
+    if (!productoSeleccionado) {
+      return;
     }
+
+    setMostrarErrores(true);
+    const hayErrores = Object.entries(producto).some(([nombre, valor]) =>
+      esCampoInvalido(nombre, valor),
+    );
+    if (hayErrores) {
+      setMostrarModalExito(false);
+      setMostrarModalError(true);
+      return;
+    }
+
+    editarProducto(productoSeleccionado.id, {
+      ...producto,
+      precio: Number(producto.precio),
+      stock: Number(producto.stock),
+      imagen: imagenPreview,
+    });
+    setMostrarModalError(false);
+    setMostrarModalExito(true);
   };
-
-  useEffect(() => {
-    if (!mostrarModalExito) return undefined;
-
-    const timer = setTimeout(() => navigate("/catalogo"), 1500);
-    return () => clearTimeout(timer);
-  }, [mostrarModalExito, navigate]);
 
   return (
     <div className="pagina-editar">
-      <Encabezado />
+      <Encabezado
+        administrador
+        ocultarTendencias
+        onVerPerfil={() => navigate("/Admin")}
+      />
 
-      <p className="miga-pan">Inicio \ Editar_Producto</p>
+      <p className="miga-pan">
+        <Link to="/Admin">Inicio</Link>
+        <span aria-hidden="true"> \ </span>
+        Editar_Producto
+      </p>
 
       <div className="contenido">
         {/* COMPONENTE 1: FORMULARIO */}
@@ -117,7 +166,9 @@ function EditarProducto({ productos, editarProducto }) {
           textoBoton="Guardar cambios"
           producto={producto}
           errores={errores}
+          deshabilitado={!productoSeleccionado}
           onChange={manejarCambioInput}
+          onBlurPrecio={() => setPrecioTocado(true)}
           onSubmit={manejarGuardar}
         />
 
@@ -125,9 +176,16 @@ function EditarProducto({ productos, editarProducto }) {
         <PanelDerechoProducto
           imagenPreview={imagenPreview}
           onCambiarImagen={(url) => setImagenPreview(url)}
-          refValor={producto.ref}
-          refError={errores.ref}
-          onChangeInput={manejarCambioInput}
+          refValor={referencia}
+          refError={referenciaNoEncontrada}
+          refMensaje={
+            referenciaNoEncontrada
+              ? "No encontramos un producto con esa referencia."
+              : ""
+          }
+          onChangeReferencia={manejarBusquedaReferencia}
+          deshabilitarFoto={!productoSeleccionado}
+          esBuscarReferencia
         />
       </div>
 
@@ -154,7 +212,7 @@ function EditarProducto({ productos, editarProducto }) {
 
       {mostrarModalError && (
         <div className="overlay-modal">
-          <div className="modal-contenido modal-error">
+          <div className="modal-contenido modal-error" role="alert">
             <svg
               className="icono-modal-error"
               viewBox="0 0 24 24"
@@ -163,6 +221,7 @@ function EditarProducto({ productos, editarProducto }) {
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
             >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />

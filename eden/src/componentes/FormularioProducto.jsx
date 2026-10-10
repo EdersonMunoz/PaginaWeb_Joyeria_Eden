@@ -7,7 +7,9 @@ function FormularioProducto({
   iconoBoton = iconoLapiz,
   producto = {},
   errores = {},
+  deshabilitado = false,
   onChange,
+  onBlurPrecio,
   onSubmit,
 }) {
   return (
@@ -15,7 +17,7 @@ function FormularioProducto({
       <h1>{titulo}</h1>
 
       <form className="formulario" onSubmit={onSubmit}>
-        <div className="formulario-campos">
+        <fieldset className="formulario-campos" disabled={deshabilitado}>
           <label>
             Nombre del producto<span className="asterisco-rojo">*</span>
           </label>
@@ -36,6 +38,7 @@ function FormularioProducto({
             name="precio"
             value={producto.precio || ""}
             onChange={onChange}
+            onBlur={onBlurPrecio}
             placeholder="Digite aquí el valor del producto"
             className={errores.precio ? "campo-error" : ""}
           />
@@ -45,14 +48,17 @@ function FormularioProducto({
           </label>
           <select
             name="categoria"
-            value={producto.categoria || "Brazalete"}
+            value={producto.categoria ?? "Brazalete"}
             onChange={onChange}
             className={errores.categoria ? "campo-error" : ""}
           >
+            <option value="">Selecciona una categoría</option>
+            <option value="Perfumería">Perfumería</option>
             <option value="Brazalete">Brazalete</option>
             <option value="Cadenas">Cadenas</option>
             <option value="Anillos">Anillos</option>
             <option value="Aretes">Aretes</option>
+            <option value="Pulsos">Pulsos</option>
             <option value="Pulseras">Pulseras</option>
           </select>
 
@@ -78,9 +84,13 @@ function FormularioProducto({
             placeholder="Escriba la descripción..."
             className={errores.descripcion ? "campo-error" : ""}
           />
-        </div>
+        </fieldset>
 
-        <button type="submit" className="boton-guardar">
+        <button
+          type="submit"
+          className="boton-guardar"
+          disabled={deshabilitado}
+        >
           {iconoBoton && (
             <img src={iconoBoton} alt="Icono del botón" className="icono-lapiz" />
           )}

@@ -1,19 +1,15 @@
 .pagina-inicio {
   position: relative;
-  display: flex;
-  height: 100vh;
-  height: 100svh;
-  min-height: 0;
-  flex-direction: column;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: clip;
   color: #282828;
   background: #fbf9f4;
 }
 
 .pagina-inicio .encabezado {
-  position: relative;
-  z-index: 1;
-  flex: 0 0 auto;
+  position: sticky;
+  z-index: 3;
+  top: 0;
   padding: 12px clamp(20px, 4vw, 64px) 8px;
 }
 
@@ -49,9 +45,17 @@
   font-size: 14px;
 }
 
-.pagina-inicio .boton-login svg {
+.pagina-inicio .boton-login img {
   width: 18px;
   height: 18px;
+}
+
+.inicio-principal {
+  position: relative;
+  min-height: calc(100vh - 132px);
+  min-height: calc(100svh - 132px);
+  display: flex;
+  flex-direction: column;
 }
 
 .inicio-portada {
@@ -77,8 +81,21 @@
 }
 
 .inicio-portada-contenido {
-  padding: 9% 8%;
+  position: absolute;
+  top: 6%;
+  left: 2%;
+  display: flex;
+  width: 88%;
+  height: 56%;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4% 6%;
   color: #fff;
+  background: rgb(251 249 244 / 12%);
+  border: 1px solid rgb(255 255 255 / 48%);
+  border-radius: 16px;
+  box-shadow: inset 0 1px rgb(255 255 255 / 12%), 0 8px 28px rgb(0 0 0 / 8%);
+  backdrop-filter: blur(2px);
 }
 
 .inicio-portada-contenido p {
@@ -105,6 +122,171 @@
   bottom: clamp(16px, 4vh, 36px);
   left: 50%;
   transform: translateX(-50%);
+}
+
+.inicio-mas-vendidos {
+  min-height: calc(100vh - 132px);
+  min-height: calc(100svh - 132px);
+  padding: clamp(38px, 6.5vh, 60px) 24px 64px;
+}
+
+.inicio-mas-vendidos h2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto clamp(42px, 6vh, 58px);
+  color: #35251e;
+  font-size: clamp(22px, 3.2vw, 36px);
+  font-weight: 400;
+  line-height: 1.08;
+  text-align: center;
+}
+
+.inicio-mas-vendidos h2 > span {
+  color: #e6d2a0;
+}
+
+.inicio-mas-vendidos h2 strong {
+  font-weight: 700;
+}
+
+.inicio-mas-vendidos h2 strong span {
+  color: #e6d2a0;
+}
+
+.inicio-mas-vendidos-lista {
+  display: grid;
+  width: min(80%, 980px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 7vw, 80px);
+  margin: 0 auto;
+}
+
+.inicio-tarjeta-mas-vendido {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 10px 11px 12px;
+  color: #111;
+  background: #fff;
+  border-radius: 16px;
+}
+
+.inicio-mas-vendido-imagen {
+  width: 100%;
+  aspect-ratio: 1;
+  margin-bottom: 8px;
+  object-fit: cover;
+  border-radius: 14px;
+  transition: transform 180ms ease;
+}
+
+.inicio-mas-vendido-marca,
+.inicio-mas-vendido-nombre {
+  padding: 0 5px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.inicio-mas-vendido-marca {
+  font-weight: 700;
+}
+
+.inicio-mas-vendido-nombre {
+  min-width: 0;
+  font-weight: 600;
+}
+
+.inicio-mas-vendido-descripcion {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 5px;
+}
+
+.inicio-mas-vendido-agregar {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  background: #1b4d3e;
+  border-radius: 50%;
+}
+
+.inicio-mas-vendido-agregar img {
+  display: block;
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
+  object-fit: contain;
+}
+
+.inicio-mas-vendido-pie {
+  display: flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 5px;
+}
+
+.inicio-mas-vendido-precio {
+  padding: 3px 11px;
+  color: #fff;
+  background: #35251e;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.inicio-mas-vendido-favorito {
+  display: inline-flex;
+  align-items: center;
+}
+
+.inicio-mas-vendido-favorito img {
+  display: block;
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  transition: transform 160ms ease;
+}
+
+.inicio-tarjeta-mas-vendido {
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.inicio-tarjeta-mas-vendido:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 12%);
+}
+
+.inicio-tarjeta-mas-vendido:hover .inicio-mas-vendido-imagen {
+  transform: scale(1.015);
+}
+
+.inicio-mas-vendido-agregar,
+.inicio-mas-vendido-favorito {
+  cursor: pointer;
+}
+
+.inicio-mas-vendido-agregar {
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.inicio-mas-vendido-agregar:hover {
+  transform: scale(1.08);
+  background: #28624f;
+}
+
+.inicio-mas-vendido-favorito:hover img {
+  transform: scale(1.12);
 }
 
 .inicio-menu-fondo,
@@ -192,14 +374,22 @@
 }
 
 .inicio-menu-enlaces a:hover,
+.inicio-menu-enlaces button:hover,
 .inicio-menu-pie a:hover,
 .inicio-menu-pie button:hover {
   color: #1b4d3e;
 }
 
-.inicio-menu-enlaces button:disabled {
-  color: #777;
-  cursor: not-allowed;
+.inicio-menu-enlaces a,
+.inicio-menu-enlaces button,
+.inicio-menu-pie button {
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.inicio-menu-enlaces a:hover,
+.inicio-menu-enlaces button:hover,
+.inicio-menu-pie button:hover {
+  transform: translateX(4px);
 }
 
 .inicio-menu-pie {
@@ -253,11 +443,11 @@
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 3px 6px rgb(0 0 0 / 24%);
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
-.inicio-tarjeta-destacada:hover,
-.inicio-tarjeta-destacada:focus-visible {
+.inicio-tarjeta-destacada:hover {
   transform: translateY(-4px);
   box-shadow: 0 7px 16px rgb(0 0 0 / 22%);
 }
@@ -267,6 +457,28 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  transition: transform 180ms ease;
+}
+
+.inicio-tarjeta-destacada:hover img {
+  transform: scale(1.04);
+}
+
+.pagina-inicio .encabezado-icono {
+  transition: transform 160ms ease;
+}
+
+.pagina-inicio .icono-subrayado:hover .encabezado-icono,
+.pagina-inicio .boton-login:hover img {
+  transform: translateY(-2px) scale(1.06);
+}
+
+.pagina-inicio .encabezado-login-estatico {
+  transition: filter 160ms ease;
+}
+
+.pagina-inicio .encabezado-login-estatico:hover {
+  filter: brightness(1.08);
 }
 
 @media (max-width: 640px) {
@@ -300,6 +512,11 @@
     padding: 7px 12px;
   }
 
+  .inicio-principal {
+    min-height: calc(100vh - 150px);
+    min-height: calc(100svh - 150px);
+  }
+
   .inicio-portada {
     width: calc(100% - 24px);
     margin: 12px auto clamp(60px, 9vh, 80px);
@@ -308,7 +525,12 @@
   }
 
   .inicio-portada-contenido {
-    padding: 10% 7%;
+    top: 6%;
+    left: 4%;
+    width: 92%;
+    height: 48%;
+    padding: 8% 7%;
+    border-radius: 12px;
   }
 
   .inicio-portada-contenido h1 {
@@ -328,6 +550,81 @@
     border-radius: 6px;
   }
 
+  .inicio-mas-vendidos {
+    min-height: calc(100vh - 150px);
+    min-height: calc(100svh - 150px);
+    padding: 32px 16px 48px;
+  }
+
+  .inicio-mas-vendidos h2 {
+    margin-bottom: 28px;
+  }
+
+  .inicio-mas-vendidos-lista {
+    width: 100%;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    max-width: 280px;
+  }
+
+  .inicio-tarjeta-mas-vendido {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr) auto;
+    column-gap: 10px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .inicio-mas-vendido-imagen {
+    width: 112px;
+    grid-row: 1 / 4;
+    margin: 0;
+    border-radius: 9px;
+  }
+
+  .inicio-mas-vendido-marca,
+  .inicio-mas-vendido-nombre {
+    grid-column: 2 / 4;
+    padding: 0;
+    font-size: 12px;
+  }
+
+  .inicio-mas-vendido-descripcion {
+    grid-column: 2 / 4;
+  }
+
+  .inicio-mas-vendido-descripcion {
+    min-height: 32px;
+    padding: 0;
+  }
+
+  .inicio-mas-vendido-agregar {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .inicio-mas-vendido-agregar img {
+    width: 17px;
+    height: 17px;
+  }
+
+  .inicio-mas-vendido-pie {
+    grid-column: 2 / 4;
+    min-height: 32px;
+    padding: 0;
+  }
+
+  .inicio-mas-vendido-precio {
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  .inicio-mas-vendido-favorito img {
+    width: 22px;
+    height: 22px;
+  }
+
   .inicio-menu-admin {
     width: min(88vw, 380px);
     min-width: 0;
@@ -339,11 +636,5 @@
   .inicio-menu-pie a,
   .inicio-menu-pie button {
     font-size: 16px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .inicio-tarjeta-destacada {
-    transition: none;
   }
 }

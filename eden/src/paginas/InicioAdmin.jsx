@@ -1,7 +1,7 @@
 import Inicio from "./Inicio";
 
-function SesionIniciadaAdmin() {
+function InicioAdmin() {
   return <Inicio administrador />;
 }
 
-export default SesionIniciadaAdmin;
+export default InicioAdmin;

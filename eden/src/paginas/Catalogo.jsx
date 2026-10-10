@@ -1,21 +1,22 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
 import DetalleProducto from "../componentes/DetalleProducto";
 import ListaProductos from "../componentes/ListaProductos";
+import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
+import iconoActivar from "../assets/iconoActivar.png";
 import "./Catalogo.css";
-import iconoRegresar from "../assets/iconoRegresar.png";
 
 const PRECIO_MINIMO = 150000;
 const PRECIO_MAXIMO = 15000000;
 const PASO_PRECIO = 50000;
 const CATEGORIAS_CATALOGO = [
-  "Perfumería",
-  "Aretes",
-  "Pulsos",
-  "Anillos",
-  "Cadenas",
-  "Brazalete",
+  { etiqueta: "Perfumería", valor: "Perfumería" },
+  { etiqueta: "Aretes", valor: "Aretes" },
+  { etiqueta: "Pulsos", valor: "Pulsos" },
+  { etiqueta: "Anillos", valor: "Anillos" },
+  { etiqueta: "Cadenas", valor: "Cadenas" },
+  { etiqueta: "Brazaletes", valor: "Brazalete" },
 ];
 const formatoPrecio = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 0,
@@ -30,18 +31,42 @@ const filtrosIniciales = {
 const normalizarTexto = (texto) =>
   texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
 
-function Catalogo({ productos }) {
+function Catalogo({
+  productos,
+  modoGestion = false,
+  modoInactivos = false,
+  cambiarEstadoProducto,
+}) {
   const location = useLocation();
   const navigate = useNavigate();
+  const administrador = location.pathname.startsWith("/Admin/");
+  const usuario = location.pathname.startsWith("/Usuario/");
+  const sesionIniciada = administrador || usuario;
+  const rutaInicio = administrador ? "/Admin" : usuario ? "/Usuario" : "/";
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [busquedaAbierta, setBusquedaAbierta] = useState(
     Boolean(location.state?.abrirBusqueda),
   );
   const [consulta, setConsulta] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [productoParaCambiarEstado, setProductoParaCambiarEstado] = useState(null);
+  const [avisoCambioEstado, setAvisoCambioEstado] = useState(null);
   const [filtrosAplicados, setFiltrosAplicados] = useState(filtrosIniciales);
   const [filtrosTemporales, setFiltrosTemporales] = useState(filtrosIniciales);
-  const productosVisibles = productos.filter((producto) => {
+  const cerrarBusqueda = useCallback(() => {
+    setBusquedaAbierta(false);
+    setConsulta("");
+
+    if (location.state?.volverA) {
+      navigate(location.state.volverA, { replace: true });
+    }
+  }, [location.state, navigate]);
+  const productosDelCatalogo = modoInactivos
+    ? productos.filter((producto) => producto.estado === "Inactivo")
+    : modoGestion
+      ? productos
+      : productos.filter((producto) => producto.estado !== "Inactivo");
+  const productosVisibles = productosDelCatalogo.filter((producto) => {
     const coincideCategoria =
       filtrosAplicados.categorias.length === 0 ||
       filtrosAplicados.categorias.includes(producto.categoria);
@@ -65,12 +90,21 @@ function Catalogo({ productos }) {
     if (location.state?.abrirBusqueda) {
       navigate(location.pathname, {
         replace: true,
-        state: location.state.regresarA
-          ? { regresarA: location.state.regresarA }
-          : null,
+        state: {
+          administrador,
+          usuario,
+          volverA: location.state.volverA,
+        },
       });
     }
-  }, [location.key, location.pathname, location.state, navigate]);
+  }, [
+    administrador,
+    location.key,
+    location.pathname,
+    location.state,
+    navigate,
+    usuario,
+  ]);
 
   useEffect(() => {
     if (!mostrarFiltros && !busquedaAbierta) {
@@ -80,8 +114,7 @@ function Catalogo({ productos }) {
     const manejarEscape = (event) => {
       if (event.key === "Escape") {
         if (busquedaAbierta) {
-          setBusquedaAbierta(false);
-          setConsulta("");
+          cerrarBusqueda();
         } else {
           setMostrarFiltros(false);
         }
@@ -99,7 +132,7 @@ function Catalogo({ productos }) {
       }
       document.removeEventListener("keydown", manejarEscape);
     };
-  }, [mostrarFiltros, busquedaAbierta]);
+  }, [mostrarFiltros, busquedaAbierta, cerrarBusqueda]);
 
   useEffect(() => {
     if (!productoSeleccionado) {
@@ -111,6 +144,34 @@ function Catalogo({ productos }) {
       document.body.style.overflow = "";
     };
   }, [productoSeleccionado]);
+
+  useEffect(() => {
+    if (!avisoCambioEstado) {
+      return undefined;
+    }
+
+    const temporizador = window.setTimeout(
+      () => setAvisoCambioEstado(null),
+      2800,
+    );
+
+    return () => window.clearTimeout(temporizador);
+  }, [avisoCambioEstado]);
+
+  useEffect(() => {
+    if (!productoParaCambiarEstado) {
+      return undefined;
+    }
+
+    const cancelarConEscape = (event) => {
+      if (event.key === "Escape") {
+        setProductoParaCambiarEstado(null);
+      }
+    };
+
+    document.addEventListener("keydown", cancelarConEscape);
+    return () => document.removeEventListener("keydown", cancelarConEscape);
+  }, [productoParaCambiarEstado]);
 
   const abrirFiltros = () => {
     setFiltrosTemporales({
@@ -129,9 +190,42 @@ function Catalogo({ productos }) {
     }));
   };
 
-  const cerrarBusqueda = () => {
-    setBusquedaAbierta(false);
-    setConsulta("");
+  const abrirBusqueda = () => {
+    if (modoInactivos) {
+      navigate("/Admin/GestionProductos", {
+        state: {
+          abrirBusqueda: true,
+          volverA: location.pathname,
+        },
+      });
+      return;
+    }
+
+    setBusquedaAbierta(true);
+  };
+
+  const solicitarCambioEstadoDesdeTarjeta = (producto) => {
+    setProductoSeleccionado(producto);
+    setProductoParaCambiarEstado(producto);
+  };
+
+  const confirmarCambioEstado = () => {
+    if (!productoParaCambiarEstado) {
+      return;
+    }
+
+    if (typeof cambiarEstadoProducto !== "function") {
+      throw new Error("No se configuró la actualización del estado del producto.");
+    }
+
+    const nuevoEstado = modoInactivos ? "Activo" : "Inactivo";
+    cambiarEstadoProducto(productoParaCambiarEstado.id, nuevoEstado);
+    setProductoParaCambiarEstado(null);
+    setProductoSeleccionado(null);
+    setAvisoCambioEstado({
+      estado: nuevoEstado,
+      mensaje: `¡Producto ${modoInactivos ? "activado" : "inactivado"} correctamente!`,
+    });
   };
 
   const filtros = (
@@ -161,12 +255,14 @@ function Catalogo({ productos }) {
           >
             <div className="catalogo-panel-encabezado">
               <button
-                className="catalogo-volver-filtros"
+                className="catalogo-cerrar-filtros"
                 type="button"
                 aria-label="Cerrar filtros"
                 onClick={() => setMostrarFiltros(false)}
               >
-                <img src={iconoRegresar} alt="" />
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 6 12 12M18 6 6 18" />
+                </svg>
               </button>
               <h2 id="catalogo-titulo-filtros">Filtros</h2>
             </div>
@@ -174,18 +270,18 @@ function Catalogo({ productos }) {
             <section className="catalogo-seccion-filtros" aria-labelledby="catalogo-titulo-categoria">
               <h3 id="catalogo-titulo-categoria">Categoría</h3>
               <div className="catalogo-categorias">
-                {CATEGORIAS_CATALOGO.map((categoria) => {
-                  const seleccionada = filtrosTemporales.categorias.includes(categoria);
+                {CATEGORIAS_CATALOGO.map(({ etiqueta, valor }) => {
+                  const seleccionada = filtrosTemporales.categorias.includes(valor);
 
                   return (
                     <button
                       className={`catalogo-chip-categoria${seleccionada ? " seleccionada" : ""}`}
-                      key={categoria}
+                      key={valor}
                       type="button"
                       aria-pressed={seleccionada}
-                      onClick={() => alternarCategoria(categoria)}
+                      onClick={() => alternarCategoria(valor)}
                     >
-                      {categoria}
+                      {etiqueta}
                     </button>
                   );
                 })}
@@ -260,16 +356,25 @@ function Catalogo({ productos }) {
   );
 
   return (
-    <main className="pagina-catalogo">
+    <main className={`pagina-catalogo${modoGestion ? " pagina-catalogo-gestion" : ""}`}>
       <Encabezado
         acciones={filtros}
-        onRegresar={() => navigate(location.state?.regresarA || "/")}
         busquedaAbierta={busquedaAbierta}
         consulta={consulta}
-        onAbrirBusqueda={() => setBusquedaAbierta(true)}
+        administrador={administrador}
+        sesionIniciada={sesionIniciada}
+        mostrarLogin={!sesionIniciada}
+        ocultarCarrito={modoGestion}
+        onAbrirBusqueda={abrirBusqueda}
         onCerrarBusqueda={cerrarBusqueda}
         onCambiarConsulta={setConsulta}
       />
+
+      {modoGestion && (
+        <h1 className="catalogo-titulo-admin">
+          {modoInactivos ? "Productos Inactivos" : "Gestión de productos"}
+        </h1>
+      )}
 
       {busquedaAbierta ? (
         <div className="catalogo-contenido catalogo-contenido-busqueda">
@@ -282,6 +387,12 @@ function Catalogo({ productos }) {
                 <ListaProductos
                   productos={productosBusqueda}
                   onSeleccionarProducto={setProductoSeleccionado}
+                  administrador={modoGestion}
+                  modoInactivos={modoInactivos}
+                  onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
+                  onEditarProducto={(producto) =>
+                    navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
+                  }
                 />
               ) : (
                 <p className="catalogo-busqueda-vacia">
@@ -321,6 +432,12 @@ function Catalogo({ productos }) {
                 <ListaProductos
                   productos={productosVisibles.slice(0, 4)}
                   onSeleccionarProducto={setProductoSeleccionado}
+                  administrador={modoGestion}
+                  modoInactivos={modoInactivos}
+                  onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
+                  onEditarProducto={(producto) =>
+                    navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
+                  }
                 />
               </section>
             </>
@@ -329,12 +446,24 @@ function Catalogo({ productos }) {
       ) : (
         <div className="catalogo-contenido">
           <p className="catalogo-miga-pan">
-            Inicio <span aria-hidden="true">\</span> Catalogo
+            <Link to={rutaInicio}>Inicio</Link>
+            <span aria-hidden="true">\</span>
+            {modoInactivos
+              ? "Productos_Inactivos"
+              : modoGestion
+                ? "Gestión_Productos"
+                : "Catalogo"}
           </p>
 
           <ListaProductos
             productos={productosVisibles}
             onSeleccionarProducto={setProductoSeleccionado}
+            administrador={modoGestion}
+            modoInactivos={modoInactivos}
+            onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
+            onEditarProducto={(producto) =>
+              navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
+            }
           />
         </div>
       )}
@@ -342,8 +471,42 @@ function Catalogo({ productos }) {
       {productoSeleccionado && (
         <DetalleProducto
           producto={productoSeleccionado}
-          onCerrar={() => setProductoSeleccionado(null)}
+          administrador={modoGestion}
+          modoInactivos={modoInactivos}
+          confirmandoInactivacion={
+            productoParaCambiarEstado?.id === productoSeleccionado.id
+          }
+          onSolicitarCambioEstado={() =>
+            setProductoParaCambiarEstado(productoSeleccionado)
+          }
+          onCancelarCambioEstado={() => setProductoParaCambiarEstado(null)}
+          onConfirmarCambioEstado={confirmarCambioEstado}
+          onEditar={(producto) =>
+            navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
+          }
+          onCerrar={() => {
+            setProductoSeleccionado(null);
+            setProductoParaCambiarEstado(null);
+          }}
         />
+      )}
+
+      {avisoCambioEstado && (
+        <div className="catalogo-aviso-inactivacion-fondo">
+          <div
+            className={`catalogo-aviso-inactivacion${avisoCambioEstado.estado === "Activo" ? " catalogo-aviso-activacion" : ""}`}
+            role="status"
+            aria-live="polite"
+          >
+            <img
+              className={avisoCambioEstado.estado === "Activo" ? "aviso-icono-activar" : ""}
+              src={avisoCambioEstado.estado === "Activo" ? iconoActivar : iconoLapiz}
+              alt=""
+              aria-hidden="true"
+            />
+            {avisoCambioEstado.mensaje}
+          </div>
+        </div>
       )}
     </main>
   );

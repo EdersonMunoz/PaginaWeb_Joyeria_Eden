@@ -11,3 +11,11 @@ html, body, #root {
   background-color: #fbf9f4; 
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
+
+html:has(.pagina-registrar) {
+  scrollbar-width: none;
+}
+
+html:has(.pagina-registrar)::-webkit-scrollbar {
+  display: none;
+}
