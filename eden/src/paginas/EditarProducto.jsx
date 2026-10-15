@@ -164,7 +164,7 @@ function EditarProducto({ productos, editarProducto }) {
       />
 
       <p className="miga-pan">
-        <Link to="/Inicio/Admin">Inicio</Link>
+        <Link to="/Admin">Inicio</Link>
         <span aria-hidden="true"> \ </span>
         Modificar_producto
       </p>

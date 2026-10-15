@@ -34,17 +34,17 @@ function Encabezado({
   const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const esAdministrador =
-    administrador || location.pathname.startsWith("/Inicio/Admin");
+    administrador || location.pathname.startsWith("/Admin");
   const esUsuario = sesionIniciada && !esAdministrador;
   const rutaCatalogo = esAdministrador
-    ? "/Inicio/Admin/Catalogo"
+    ? "/Admin/Catalogo"
     : esUsuario
-      ? "/Inicio/Usuario/Catalogo"
+      ? "/Usuario/Catalogo"
       : "/Inicio/Catalogo";
   const rutaInicio = esAdministrador
-    ? "/Inicio/Admin"
+    ? "/Admin"
     : esUsuario
-      ? "/Inicio/Usuario"
+      ? "/Usuario"
       : "/";
 
   useEffect(() => {
@@ -211,13 +211,13 @@ function Encabezado({
               {esAdministrador ? (
                 <>
                   <Link
-                    to="/Inicio/Admin/Productos/RegistrarProducto"
+                    to="/Admin/Productos/RegistrarProducto"
                     onClick={() => setMenuAbierto(false)}
                   >
                     Registrar producto/os
                   </Link>
                   <Link
-                    to="/Inicio/Admin/Productos/ModificarProducto"
+                    to="/Admin/Productos/ModificarProducto"
                     onClick={() => setMenuAbierto(false)}
                   >
                     Modificar producto/os
