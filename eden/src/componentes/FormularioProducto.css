@@ -30,10 +30,18 @@
 .formulario label {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   margin: 9px 0 4px;
   font-size: 17px;
   color: #222222;
   font-weight: 400;
+}
+
+.icono-candado {
+  width: 17px;
+  height: 17px;
+  margin-left: 8px;
+  object-fit: contain;
 }
 
 .asterisco-rojo {
@@ -71,6 +79,19 @@
 
 .formulario input::placeholder,
 .formulario textarea::placeholder {
+  color: #a5a5a5;
+}
+
+.formulario select {
+  appearance: none;
+  padding-left: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='m4 7 6 6 6-6' fill='none' stroke='%23222222' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+  background-size: 18px;
+}
+
+.formulario select.categoria-placeholder {
   color: #a5a5a5;
 }
 

@@ -33,7 +33,11 @@ function TarjetaProducto({
             ${formatoPrecio.format(producto.precio)}
           </span>
           {!administrador && (
-            <span className="tarjeta-producto-acciones" aria-hidden="true">
+            <span
+              className="tarjeta-producto-acciones"
+              aria-hidden="true"
+              onClick={(event) => event.stopPropagation()}
+            >
               <img src={iconoCarrito} alt="" />
               <img src={iconoCorazon} alt="" />
             </span>

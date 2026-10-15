@@ -1,9 +1,15 @@
 import Encabezado from "../componentes/Encabezado";
+import { useCallback, useEffect, useState } from "react";
+import DetalleProducto from "../componentes/DetalleProducto";
 import "./Inicio.css";
 
 import fondoMenu from "../assets/fondoMenu.png";
 import iconoMas from "../assets/Iconos_HU2/iconoMas.png";
 import iconoCorazon from "../assets/Iconos_HU2/iconoCorazon.png";
+import ListaProductos from "../componentes/ListaProductos";
+
+const normalizarTexto = (texto) =>
+  texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
 
 const productosDestacados = [
   {
@@ -44,16 +50,76 @@ const productosMasVendidos = [
   },
 ];
 
-function Inicio({ administrador = false, usuario = false }) {
+function Inicio({ administrador = false, usuario = false, productos = [] }) {
+  const [busquedaAbierta, setBusquedaAbierta] = useState(false);
+  const [consulta, setConsulta] = useState("");
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const sesionIniciada = administrador || usuario;
+  const cerrarBusqueda = useCallback(() => {
+    setBusquedaAbierta(false);
+    setConsulta("");
+  }, []);
+  const consultaNormalizada = normalizarTexto(consulta.trim());
+  const resultadosBusqueda = consultaNormalizada
+    ? productos.filter(
+        (producto) =>
+          producto.estado !== "Inactivo" &&
+          normalizarTexto(
+            `${producto.nombre} ${producto.categoria} ${producto.descripcion} ${producto.ref}`,
+          ).includes(consultaNormalizada),
+      )
+    : [];
+
+  useEffect(() => {
+    if (!productoSeleccionado) {
+      return undefined;
+    }
+
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+    };
+  }, [productoSeleccionado]);
 
   return (
-    <main className="pagina-inicio">
+    <main
+      className={[
+        "pagina-inicio",
+        administrador && "pagina-inicio-admin",
+        usuario && "pagina-inicio-usuario",
+        !administrador && !usuario && "pagina-inicio-visitante",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <Encabezado
+        busquedaAbierta={busquedaAbierta}
+        consulta={consulta}
+        contenidoBusqueda={
+          consultaNormalizada ? (
+            <div className="inicio-resultados-busqueda">
+              <h2 id="inicio-resultados-busqueda-titulo">Resultados de búsqueda</h2>
+              {resultadosBusqueda.length ? (
+                <ListaProductos
+                  productos={resultadosBusqueda}
+                  onSeleccionarProducto={setProductoSeleccionado}
+                />
+              ) : (
+                <p>No encontramos productos para “{consulta.trim()}”.</p>
+              )}
+            </div>
+          ) : null
+        }
+        onCambiarConsulta={setConsulta}
+        onCerrarBusqueda={cerrarBusqueda}
         administrador={administrador}
         sesionIniciada={sesionIniciada}
         mostrarLogin={!sesionIniciada}
         ocultarTendencias
+        menuDeshabilitado={!sesionIniciada}
+        ocultarIconoBusqueda={administrador}
+        onAbrirBusqueda={sesionIniciada && !administrador ? () => setBusquedaAbierta(true) : undefined}
       />
 
       <section className="inicio-principal" aria-labelledby="inicio-titulo">
@@ -62,7 +128,7 @@ function Inicio({ administrador = false, usuario = false }) {
           style={{ backgroundImage: `url("${fondoMenu}")` }}
         >
           <div className="inicio-portada-contenido">
-            <p>Joyería y perfumería</p>
+            <p>Joyería y Perfumería</p>
             <h1 id="inicio-titulo">EDEN</h1>
           </div>
         </div>
@@ -113,6 +179,13 @@ function Inicio({ administrador = false, usuario = false }) {
         </div>
       </section>
 
+      {productoSeleccionado && (
+        <DetalleProducto
+          producto={productoSeleccionado}
+          vistaAdminSoloLectura={administrador}
+          onCerrar={() => setProductoSeleccionado(null)}
+        />
+      )}
     </main>
   );
 }

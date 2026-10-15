@@ -1,7 +1,7 @@
 import Inicio from "./Inicio";
 
-function InicioAdmin() {
-  return <Inicio administrador />;
+function InicioAdmin({ productos }) {
+  return <Inicio administrador productos={productos} />;
 }
 
 export default InicioAdmin;
