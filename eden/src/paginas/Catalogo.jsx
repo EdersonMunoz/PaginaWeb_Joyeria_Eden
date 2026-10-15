@@ -40,15 +40,15 @@ function Catalogo({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const administrador = location.pathname.startsWith("/Inicio/Admin");
-  const usuario = location.pathname.startsWith("/Inicio/Usuario");
+  const administrador = location.pathname.startsWith("/Admin");
+  const usuario = location.pathname.startsWith("/Usuario");
   const vistaAdminSoloLectura =
     Boolean(location.state?.vistaAdminSoloLectura) || (administrador && !modoGestion);
   const sesionIniciada = administrador || usuario;
   const rutaInicio = administrador
-    ? "/Inicio/Admin"
+    ? "/Admin"
     : usuario
-      ? "/Inicio/Usuario"
+      ? "/Usuario"
       : "/";
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [busquedaAbierta, setBusquedaAbierta] = useState(false);
@@ -345,7 +345,7 @@ function Catalogo({
               modoInactivos={modoInactivos}
               onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
               onEditarProducto={(producto) =>
-                navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+                navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
               }
             />
           ) : (
@@ -390,7 +390,7 @@ function Catalogo({
               modoInactivos={modoInactivos}
               onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
               onEditarProducto={(producto) =>
-                navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+                navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
               }
             />
           </section>
@@ -450,7 +450,7 @@ function Catalogo({
           modoInactivos={modoInactivos}
           onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
           onEditarProducto={(producto) =>
-            navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+            navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
           }
         />
       </div>
@@ -470,7 +470,7 @@ function Catalogo({
           onCancelarCambioEstado={() => setProductoParaCambiarEstado(null)}
           onConfirmarCambioEstado={confirmarCambioEstado}
           onEditar={(producto) =>
-            navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+            navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
           }
           onCerrar={() => {
             setProductoSeleccionado(null);
