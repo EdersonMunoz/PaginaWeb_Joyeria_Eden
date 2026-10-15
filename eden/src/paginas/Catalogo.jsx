@@ -16,7 +16,7 @@ const CATEGORIAS_CATALOGO = [
   { etiqueta: "Pulsos", valor: "Pulsos" },
   { etiqueta: "Anillos", valor: "Anillos" },
   { etiqueta: "Cadenas", valor: "Cadenas" },
-  { etiqueta: "Brazaletes", valor: "Brazalete" },
+  { etiqueta: "Brazalete", valor: "Brazalete" },
 ];
 const formatoPrecio = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 0,
@@ -26,6 +26,7 @@ const filtrosIniciales = {
   categorias: [],
   precioMinimo: PRECIO_MINIMO,
   precioMaximo: PRECIO_MAXIMO,
+  precioActivo: false,
 };
 
 const normalizarTexto = (texto) =>
@@ -39,14 +40,18 @@ function Catalogo({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const administrador = location.pathname.startsWith("/Admin/");
-  const usuario = location.pathname.startsWith("/Usuario/");
+  const administrador = location.pathname.startsWith("/Inicio/Admin");
+  const usuario = location.pathname.startsWith("/Inicio/Usuario");
+  const vistaAdminSoloLectura =
+    Boolean(location.state?.vistaAdminSoloLectura) || (administrador && !modoGestion);
   const sesionIniciada = administrador || usuario;
-  const rutaInicio = administrador ? "/Admin" : usuario ? "/Usuario" : "/";
+  const rutaInicio = administrador
+    ? "/Inicio/Admin"
+    : usuario
+      ? "/Inicio/Usuario"
+      : "/";
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
-  const [busquedaAbierta, setBusquedaAbierta] = useState(
-    Boolean(location.state?.abrirBusqueda),
-  );
+  const [busquedaAbierta, setBusquedaAbierta] = useState(false);
   const [consulta, setConsulta] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productoParaCambiarEstado, setProductoParaCambiarEstado] = useState(null);
@@ -56,11 +61,7 @@ function Catalogo({
   const cerrarBusqueda = useCallback(() => {
     setBusquedaAbierta(false);
     setConsulta("");
-
-    if (location.state?.volverA) {
-      navigate(location.state.volverA, { replace: true });
-    }
-  }, [location.state, navigate]);
+  }, []);
   const productosDelCatalogo = modoInactivos
     ? productos.filter((producto) => producto.estado === "Inactivo")
     : modoGestion
@@ -73,8 +74,9 @@ function Catalogo({
 
     return (
       coincideCategoria &&
-      producto.precio >= filtrosAplicados.precioMinimo &&
-      producto.precio <= filtrosAplicados.precioMaximo
+      (!filtrosAplicados.precioActivo ||
+        (producto.precio >= filtrosAplicados.precioMinimo &&
+          producto.precio <= filtrosAplicados.precioMaximo))
     );
   });
   const consultaNormalizada = normalizarTexto(consulta.trim());
@@ -85,26 +87,6 @@ function Catalogo({
         ).includes(consultaNormalizada),
       )
     : [];
-
-  useEffect(() => {
-    if (location.state?.abrirBusqueda) {
-      navigate(location.pathname, {
-        replace: true,
-        state: {
-          administrador,
-          usuario,
-          volverA: location.state.volverA,
-        },
-      });
-    }
-  }, [
-    administrador,
-    location.key,
-    location.pathname,
-    location.state,
-    navigate,
-    usuario,
-  ]);
 
   useEffect(() => {
     if (!mostrarFiltros && !busquedaAbierta) {
@@ -139,9 +121,10 @@ function Catalogo({
       return undefined;
     }
 
+    const overflowAnterior = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = overflowAnterior;
     };
   }, [productoSeleccionado]);
 
@@ -191,16 +174,6 @@ function Catalogo({
   };
 
   const abrirBusqueda = () => {
-    if (modoInactivos) {
-      navigate("/Admin/GestionProductos", {
-        state: {
-          abrirBusqueda: true,
-          volverA: location.pathname,
-        },
-      });
-      return;
-    }
-
     setBusquedaAbierta(true);
   };
 
@@ -308,6 +281,7 @@ function Catalogo({
                     const precioMinimo = Number(event.target.value);
                     setFiltrosTemporales((filtros) => ({
                       ...filtros,
+                      precioActivo: true,
                       precioMinimo: Math.min(
                         precioMinimo,
                         filtros.precioMaximo - PASO_PRECIO,
@@ -326,6 +300,7 @@ function Catalogo({
                     const precioMaximo = Number(event.target.value);
                     setFiltrosTemporales((filtros) => ({
                       ...filtros,
+                      precioActivo: true,
                       precioMaximo: Math.max(
                         precioMaximo,
                         filtros.precioMinimo + PASO_PRECIO,
@@ -355,17 +330,98 @@ function Catalogo({
     </div>
   );
 
+  const contenidoBusqueda = busquedaAbierta ? (
+    <div className="catalogo-contenido catalogo-contenido-busqueda">
+      {consultaNormalizada ? (
+        <section aria-labelledby="catalogo-titulo-resultados">
+          <h2 id="catalogo-titulo-resultados" className="catalogo-titulo-busqueda">
+            Resultados de búsqueda
+          </h2>
+          {productosBusqueda.length > 0 ? (
+            <ListaProductos
+              productos={productosBusqueda}
+              onSeleccionarProducto={setProductoSeleccionado}
+              administrador={modoGestion}
+              modoInactivos={modoInactivos}
+              onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
+              onEditarProducto={(producto) =>
+                navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+              }
+            />
+          ) : (
+            <p className="catalogo-busqueda-vacia">
+              No encontramos productos para “{consulta.trim()}”.
+            </p>
+          )}
+        </section>
+      ) : administrador ? (
+        <>
+          <section aria-labelledby="catalogo-titulo-busquedas-populares">
+            <h2
+              id="catalogo-titulo-busquedas-populares"
+              className="catalogo-titulo-busqueda"
+            >
+              Búsquedas populares
+            </h2>
+            <div className="catalogo-sugerencias-busqueda">
+              {["Anillos", "Aretes", "Cadenas", "Perfumería"].map((sugerencia) => (
+                <button
+                  key={sugerencia}
+                  type="button"
+                  onClick={() => setConsulta(sugerencia)}
+                >
+                  {sugerencia}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section
+            className="catalogo-destacados-busqueda"
+            aria-labelledby="catalogo-titulo-destacados"
+          >
+            <h2 id="catalogo-titulo-destacados" className="catalogo-titulo-busqueda">
+              Productos destacados
+            </h2>
+            <ListaProductos
+              productos={productosVisibles.slice(0, 4)}
+              onSeleccionarProducto={setProductoSeleccionado}
+              administrador={modoGestion}
+              modoInactivos={modoInactivos}
+              onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
+              onEditarProducto={(producto) =>
+                navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+              }
+            />
+          </section>
+        </>
+      ) : null}
+    </div>
+  ) : null;
+
   return (
-    <main className={`pagina-catalogo${modoGestion ? " pagina-catalogo-gestion" : ""}`}>
+    <main
+      className={[
+        "pagina-catalogo",
+        modoGestion && "pagina-catalogo-gestion",
+        (usuario || vistaAdminSoloLectura) && "pagina-catalogo-usuario",
+        busquedaAbierta && "pagina-catalogo-busqueda-abierta",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <Encabezado
         acciones={filtros}
         busquedaAbierta={busquedaAbierta}
         consulta={consulta}
+        contenidoBusqueda={contenidoBusqueda}
         administrador={administrador}
         sesionIniciada={sesionIniciada}
         mostrarLogin={!sesionIniciada}
         ocultarCarrito={modoGestion}
-        onAbrirBusqueda={abrirBusqueda}
+        ocultarIconoBusqueda={vistaAdminSoloLectura}
+        vistaAdminSoloLectura={vistaAdminSoloLectura}
+        onAbrirBusqueda={vistaAdminSoloLectura ? undefined : abrirBusqueda}
         onCerrarBusqueda={cerrarBusqueda}
         onCambiarConsulta={setConsulta}
       />
@@ -376,102 +432,34 @@ function Catalogo({
         </h1>
       )}
 
-      {busquedaAbierta ? (
-        <div className="catalogo-contenido catalogo-contenido-busqueda">
-          {consultaNormalizada ? (
-            <section aria-labelledby="catalogo-titulo-resultados">
-              <h2 id="catalogo-titulo-resultados" className="catalogo-titulo-busqueda">
-                Resultados de búsqueda
-              </h2>
-              {productosBusqueda.length > 0 ? (
-                <ListaProductos
-                  productos={productosBusqueda}
-                  onSeleccionarProducto={setProductoSeleccionado}
-                  administrador={modoGestion}
-                  modoInactivos={modoInactivos}
-                  onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
-                  onEditarProducto={(producto) =>
-                    navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
-                  }
-                />
-              ) : (
-                <p className="catalogo-busqueda-vacia">
-                  No encontramos productos para “{consulta.trim()}”.
-                </p>
-              )}
-            </section>
-          ) : (
-            <>
-              <section aria-labelledby="catalogo-titulo-busquedas-populares">
-                <h2
-                  id="catalogo-titulo-busquedas-populares"
-                  className="catalogo-titulo-busqueda"
-                >
-                  Búsquedas populares
-                </h2>
-                <div className="catalogo-sugerencias-busqueda">
-                  {["Anillos", "Aretes", "Cadenas", "Perfumería"].map((sugerencia) => (
-                    <button
-                      key={sugerencia}
-                      type="button"
-                      onClick={() => setConsulta(sugerencia)}
-                    >
-                      {sugerencia}
-                    </button>
-                  ))}
-                </div>
-              </section>
+      <div className="catalogo-contenido">
+        <p className="catalogo-miga-pan">
+          <Link to={rutaInicio}>Inicio</Link>
+          <span aria-hidden="true">\</span>
+          {modoInactivos
+            ? "Productos_Inactivos"
+            : modoGestion
+              ? "Gestión_Productos"
+              : "Catalogo"}
+        </p>
 
-              <section
-                className="catalogo-destacados-busqueda"
-                aria-labelledby="catalogo-titulo-destacados"
-              >
-                <h2 id="catalogo-titulo-destacados" className="catalogo-titulo-busqueda">
-                  Productos destacados
-                </h2>
-                <ListaProductos
-                  productos={productosVisibles.slice(0, 4)}
-                  onSeleccionarProducto={setProductoSeleccionado}
-                  administrador={modoGestion}
-                  modoInactivos={modoInactivos}
-                  onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
-                  onEditarProducto={(producto) =>
-                    navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
-                  }
-                />
-              </section>
-            </>
-          )}
-        </div>
-      ) : (
-        <div className="catalogo-contenido">
-          <p className="catalogo-miga-pan">
-            <Link to={rutaInicio}>Inicio</Link>
-            <span aria-hidden="true">\</span>
-            {modoInactivos
-              ? "Productos_Inactivos"
-              : modoGestion
-                ? "Gestión_Productos"
-                : "Catalogo"}
-          </p>
-
-          <ListaProductos
-            productos={productosVisibles}
-            onSeleccionarProducto={setProductoSeleccionado}
-            administrador={modoGestion}
-            modoInactivos={modoInactivos}
-            onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
-            onEditarProducto={(producto) =>
-              navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
-            }
-          />
-        </div>
-      )}
+        <ListaProductos
+          productos={productosVisibles}
+          onSeleccionarProducto={setProductoSeleccionado}
+          administrador={modoGestion}
+          modoInactivos={modoInactivos}
+          onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
+          onEditarProducto={(producto) =>
+            navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+          }
+        />
+      </div>
 
       {productoSeleccionado && (
         <DetalleProducto
           producto={productoSeleccionado}
           administrador={modoGestion}
+          vistaAdminSoloLectura={vistaAdminSoloLectura}
           modoInactivos={modoInactivos}
           confirmandoInactivacion={
             productoParaCambiarEstado?.id === productoSeleccionado.id
@@ -482,7 +470,7 @@ function Catalogo({
           onCancelarCambioEstado={() => setProductoParaCambiarEstado(null)}
           onConfirmarCambioEstado={confirmarCambioEstado}
           onEditar={(producto) =>
-            navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
+            navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
           }
           onCerrar={() => {
             setProductoSeleccionado(null);

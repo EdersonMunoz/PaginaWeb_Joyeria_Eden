@@ -1,4 +1,5 @@
 import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
+import iconoCandado from "../assets/Iconos_HU2/iconoCandado.png";
 import "./FormularioProducto.css";
 
 function FormularioProducto({
@@ -8,10 +9,22 @@ function FormularioProducto({
   producto = {},
   errores = {},
   deshabilitado = false,
+  mostrarCandados = false,
   onChange,
-  onBlurPrecio,
+  onBlurCampo,
   onSubmit,
 }) {
+  const indicadorCampo = mostrarCandados ? (
+    <img
+      src={iconoCandado}
+      alt=""
+      aria-hidden="true"
+      className="icono-candado"
+    />
+  ) : (
+    <span className="asterisco-rojo">*</span>
+  );
+
   return (
     <div className="panel-formulario">
       <h1>{titulo}</h1>
@@ -19,70 +32,78 @@ function FormularioProducto({
       <form className="formulario" onSubmit={onSubmit}>
         <fieldset className="formulario-campos" disabled={deshabilitado}>
           <label>
-            Nombre del producto<span className="asterisco-rojo">*</span>
+            Nombre del producto{indicadorCampo}
           </label>
           <input
             type="text"
             name="nombre"
             value={producto.nombre || ""}
             onChange={onChange}
+            onBlur={onBlurCampo}
             placeholder="Digite aquí el nombre del producto"
             className={errores.nombre ? "campo-error" : ""}
           />
 
           <label>
-            Precio<span className="asterisco-rojo">*</span>
+            Precio{indicadorCampo}
           </label>
           <input
             type="text"
             name="precio"
             value={producto.precio || ""}
             onChange={onChange}
-            onBlur={onBlurPrecio}
+            onBlur={onBlurCampo}
             placeholder="Digite aquí el valor del producto"
             className={errores.precio ? "campo-error" : ""}
           />
 
           <label>
-            Categoría<span className="asterisco-rojo">*</span>
+            Categoría{indicadorCampo}
           </label>
           <select
             name="categoria"
-            value={producto.categoria ?? "Brazalete"}
+            value={producto.categoria || ""}
             onChange={onChange}
-            className={errores.categoria ? "campo-error" : ""}
+            onBlur={onBlurCampo}
+            className={[
+              errores.categoria && "campo-error",
+              !producto.categoria && "categoria-placeholder",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
-            <option value="">Selecciona una categoría</option>
+            <option value="">Presione para deslizar</option>
             <option value="Perfumería">Perfumería</option>
-            <option value="Brazalete">Brazalete</option>
-            <option value="Cadenas">Cadenas</option>
-            <option value="Anillos">Anillos</option>
             <option value="Aretes">Aretes</option>
             <option value="Pulsos">Pulsos</option>
-            <option value="Pulseras">Pulseras</option>
+            <option value="Anillos">Anillos</option>
+            <option value="Cadenas">Cadenas</option>
+            <option value="Brazalete">Brazalete</option>
           </select>
 
           <label>
-            Stock<span className="asterisco-rojo">*</span>
+            Stock{indicadorCampo}
           </label>
           <input
             type="text"
             name="stock"
             value={producto.stock || ""}
             onChange={onChange}
+            onBlur={onBlurCampo}
             placeholder="Digite aquí la cantidad del producto"
             className={errores.stock ? "campo-error" : ""}
           />
 
           <label>
-            Descripción<span className="asterisco-rojo">*</span>
+            Descripción{indicadorCampo}
           </label>
           <textarea
             name="descripcion"
             value={producto.descripcion || ""}
             onChange={onChange}
-            placeholder="Escriba la descripción..."
+            placeholder="Escriba aquí la descripción del producto: contexto, materiales detallados específicamente (composición y peso)"
             className={errores.descripcion ? "campo-error" : ""}
+            onBlur={onBlurCampo}
           />
         </fieldset>
 

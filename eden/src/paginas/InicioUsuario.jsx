@@ -1,7 +1,7 @@
 import Inicio from "./Inicio";
 
-function InicioUsuario() {
-  return <Inicio usuario />;
+function InicioUsuario({ productos }) {
+  return <Inicio usuario productos={productos} />;
 }
 
 export default InicioUsuario;

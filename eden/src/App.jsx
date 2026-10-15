@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { productosIniciales } from "./datos/productos";
 import Inicio from "./paginas/Inicio";
 import InicioUsuario from "./paginas/InicioUsuario";
 import InicioAdmin from "./paginas/InicioAdmin";
 import Catalogo from "./paginas/Catalogo";
-import GestionProductos from "./paginas/GestionProductos";
-import ProductosInactivos from "./paginas/ProductosInactivos";
 import RegistrarProducto from "./paginas/RegistrarProducto";
 import EditarProducto from "./paginas/EditarProducto";
 
@@ -21,50 +19,25 @@ function App() {
     setProductos(productos.map((p) => (p.id === id ? { ...p, ...cambios } : p)));
   };
 
-  const cambiarEstadoProducto = (id, estado) => {
-    setProductos((productosActuales) =>
-      productosActuales.map((producto) =>
-        producto.id === id ? { ...producto, estado } : producto,
-      ),
-    );
-  };
-
   return (
     <Routes>
-      <Route path="/" element={<Inicio />} />
-      <Route path="/Usuario" element={<InicioUsuario />} />
-      <Route path="/Admin" element={<InicioAdmin />} />
+      <Route path="/" element={<Navigate to="/Inicio" replace />} />
+      <Route path="/Inicio" element={<Inicio />} />
+      <Route path="/Inicio/Usuario" element={<InicioUsuario productos={productos} />} />
+      <Route path="/Inicio/Admin" element={<InicioAdmin productos={productos} />} />
       <Route path="/Inicio/Catalogo" element={<Catalogo productos={productos} />} />
-      <Route path="/Admin/Catalogo" element={<Catalogo productos={productos} />} />
-      <Route path="/Usuario/Catalogo" element={<Catalogo productos={productos} />} />
+      <Route path="/Inicio/Admin/Catalogo" element={<Catalogo productos={productos} />} />
+      <Route path="/Inicio/Usuario/Catalogo" element={<Catalogo productos={productos} />} />
       <Route
-        path="/Admin/GestionProductos"
-        element={
-          <GestionProductos
-            productos={productos}
-            cambiarEstadoProducto={cambiarEstadoProducto}
-          />
-        }
-      />
-      <Route
-        path="/Admin/ProductosInactivos"
-        element={
-          <ProductosInactivos
-            productos={productos}
-            cambiarEstadoProducto={cambiarEstadoProducto}
-          />
-        }
-      />
-      <Route
-        path="/Admin/Productos/RegistrarProducto"
+        path="/Inicio/Admin/Productos/RegistrarProducto"
         element={<RegistrarProducto agregarProducto={agregarProducto} />}
       />
       <Route
-        path="/Admin/Productos/ModificarProducto/:id"
+        path="/Inicio/Admin/Productos/ModificarProducto/:id"
         element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
       />
       <Route
-        path="/Admin/Productos/ModificarProducto"
+        path="/Inicio/Admin/Productos/ModificarProducto"
         element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
       />
     </Routes>

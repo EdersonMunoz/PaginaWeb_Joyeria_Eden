@@ -14,6 +14,7 @@ function DetalleProducto({
   producto,
   onCerrar,
   administrador = false,
+  vistaAdminSoloLectura = false,
   modoInactivos = false,
   onEditar,
   confirmandoInactivacion = false,
@@ -62,7 +63,13 @@ function DetalleProducto({
           </svg>
         </button>
 
-        {!administrador && (
+        {!administrador && vistaAdminSoloLectura && (
+          <span className="detalle-producto-favorito" aria-hidden="true">
+            <img src={iconoCorazon} alt="" />
+          </span>
+        )}
+
+        {!administrador && !vistaAdminSoloLectura && (
           <button
             className={`detalle-producto-favorito${favorito ? " seleccionado" : ""}`}
             type="button"
@@ -159,7 +166,7 @@ function DetalleProducto({
                     <button
                       type="button"
                       aria-label="Disminuir cantidad"
-                      disabled={cantidad <= 1}
+                      disabled={vistaAdminSoloLectura || cantidad <= 1}
                       onClick={() => setCantidad((valor) => Math.max(1, valor - 1))}
                     >
                       −
@@ -168,7 +175,7 @@ function DetalleProducto({
                     <button
                       type="button"
                       aria-label="Aumentar cantidad"
-                      disabled={cantidad >= producto.stock}
+                      disabled={vistaAdminSoloLectura || cantidad >= producto.stock}
                       onClick={() =>
                         setCantidad((valor) => Math.min(producto.stock, valor + 1))
                       }
@@ -180,7 +187,11 @@ function DetalleProducto({
 
                 <p className="detalle-producto-referencia">Ref: {producto.ref}</p>
 
-                <button className="detalle-producto-comprar" type="button">
+                <button
+                  className="detalle-producto-comprar"
+                  type="button"
+                  disabled={vistaAdminSoloLectura}
+                >
                   <img src={iconoCarrito} alt="" />
                   Comprar
                 </button>

@@ -69,6 +69,10 @@
   height: 28px;
 }
 
+.detalle-producto-favorito[aria-hidden="true"] {
+  cursor: default;
+}
+
 .detalle-producto-favorito img {
   width: 24px;
   height: 24px;

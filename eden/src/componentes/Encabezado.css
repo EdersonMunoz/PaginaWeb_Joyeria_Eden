@@ -224,7 +224,36 @@
   grid-template-columns: minmax(120px, 1fr) minmax(220px, 2fr) auto;
   gap: clamp(20px, 5vw, 72px);
   align-items: center;
+  width: 100%;
   padding: 24px clamp(24px, 5vw, 72px) 10px;
+  background: #fbf9f4;
+  box-sizing: border-box;
+}
+
+.encabezado-busqueda-capa {
+  position: fixed;
+  z-index: 30;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  height: 75.8vh;
+  height: 75.8dvh;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fbf9f4;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 12%);
+  pointer-events: auto;
+}
+
+.encabezado-busqueda-capa .encabezado-busqueda {
+  flex: 0 0 auto;
+  pointer-events: auto;
+}
+
+.encabezado-busqueda-capa > :not(.encabezado-busqueda) {
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .encabezado-busqueda-logo {

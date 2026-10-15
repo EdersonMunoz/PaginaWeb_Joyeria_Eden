@@ -43,13 +43,13 @@ function RegistrarProducto({ agregarProducto }) {
     }
 
     if (nombre === "precio") {
-      const precio = Number(valorTexto);
+      const precio = Number(valorTexto.replace(/[$.]/g, ""));
       return valorTexto === "" || !Number.isFinite(precio) || precio <= 0;
     }
 
     if (nombre === "stock") {
       const stock = Number(valorTexto);
-      return valorTexto === "" || !Number.isInteger(stock) || stock < 0;
+      return valorTexto === "" || !Number.isInteger(stock) || stock <= 0;
     }
 
     return false;
@@ -87,7 +87,7 @@ function RegistrarProducto({ agregarProducto }) {
 
     agregarProducto({
       ...producto,
-      precio: Number(producto.precio),
+      precio: Number(String(producto.precio).replace(/[$.]/g, "")),
       stock: Number(producto.stock),
       imagen: imagenPreview || "",
       estado: "Activo",
@@ -104,17 +104,18 @@ function RegistrarProducto({ agregarProducto }) {
       <Encabezado
         administrador
         ocultarTendencias
+        ocultarIconoBusqueda
       />
 
       <p className="miga-pan">
-        <Link to="/Admin">Inicio</Link>
+        <Link to="/Inicio/Admin">Inicio</Link>
         <span aria-hidden="true"> \ </span>
-        Registrar_Producto
+        Registrar_producto
       </p>
 
       <div className="contenido">
         <FormularioProducto
-          titulo="REGISTRAR PRODUCTO"
+          titulo="Registrar producto"
           textoBoton="Registrar producto"
           iconoBoton={iconoChulito}
           producto={producto}

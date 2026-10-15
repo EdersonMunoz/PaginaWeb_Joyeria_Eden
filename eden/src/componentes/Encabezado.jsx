@@ -16,6 +16,7 @@ function Encabezado({
   acciones,
   busquedaAbierta = false,
   consulta = "",
+  contenidoBusqueda,
   onAbrirBusqueda,
   onVerPerfil,
   onCerrarBusqueda,
@@ -26,18 +27,45 @@ function Encabezado({
   ocultarCarrito = false,
   ocultarTendencias = false,
   mostrarTendencias = false,
+  menuDeshabilitado = false,
+  ocultarIconoBusqueda = false,
+  vistaAdminSoloLectura = false,
 }) {
   const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const esAdministrador =
-    administrador || location.pathname.startsWith("/Admin");
+    administrador || location.pathname.startsWith("/Inicio/Admin");
   const esUsuario = sesionIniciada && !esAdministrador;
   const rutaCatalogo = esAdministrador
-    ? "/Admin/Catalogo"
+    ? "/Inicio/Admin/Catalogo"
     : esUsuario
-      ? "/Usuario/Catalogo"
+      ? "/Inicio/Usuario/Catalogo"
       : "/Inicio/Catalogo";
-  const rutaInicio = esAdministrador ? "/Admin" : esUsuario ? "/Usuario" : "/";
+  const rutaInicio = esAdministrador
+    ? "/Inicio/Admin"
+    : esUsuario
+      ? "/Inicio/Usuario"
+      : "/";
+
+  useEffect(() => {
+    if (!busquedaAbierta) {
+      return undefined;
+    }
+
+    const overflowAnterior = document.body.style.overflow;
+    const cerrarBusquedaConEscape = (event) => {
+      if (event.key === "Escape") {
+        onCerrarBusqueda?.();
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", cerrarBusquedaConEscape);
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      document.removeEventListener("keydown", cerrarBusquedaConEscape);
+    };
+  }, [busquedaAbierta, onCerrarBusqueda]);
 
   useEffect(() => {
     if (!menuAbierto) {
@@ -54,63 +82,45 @@ function Encabezado({
     return () => document.removeEventListener("keydown", cerrarConEscape);
   }, [menuAbierto]);
 
-  if (busquedaAbierta) {
-    return (
-      <header className="encabezado encabezado-busqueda">
-        <div className="contenedor-logo encabezado-busqueda-logo">
-          <img src={logo} alt="EDEN" className="encabezado-logo" />
-        </div>
-
-        <label className="encabezado-campo-busqueda">
-          <img src={iconoLupa} alt="" />
-          <span className="visualmente-oculto">Buscar productos</span>
-          <input
-            type="search"
-            placeholder="Buscar"
-            value={consulta}
-            onChange={(event) => onCambiarConsulta(event.target.value)}
-            autoFocus
-          />
-        </label>
-
-        <button
-          className="encabezado-cerrar-busqueda"
-          type="button"
-          onClick={onCerrarBusqueda}
-        >
-          Cerrar
-        </button>
-      </header>
-    );
-  }
-
   return (
-    <header className="encabezado">
+    <>
+      <header
+        className={`encabezado${vistaAdminSoloLectura ? " encabezado-admin-catalogo-solo-lectura" : ""}`}
+      >
       <div className="encabezado-izquierda">
-        <button
-          className="icono-subrayado encabezado-boton-menu"
-          type="button"
-          aria-label="Abrir menú"
-          aria-expanded={menuAbierto}
-          onClick={() => setMenuAbierto(true)}
-        >
-          <img src={iconoOpciones} alt="" className="encabezado-icono" />
-        </button>
-
-        {/* Ícono Lupa con su rayita verde */}
-        {onAbrirBusqueda ? (
-          <button
-            className="icono-subrayado encabezado-boton-buscar"
-            type="button"
-            aria-label="Abrir búsqueda"
-            onClick={onAbrirBusqueda}
-          >
-            <img src={iconoLupa} alt="" className="encabezado-icono" />
-          </button>
-        ) : (
+        {menuDeshabilitado ? (
           <div className="icono-subrayado">
-            <img src={iconoLupa} alt="Buscar" className="encabezado-icono" />
+            <img src={iconoOpciones} alt="Opciones" className="encabezado-icono" />
           </div>
+        ) : (
+          <button
+            className="icono-subrayado encabezado-boton-menu"
+            type="button"
+            aria-label="Abrir menú"
+            aria-expanded={menuAbierto}
+            onClick={() => setMenuAbierto(true)}
+          >
+            <img src={iconoOpciones} alt="" className="encabezado-icono" />
+          </button>
+        )}
+
+        {!ocultarIconoBusqueda && (
+          <>
+            {onAbrirBusqueda ? (
+              <button
+                className="icono-subrayado encabezado-boton-buscar"
+                type="button"
+                aria-label="Abrir búsqueda"
+                onClick={onAbrirBusqueda}
+              >
+                <img src={iconoLupa} alt="" className="encabezado-icono" />
+              </button>
+            ) : (
+              <div className="icono-subrayado">
+                <img src={iconoLupa} alt="Buscar" className="encabezado-icono" />
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -140,19 +150,21 @@ function Encabezado({
             )
           )}
 
-          {!ocultarCarrito && (
+          {!esAdministrador && !ocultarCarrito && (
             <div className="icono-subrayado">
               <img src={iconoCarrito} alt="Carrito" className="encabezado-icono" />
             </div>
           )}
 
-          <div className="icono-subrayado">
-            <img
-              src={administrador && mostrarTendencias && !ocultarTendencias ? iconoTendencias : iconoCorazon}
-              alt={administrador && mostrarTendencias && !ocultarTendencias ? "Tendencias" : "Favoritos"}
-              className="encabezado-icono"
-            />
-          </div>
+          {!esAdministrador && (
+            <div className="icono-subrayado">
+              <img
+                src={administrador && mostrarTendencias && !ocultarTendencias ? iconoTendencias : iconoCorazon}
+                alt={administrador && mostrarTendencias && !ocultarTendencias ? "Tendencias" : "Favoritos"}
+                className="encabezado-icono"
+              />
+            </div>
+          )}
         </div>
         {acciones && <div className="encabezado-acciones">{acciones}</div>}
       </div>
@@ -180,38 +192,39 @@ function Encabezado({
             </div>
 
             <nav className="inicio-menu-enlaces" aria-label="Navegación principal">
-              <Link to={rutaInicio} onClick={() => setMenuAbierto(false)}>
-                Inicio
-              </Link>
-              <Link to={rutaCatalogo} onClick={() => setMenuAbierto(false)}>
+              {!esAdministrador && !sesionIniciada && (
+                <Link to={rutaInicio} onClick={() => setMenuAbierto(false)}>
+                  Inicio
+                </Link>
+              )}
+              <Link
+                to={rutaCatalogo}
+                state={
+                  esAdministrador || vistaAdminSoloLectura
+                    ? { vistaAdminSoloLectura: true }
+                    : undefined
+                }
+                onClick={() => setMenuAbierto(false)}
+              >
                 Catálogo
               </Link>
               {esAdministrador ? (
                 <>
                   <Link
-                    to="/Admin/Productos/RegistrarProducto"
+                    to="/Inicio/Admin/Productos/RegistrarProducto"
                     onClick={() => setMenuAbierto(false)}
                   >
-                    Agregar producto/os
+                    Registrar producto/os
                   </Link>
                   <Link
-                    to="/Admin/Productos/ModificarProducto"
+                    to="/Inicio/Admin/Productos/ModificarProducto"
                     onClick={() => setMenuAbierto(false)}
                   >
-                    Editar producto/os
+                    Modificar producto/os
                   </Link>
-                  <Link
-                    to="/Admin/GestionProductos"
-                    onClick={() => setMenuAbierto(false)}
-                  >
+                  <button type="button">
                     Gestión de productos
-                  </Link>
-                  <Link
-                    to="/Admin/ProductosInactivos"
-                    onClick={() => setMenuAbierto(false)}
-                  >
-                    Productos inactivos
-                  </Link>
+                  </button>
                 </>
               ) : (
                 <>
@@ -233,7 +246,43 @@ function Encabezado({
           </aside>
         </div>
       )}
-    </header>
+      </header>
+      {busquedaAbierta && (
+        <div
+          className="encabezado-busqueda-capa"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Búsqueda de productos"
+        >
+          <header className="encabezado encabezado-busqueda">
+            <div className="contenedor-logo encabezado-busqueda-logo">
+              <img src={logo} alt="EDEN" className="encabezado-logo" />
+            </div>
+
+            <label className="encabezado-campo-busqueda">
+              <img src={iconoLupa} alt="" />
+              <span className="visualmente-oculto">Buscar productos</span>
+              <input
+                type="search"
+                placeholder="Buscar"
+                value={consulta}
+                onChange={(event) => onCambiarConsulta(event.target.value)}
+                autoFocus
+              />
+            </label>
+
+            <button
+              className="encabezado-cerrar-busqueda"
+              type="button"
+              onClick={onCerrarBusqueda}
+            >
+              Cerrar
+            </button>
+          </header>
+          {contenidoBusqueda}
+        </div>
+      )}
+    </>
   );
 }
 
