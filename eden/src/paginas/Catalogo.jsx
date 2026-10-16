@@ -6,6 +6,7 @@ import ListaProductos from "../componentes/ListaProductos";
 import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
 import iconoActivar from "../assets/iconoActivar.png";
 import "./Catalogo.css";
+import "./CatalogoFigma.css";
 
 const PRECIO_MINIMO = 150000;
 const PRECIO_MAXIMO = 15000000;
@@ -405,6 +406,7 @@ function Catalogo({
         "pagina-catalogo",
         modoGestion && "pagina-catalogo-gestion",
         (usuario || vistaAdminSoloLectura) && "pagina-catalogo-usuario",
+        !modoGestion && "pagina-catalogo-figma",
         busquedaAbierta && "pagina-catalogo-busqueda-abierta",
       ]
         .filter(Boolean)
@@ -419,9 +421,9 @@ function Catalogo({
         sesionIniciada={sesionIniciada}
         mostrarLogin={!sesionIniciada}
         ocultarCarrito={modoGestion}
-        ocultarIconoBusqueda={vistaAdminSoloLectura}
+        mostrarIconosTienda={!modoGestion}
         vistaAdminSoloLectura={vistaAdminSoloLectura}
-        onAbrirBusqueda={vistaAdminSoloLectura ? undefined : abrirBusqueda}
+        onAbrirBusqueda={abrirBusqueda}
         onCerrarBusqueda={cerrarBusqueda}
         onCambiarConsulta={setConsulta}
       />
