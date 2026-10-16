@@ -6,6 +6,7 @@ import ListaProductos from "../componentes/ListaProductos";
 import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
 import iconoActivar from "../assets/iconoActivar.png";
 import "./Catalogo.css";
+import "../componentes/EncabezadoFigma.css";
 import "./CatalogoFigma.css";
 
 const PRECIO_MINIMO = 150000;
