@@ -3,7 +3,7 @@
   Se ve igual para el visitante, el usuario y el administrador; el modo de
   gestión de productos (HE1-HU4) conserva sus propios estilos de Catalogo.css.
 
-  --u equivale a 1 px del Figma. En pantallas más angostas que el frame,
+  --u equivale a 1 px del Figma. En pantallas más pequeñas que el frame,
   todo se reduce en la misma proporción. El encabezado ocupa todo el ancho
   (iconos en las esquinas) y los productos quedan centrados como en el frame.
   El encabezado está en componentes/EncabezadoFigma.css (compartido con el inicio).
@@ -13,7 +13,8 @@
 
 @media (min-width: 961px) {
   .pagina-catalogo.pagina-catalogo-figma {
-    --u: min(1px, calc(100vw / 1440));
+    /* igual que en las demás páginas: se ajusta al ancho y al alto de la pantalla */
+    --u: min(1px, calc(100vw / 1440), calc(100dvh / 1024));
     font-family: "Poppins", system-ui, sans-serif;
     color: #1a1a1a;
   }
