@@ -30,7 +30,6 @@ function Encabezado({
   menuDeshabilitado = false,
   ocultarIconoBusqueda = false,
   vistaAdminSoloLectura = false,
-  mostrarIconosTienda = false,
 }) {
   const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -151,13 +150,13 @@ function Encabezado({
             )
           )}
 
-          {(!esAdministrador || mostrarIconosTienda) && !ocultarCarrito && (
+          {!esAdministrador && !ocultarCarrito && (
             <div className="icono-subrayado">
               <img src={iconoCarrito} alt="Carrito" className="encabezado-icono" />
             </div>
           )}
 
-          {(!esAdministrador || mostrarIconosTienda) && (
+          {!esAdministrador && (
             <div className="icono-subrayado">
               <img
                 src={administrador && mostrarTendencias && !ocultarTendencias ? iconoTendencias : iconoCorazon}

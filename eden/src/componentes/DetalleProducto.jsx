@@ -63,12 +63,6 @@ function DetalleProducto({
           </svg>
         </button>
 
-        {!administrador && vistaAdminSoloLectura && (
-          <span className="detalle-producto-favorito" aria-hidden="true">
-            <img src={iconoCorazon} alt="" />
-          </span>
-        )}
-
         {!administrador && !vistaAdminSoloLectura && (
           <button
             className={`detalle-producto-favorito${favorito ? " seleccionado" : ""}`}
@@ -154,6 +148,9 @@ function DetalleProducto({
                   </div>
                 )}
               </>
+            ) : vistaAdminSoloLectura ? (
+              /* El administrador solo consulta: sin cantidad ni botón Comprar */
+              <p className="detalle-producto-referencia">Ref: {producto.ref}</p>
             ) : (
               <>
                 <div className="detalle-producto-cantidad">

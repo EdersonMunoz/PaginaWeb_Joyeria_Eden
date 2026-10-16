@@ -421,9 +421,9 @@ function Catalogo({
         sesionIniciada={sesionIniciada}
         mostrarLogin={!sesionIniciada}
         ocultarCarrito={modoGestion}
-        mostrarIconosTienda={!modoGestion}
+        ocultarIconoBusqueda={vistaAdminSoloLectura}
         vistaAdminSoloLectura={vistaAdminSoloLectura}
-        onAbrirBusqueda={abrirBusqueda}
+        onAbrirBusqueda={vistaAdminSoloLectura ? undefined : abrirBusqueda}
         onCerrarBusqueda={cerrarBusqueda}
         onCambiarConsulta={setConsulta}
       />
@@ -449,6 +449,7 @@ function Catalogo({
           productos={productosVisibles}
           onSeleccionarProducto={setProductoSeleccionado}
           administrador={modoGestion}
+          soloLectura={vistaAdminSoloLectura}
           modoInactivos={modoInactivos}
           onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
           onEditarProducto={(producto) =>

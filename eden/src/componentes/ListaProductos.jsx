@@ -5,6 +5,7 @@ function ListaProductos({
   productos,
   onSeleccionarProducto,
   administrador = false,
+  soloLectura = false,
   modoInactivos = false,
   onEditarProducto,
   onCambiarEstadoProducto,
@@ -17,6 +18,7 @@ function ListaProductos({
           producto={producto}
           onSeleccionar={onSeleccionarProducto}
           administrador={administrador}
+          soloLectura={soloLectura}
           modoInactivos={modoInactivos}
           onEditar={onEditarProducto}
           onCambiarEstado={onCambiarEstadoProducto}
