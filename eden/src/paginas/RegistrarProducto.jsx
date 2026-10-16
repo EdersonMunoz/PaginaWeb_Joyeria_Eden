@@ -4,7 +4,7 @@ import Encabezado from "../componentes/Encabezado";
 import FormularioProducto from "../componentes/FormularioProducto";
 import PanelDerechoProducto from "../componentes/PanelDerechoProducto";
 import "./EditarProducto.css";
-import "./RegistrarProducto.css";
+import "./PaginaProducto.css";
 import iconoChulito from "../assets/iconoChulito.png";
 import iconoGuardado from "../assets/iconoGuardado.png";
 
@@ -101,7 +101,7 @@ function RegistrarProducto({ agregarProducto }) {
   };
 
   return (
-    <div className="pagina-editar pagina-registrar">
+    <div className="pagina-editar pagina-registrar pagina-producto">
       <Encabezado
         administrador
         ocultarTendencias
