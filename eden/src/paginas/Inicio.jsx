@@ -2,6 +2,8 @@ import Encabezado from "../componentes/Encabezado";
 import { useCallback, useEffect, useState } from "react";
 import DetalleProducto from "../componentes/DetalleProducto";
 import "./Inicio.css";
+import "../componentes/EncabezadoFigma.css";
+import "./InicioFigma.css";
 
 import fondoMenu from "../assets/fondoMenu.png";
 import iconoMas from "../assets/Iconos_HU2/iconoMas.png";
@@ -10,6 +12,12 @@ import ListaProductos from "../componentes/ListaProductos";
 
 const normalizarTexto = (texto) =>
   texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+
+// En la tarjeta la marca va en su propia línea: "VALENTINO" / "Uomo Born in Roma"
+const quitarMarca = (nombre, marca) =>
+  normalizarTexto(nombre).startsWith(normalizarTexto(marca))
+    ? nombre.slice(marca.length).trim()
+    : nombre;
 
 const productosDestacados = [
   {
@@ -86,6 +94,7 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
     <main
       className={[
         "pagina-inicio",
+        "pagina-inicio-figma",
         administrador && "pagina-inicio-admin",
         usuario && "pagina-inicio-usuario",
         !administrador && !usuario && "pagina-inicio-visitante",
@@ -163,7 +172,9 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
               />
               <span className="inicio-mas-vendido-marca">{producto.marca}</span>
               <span className="inicio-mas-vendido-descripcion">
-                <span className="inicio-mas-vendido-nombre">{producto.nombre}</span>
+                <span className="inicio-mas-vendido-nombre">
+                  {quitarMarca(producto.nombre, producto.marca)}
+                </span>
                 <span className="inicio-mas-vendido-agregar">
                   <img src={iconoMas} alt="" />
                 </span>
