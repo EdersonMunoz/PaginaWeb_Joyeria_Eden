@@ -129,13 +129,13 @@
 
   .pagina-inicio.pagina-inicio-figma .inicio-tarjeta-mas-vendido {
     height: calc(443 * var(--u));
-    padding: calc(12 * var(--u)) calc(12 * var(--u)) 0;
+    padding: calc(13 * var(--u)) calc(14 * var(--u)) 0;
     border-radius: calc(16 * var(--u));
   }
 
   .pagina-inicio.pagina-inicio-figma .inicio-mas-vendido-imagen {
-    height: calc(289 * var(--u));
-    margin-bottom: calc(14 * var(--u));
+    height: calc(284 * var(--u));
+    margin-bottom: calc(18 * var(--u));
     border-radius: calc(14 * var(--u));
   }
 
