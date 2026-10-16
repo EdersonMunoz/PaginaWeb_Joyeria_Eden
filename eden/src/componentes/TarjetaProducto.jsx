@@ -13,6 +13,7 @@ function TarjetaProducto({
   producto,
   onSeleccionar,
   administrador = false,
+  soloLectura = false,
   modoInactivos = false,
   onEditar,
   onCambiarEstado,
@@ -32,7 +33,7 @@ function TarjetaProducto({
           <span className="tarjeta-producto-precio">
             ${formatoPrecio.format(producto.precio)}
           </span>
-          {!administrador && (
+          {!administrador && !soloLectura && (
             <span
               className="tarjeta-producto-acciones"
               aria-hidden="true"
