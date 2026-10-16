@@ -23,21 +23,21 @@ function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/Inicio" replace />} />
       <Route path="/Inicio" element={<Inicio />} />
-      <Route path="/Inicio/Usuario" element={<InicioUsuario productos={productos} />} />
-      <Route path="/Inicio/Admin" element={<InicioAdmin productos={productos} />} />
+      <Route path="/Usuario" element={<InicioUsuario productos={productos} />} />
+      <Route path="/Admin" element={<InicioAdmin productos={productos} />} />
       <Route path="/Inicio/Catalogo" element={<Catalogo productos={productos} />} />
-      <Route path="/Inicio/Admin/Catalogo" element={<Catalogo productos={productos} />} />
-      <Route path="/Inicio/Usuario/Catalogo" element={<Catalogo productos={productos} />} />
+      <Route path="/Admin/Catalogo" element={<Catalogo productos={productos} />} />
+      <Route path="/Usuario/Catalogo" element={<Catalogo productos={productos} />} />
       <Route
-        path="/Inicio/Admin/Productos/RegistrarProducto"
+        path="/Admin/Productos/RegistrarProducto"
         element={<RegistrarProducto agregarProducto={agregarProducto} />}
       />
       <Route
-        path="/Inicio/Admin/Productos/ModificarProducto/:id"
+        path="/Admin/Productos/ModificarProducto/:id"
         element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
       />
       <Route
-        path="/Inicio/Admin/Productos/ModificarProducto"
+        path="/Admin/Productos/ModificarProducto"
         element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
       />
     </Routes>

@@ -4,6 +4,7 @@ import Encabezado from "../componentes/Encabezado";
 import FormularioProducto from "../componentes/FormularioProducto";
 import PanelDerechoProducto from "../componentes/PanelDerechoProducto";
 import "./EditarProducto.css";
+import "./PaginaProducto.css";
 
 const productoVacio = {
   nombre: "",
@@ -156,7 +157,7 @@ function EditarProducto({ productos, editarProducto }) {
   };
 
   return (
-    <div className="pagina-editar">
+    <div className="pagina-editar pagina-producto">
       <Encabezado
         administrador
         ocultarTendencias
@@ -164,8 +165,8 @@ function EditarProducto({ productos, editarProducto }) {
       />
 
       <p className="miga-pan">
-        <Link to="/Inicio/Admin">Inicio</Link>
-        <span aria-hidden="true"> \ </span>
+        <Link to="/Admin">Inicio</Link>
+        <span aria-hidden="true">\</span>
         Modificar_producto
       </p>
 

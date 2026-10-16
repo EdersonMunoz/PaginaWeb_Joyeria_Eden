@@ -4,6 +4,7 @@ import Encabezado from "../componentes/Encabezado";
 import FormularioProducto from "../componentes/FormularioProducto";
 import PanelDerechoProducto from "../componentes/PanelDerechoProducto";
 import "./EditarProducto.css";
+import "./PaginaProducto.css";
 import iconoChulito from "../assets/iconoChulito.png";
 import iconoGuardado from "../assets/iconoGuardado.png";
 
@@ -100,7 +101,7 @@ function RegistrarProducto({ agregarProducto }) {
   };
 
   return (
-    <div className="pagina-editar pagina-registrar">
+    <div className="pagina-editar pagina-registrar pagina-producto">
       <Encabezado
         administrador
         ocultarTendencias
@@ -108,8 +109,8 @@ function RegistrarProducto({ agregarProducto }) {
       />
 
       <p className="miga-pan">
-        <Link to="/Inicio/Admin">Inicio</Link>
-        <span aria-hidden="true"> \ </span>
+        <Link to="/Admin">Inicio</Link>
+        <span aria-hidden="true">\</span>
         Registrar_producto
       </p>
 

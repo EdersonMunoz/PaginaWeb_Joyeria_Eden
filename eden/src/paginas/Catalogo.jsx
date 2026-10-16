@@ -6,6 +6,8 @@ import ListaProductos from "../componentes/ListaProductos";
 import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
 import iconoActivar from "../assets/iconoActivar.png";
 import "./Catalogo.css";
+import "../componentes/EncabezadoFigma.css";
+import "./CatalogoFigma.css";
 
 const PRECIO_MINIMO = 150000;
 const PRECIO_MAXIMO = 15000000;
@@ -40,15 +42,15 @@ function Catalogo({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const administrador = location.pathname.startsWith("/Inicio/Admin");
-  const usuario = location.pathname.startsWith("/Inicio/Usuario");
+  const administrador = location.pathname.startsWith("/Admin");
+  const usuario = location.pathname.startsWith("/Usuario");
   const vistaAdminSoloLectura =
     Boolean(location.state?.vistaAdminSoloLectura) || (administrador && !modoGestion);
   const sesionIniciada = administrador || usuario;
   const rutaInicio = administrador
-    ? "/Inicio/Admin"
+    ? "/Admin"
     : usuario
-      ? "/Inicio/Usuario"
+      ? "/Usuario"
       : "/";
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [busquedaAbierta, setBusquedaAbierta] = useState(false);
@@ -345,7 +347,7 @@ function Catalogo({
               modoInactivos={modoInactivos}
               onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
               onEditarProducto={(producto) =>
-                navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+                navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
               }
             />
           ) : (
@@ -390,7 +392,7 @@ function Catalogo({
               modoInactivos={modoInactivos}
               onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
               onEditarProducto={(producto) =>
-                navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+                navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
               }
             />
           </section>
@@ -405,6 +407,7 @@ function Catalogo({
         "pagina-catalogo",
         modoGestion && "pagina-catalogo-gestion",
         (usuario || vistaAdminSoloLectura) && "pagina-catalogo-usuario",
+        !modoGestion && "pagina-catalogo-figma",
         busquedaAbierta && "pagina-catalogo-busqueda-abierta",
       ]
         .filter(Boolean)
@@ -447,10 +450,11 @@ function Catalogo({
           productos={productosVisibles}
           onSeleccionarProducto={setProductoSeleccionado}
           administrador={modoGestion}
+          soloLectura={vistaAdminSoloLectura}
           modoInactivos={modoInactivos}
           onCambiarEstadoProducto={solicitarCambioEstadoDesdeTarjeta}
           onEditarProducto={(producto) =>
-            navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+            navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
           }
         />
       </div>
@@ -470,7 +474,7 @@ function Catalogo({
           onCancelarCambioEstado={() => setProductoParaCambiarEstado(null)}
           onConfirmarCambioEstado={confirmarCambioEstado}
           onEditar={(producto) =>
-            navigate(`/Inicio/Admin/Productos/ModificarProducto/${producto.id}`)
+            navigate(`/Admin/Productos/ModificarProducto/${producto.id}`)
           }
           onCerrar={() => {
             setProductoSeleccionado(null);
