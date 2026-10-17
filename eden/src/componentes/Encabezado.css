@@ -256,6 +256,20 @@
   flex: 1 1 auto;
 }
 
+.encabezado-busqueda-resultados {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px clamp(20px, 6vw, 88px) 28px;
+  box-sizing: border-box;
+}
+
+.encabezado-busqueda-resultados .catalogo-productos {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: clamp(28px, 5vw, 60px);
+  row-gap: 14px;
+}
+
 .encabezado-busqueda-logo {
   width: min(100%, 180px);
   height: 96px;
@@ -343,6 +357,15 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 14px;
     padding: 18px 16px 10px;
+  }
+
+  .encabezado-busqueda-resultados {
+    padding: 16px;
+  }
+
+  .encabezado-busqueda-resultados .catalogo-productos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 18px;
   }
 
   .encabezado-busqueda-logo {

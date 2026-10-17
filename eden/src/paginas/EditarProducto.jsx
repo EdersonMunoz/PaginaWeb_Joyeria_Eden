@@ -42,6 +42,25 @@ function EditarProducto({ productos, editarProducto }) {
   const [mostrarModalError, setMostrarModalError] = useState(false);
   const [imagenPreview, setImagenPreview] = useState(productoInicial?.imagen || null);
 
+  const [productoInicialAnterior, setProductoInicialAnterior] = useState({
+    id,
+    productoInicial,
+  });
+
+  if (
+    productoInicialAnterior.id !== id ||
+    productoInicialAnterior.productoInicial !== productoInicial
+  ) {
+    setProductoInicialAnterior({ id, productoInicial });
+    setProductoSeleccionado(productoInicial);
+    setProducto(obtenerCamposProducto(productoInicial));
+    setReferencia(productoInicial?.ref || "");
+    setReferenciaNoEncontrada(false);
+    setImagenPreview(productoInicial?.imagen || null);
+    setMostrarErrores(false);
+    setCamposTocados({});
+  }
+
   // Cierre automático de modales tras 3 segundos
   useEffect(() => {
     if (mostrarModalExito) {
@@ -85,7 +104,7 @@ function EditarProducto({ productos, editarProducto }) {
       if (valStr === "") return true;
       const tieneSignoNegativo = valStr.includes("-");
       const numero = Number(valStr);
-      return tieneSignoNegativo || !Number.isInteger(numero) || numero <= 0;
+      return tieneSignoNegativo || !Number.isInteger(numero);
     }
 
     return false;
@@ -108,7 +127,8 @@ function EditarProducto({ productos, editarProducto }) {
     const consulta = valor.trim().toLocaleLowerCase();
     const coincidencia = consulta
       ? productos.find(
-          (item) => item.ref.trim().toLocaleLowerCase() === consulta,
+          (item) =>
+            String(item.ref || "").trim().toLocaleLowerCase() === consulta,
         ) || null
       : null;
 
