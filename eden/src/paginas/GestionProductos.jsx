@@ -73,7 +73,7 @@ function GestionProductos({ productos, cambiarEstadoProducto }) {
     });
   };
 
-  const confirmarCambioEstado = () => {
+  const confirmarCambioEstado = async () => {
     if (!cambioEstadoPendiente) {
       return;
     }
@@ -90,13 +90,15 @@ function GestionProductos({ productos, cambiarEstadoProducto }) {
       return;
     }
 
+    // Se guarda en la base de datos a través del backend
     const activando = accion === "activar";
-    cambiarEstadoProducto(producto.id, activando ? "Activo" : "Inactivo");
+    const respuesta = await cambiarEstadoProducto(
+      producto.id,
+      activando ? "Activo" : "Inactivo",
+    );
     setResultadoCambioEstado({
-      tipo: "exito",
-      mensaje: activando
-        ? "El producto fue publicado en el catálogo correctamente"
-        : "El producto fue removido del catálogo correctamente",
+      tipo: respuesta.ok ? "exito" : "error",
+      mensaje: respuesta.mensaje,
     });
   };
 
