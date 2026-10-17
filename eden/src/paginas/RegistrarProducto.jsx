@@ -20,6 +20,9 @@ const productoInicial = {
 function RegistrarProducto({ agregarProducto }) {
   const [producto, setProducto] = useState(productoInicial);
   const [imagenPreview, setImagenPreview] = useState(null);
+  const [archivoImagen, setArchivoImagen] = useState(null);
+  const [mensajeServidor, setMensajeServidor] = useState("");
+  const [guardando, setGuardando] = useState(false);
   const [errores, setErrores] = useState({});
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
   const [mostrarModalError, setMostrarModalError] = useState(false);
@@ -65,13 +68,18 @@ function RegistrarProducto({ agregarProducto }) {
     }));
   };
 
-  const manejarCambioImagen = (imagen) => {
+  const manejarCambioImagen = (imagen, archivo) => {
     setImagenPreview(imagen);
+    setArchivoImagen(archivo ?? null);
     setErrores((actuales) => ({ ...actuales, imagen: false }));
   };
 
-  const manejarGuardar = (event) => {
+  const manejarGuardar = async (event) => {
     event.preventDefault();
+    if (guardando) {
+      return;
+    }
+    setMensajeServidor("");
     const nuevosErrores = Object.fromEntries(
       Object.entries(producto).map(([nombre, valor]) => [
         nombre,
@@ -86,15 +94,23 @@ function RegistrarProducto({ agregarProducto }) {
       return;
     }
 
-    agregarProducto({
-      ...producto,
-      precio: Number(String(producto.precio).replace(/[$.]/g, "")),
-      stock: Number(producto.stock),
-      imagen: imagenPreview || "",
-      estado: "Activo",
-    });
+    // Se guarda en la base de datos a través del backend
+    setGuardando(true);
+    const respuesta = await agregarProducto(producto, archivoImagen);
+    setGuardando(false);
+
+    if (!respuesta.ok) {
+      setErrores((actuales) => ({ ...actuales, ...respuesta.errores }));
+      // Referencia repetida o sin conexión: se muestra el mensaje del servidor
+      setMensajeServidor(respuesta.mensaje ?? "");
+      setMostrarModalExito(false);
+      setMostrarModalError(true);
+      return;
+    }
+
     setProducto(productoInicial);
     setImagenPreview(null);
+    setArchivoImagen(null);
     setErrores({});
     setMostrarModalError(false);
     setMostrarModalExito(true);
@@ -166,9 +182,15 @@ function RegistrarProducto({ agregarProducto }) {
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
             <div className="texto-modal-error">
-              <p>Error al registrar producto. Por favor</p>
-              <p>completa todos los campos obligatorios</p>
-              <p>y/o corrige los valores numéricos</p>
+              {mensajeServidor && !mensajeServidor.startsWith("Error al registrar") ? (
+                <p>{mensajeServidor}</p>
+              ) : (
+                <>
+                  <p>Error al registrar producto. Por favor</p>
+                  <p>completa todos los campos obligatorios</p>
+                  <p>y/o corrige los valores numéricos</p>
+                </>
+              )}
             </div>
           </div>
         </div>

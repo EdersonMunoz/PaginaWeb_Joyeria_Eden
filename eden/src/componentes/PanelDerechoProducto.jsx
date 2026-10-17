@@ -28,6 +28,8 @@ function PanelDerechoProducto({
       const urlImagen = URL.createObjectURL(archivo);
       onCambiarImagen(urlImagen, archivo);
     }
+    // Permite volver a elegir la misma foto después de registrar un producto
+    e.target.value = "";
   };
 
   return (

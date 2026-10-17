@@ -41,6 +41,9 @@ function EditarProducto({ productos, editarProducto }) {
   const [mostrarModalExito, setMostrarModalExito] = useState(false);
   const [mostrarModalError, setMostrarModalError] = useState(false);
   const [imagenPreview, setImagenPreview] = useState(productoInicial?.imagen || null);
+  const [archivoImagen, setArchivoImagen] = useState(null);
+  const [mensajeServidor, setMensajeServidor] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   const [productoInicialAnterior, setProductoInicialAnterior] = useState({
     id,
@@ -57,6 +60,7 @@ function EditarProducto({ productos, editarProducto }) {
     setReferencia(productoInicial?.ref || "");
     setReferenciaNoEncontrada(false);
     setImagenPreview(productoInicial?.imagen || null);
+    setArchivoImagen(null);
     setMostrarErrores(false);
     setCamposTocados({});
   }
@@ -71,6 +75,7 @@ function EditarProducto({ productos, editarProducto }) {
         setReferencia("");
         setReferenciaNoEncontrada(false);
         setImagenPreview(null);
+        setArchivoImagen(null);
         setMostrarErrores(false);
         setCamposTocados({});
       }, 3000);
@@ -135,6 +140,7 @@ function EditarProducto({ productos, editarProducto }) {
     setProductoSeleccionado(coincidencia);
     setProducto(obtenerCamposProducto(coincidencia));
     setImagenPreview(coincidencia?.imagen || null);
+    setArchivoImagen(null);
     setMostrarErrores(false);
     setCamposTocados({});
     setReferenciaNoEncontrada(Boolean(consulta) && !coincidencia);
@@ -150,11 +156,12 @@ function EditarProducto({ productos, editarProducto }) {
     ]),
   );
 
-  const manejarGuardar = (e) => {
+  const manejarGuardar = async (e) => {
     e.preventDefault();
-    if (!productoSeleccionado) {
+    if (!productoSeleccionado || guardando) {
       return;
     }
+    setMensajeServidor("");
 
     setMostrarErrores(true);
     const hayErrores = Object.entries(producto).some(([nombre, valor]) =>
@@ -166,12 +173,22 @@ function EditarProducto({ productos, editarProducto }) {
       return;
     }
 
-    editarProducto(productoSeleccionado.id, {
-      ...producto,
-      precio: Number(String(producto.precio).replace(/[$.]/g, "")),
-      stock: Number(producto.stock),
-      imagen: imagenPreview,
-    });
+    // Se guarda en la base de datos a través del backend
+    setGuardando(true);
+    const respuesta = await editarProducto(
+      productoSeleccionado.id,
+      producto,
+      archivoImagen,
+    );
+    setGuardando(false);
+
+    if (!respuesta.ok) {
+      setMensajeServidor(respuesta.mensaje ?? "");
+      setMostrarModalExito(false);
+      setMostrarModalError(true);
+      return;
+    }
+
     setMostrarModalError(false);
     setMostrarModalExito(true);
   };
@@ -207,7 +224,10 @@ function EditarProducto({ productos, editarProducto }) {
         {/* COMPONENTE 2: PANEL DE FOTO Y REF */}
         <PanelDerechoProducto
           imagenPreview={imagenPreview}
-          onCambiarImagen={(url) => setImagenPreview(url)}
+          onCambiarImagen={(url, archivo) => {
+            setImagenPreview(url);
+            setArchivoImagen(archivo ?? null);
+          }}
           refValor={referencia}
           refError={referenciaNoEncontrada}
           refMensaje={
@@ -259,9 +279,15 @@ function EditarProducto({ productos, editarProducto }) {
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
             <div className="texto-modal-error">
-              <p>Error al actualizar producto. Por favor</p>
-              <p>completa todos los campos obligatorios</p>
-              <p>y/o corrige los valores numéricos</p>
+              {mensajeServidor && !mensajeServidor.startsWith("Error al actualizar") ? (
+                <p>{mensajeServidor}</p>
+              ) : (
+                <>
+                  <p>Error al actualizar producto. Por favor</p>
+                  <p>completa todos los campos obligatorios</p>
+                  <p>y/o corrige los valores numéricos</p>
+                </>
+              )}
             </div>
           </div>
         </div>
