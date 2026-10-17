@@ -19,11 +19,24 @@
     color: #1a1a1a;
   }
 
-  /* Filtros va debajo de los iconos, a la altura de "Inicio\Catalogo" */
+  /* Filtros va debajo de los iconos, a la altura de "Inicio\Catálogo" */
   .pagina-catalogo.pagina-catalogo-figma .encabezado:not(.encabezado-busqueda) .encabezado-acciones {
     position: absolute;
     top: calc(136 * var(--u));
     right: calc(49 * var(--u));
+    margin: 0;
+  }
+
+  .pagina-catalogo.pagina-catalogo-figma .encabezado.encabezado-admin-catalogo-solo-lectura .encabezado-derecha-contenido {
+    flex-direction: row;
+    align-items: center;
+    gap: clamp(12px, 2vw, 24px);
+  }
+
+  .pagina-catalogo.pagina-catalogo-figma .encabezado.encabezado-admin-catalogo-solo-lectura .encabezado-acciones {
+    position: static;
+    top: auto;
+    right: auto;
     margin: 0;
   }
 

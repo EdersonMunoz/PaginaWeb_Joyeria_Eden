@@ -60,6 +60,10 @@
   border-bottom-width: 1px;
 }
 
+.pagina-editar:not(.pagina-registrar) .campo-ref input {
+  border-left-color: #d93025;
+}
+
 .pagina-editar .encabezado-logo {
   width: 320px;
   height: auto;

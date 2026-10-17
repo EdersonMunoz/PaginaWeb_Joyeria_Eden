@@ -5,6 +5,7 @@ import Inicio from "./paginas/Inicio";
 import InicioUsuario from "./paginas/InicioUsuario";
 import InicioAdmin from "./paginas/InicioAdmin";
 import Catalogo from "./paginas/Catalogo";
+import GestionProductos from "./paginas/GestionProductos";
 import RegistrarProducto from "./paginas/RegistrarProducto";
 import EditarProducto from "./paginas/EditarProducto";
 
@@ -12,11 +13,48 @@ function App() {
   const [productos, setProductos] = useState(productosIniciales);
 
   const agregarProducto = (nuevo) => {
-    setProductos([...productos, { ...nuevo, id: Date.now() }]);
+    const estado =
+      Number(nuevo.stock) > 0 && nuevo.estado !== "Inactivo"
+        ? "Activo"
+        : "Inactivo";
+    setProductos((actuales) => [
+      ...actuales,
+      { ...nuevo, id: Date.now(), estado },
+    ]);
   };
 
   const editarProducto = (id, cambios) => {
-    setProductos(productos.map((p) => (p.id === id ? { ...p, ...cambios } : p)));
+    setProductos((actuales) =>
+      actuales.map((producto) => {
+        if (producto.id !== id) {
+          return producto;
+        }
+
+        const actualizado = { ...producto, ...cambios };
+        if (Number(actualizado.stock) <= 0) {
+          actualizado.estado = "Inactivo";
+        }
+        return actualizado;
+      }),
+    );
+  };
+
+  const cambiarEstadoProducto = (id, estado) => {
+    setProductos((actuales) =>
+      actuales.map((producto) => {
+        if (producto.id !== id) {
+          return producto;
+        }
+
+        return {
+          ...producto,
+          estado:
+            estado === "Activo" && Number(producto.stock) <= 0
+              ? "Inactivo"
+              : estado,
+        };
+      }),
+    );
   };
 
   return (
@@ -29,15 +67,24 @@ function App() {
       <Route path="/Admin/Catalogo" element={<Catalogo productos={productos} />} />
       <Route path="/Usuario/Catalogo" element={<Catalogo productos={productos} />} />
       <Route
-        path="/Admin/Productos/RegistrarProducto"
+        path="/Admin/RegistrarProducto"
         element={<RegistrarProducto agregarProducto={agregarProducto} />}
       />
       <Route
-        path="/Admin/Productos/ModificarProducto/:id"
+        path="/Admin/GestionProductos"
+        element={
+          <GestionProductos
+            productos={productos}
+            cambiarEstadoProducto={cambiarEstadoProducto}
+          />
+        }
+      />
+      <Route
+        path="/Admin/ModificarProducto/:id"
         element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
       />
       <Route
-        path="/Admin/Productos/ModificarProducto"
+        path="/Admin/ModificarProducto"
         element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
       />
     </Routes>

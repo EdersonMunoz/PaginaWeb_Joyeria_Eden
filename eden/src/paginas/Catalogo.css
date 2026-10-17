@@ -9,36 +9,19 @@
   gap: clamp(12px, 2.4vw, 28px);
 }
 
-.pagina-catalogo .encabezado {
+.pagina-catalogo .encabezado:not(.encabezado-busqueda) {
   padding: 8px 60px 0;
-}
-
-.pagina-catalogo .encabezado-busqueda {
-  grid-template-columns: minmax(120px, 1fr) minmax(220px, 2fr) auto;
-  gap: clamp(20px, 5vw, 72px);
-  padding: 12px clamp(24px, 5vw, 72px) 10px;
-}
-
-.pagina-catalogo .encabezado-busqueda-logo {
-  width: min(100%, 180px);
-  height: 104px;
-  padding-bottom: 2px;
-  transform: none;
-}
-
-.pagina-catalogo .encabezado-busqueda-logo .encabezado-logo {
-  height: 100px;
 }
 
 .pagina-catalogo .encabezado-izquierda {
   transform: translateY(-10px);
 }
 
-.pagina-catalogo .contenedor-logo {
+.pagina-catalogo .contenedor-logo:not(.encabezado-busqueda-logo) {
   transform: translateY(-14px);
 }
 
-.pagina-catalogo .encabezado-logo {
+.pagina-catalogo .encabezado:not(.encabezado-busqueda) .encabezado-logo {
   height: 150px;
 }
 
@@ -128,7 +111,7 @@
     transform: none;
   }
 
-  .pagina-catalogo-usuario .encabezado-logo {
+  .pagina-catalogo-usuario .encabezado:not(.encabezado-busqueda) .encabezado-logo {
     width: 240px;
     height: auto;
   }
@@ -184,7 +167,7 @@
     transform: none;
   }
 
-  .pagina-catalogo-usuario .encabezado-logo {
+  .pagina-catalogo-usuario .encabezado:not(.encabezado-busqueda) .encabezado-logo {
     width: 280px;
     height: auto;
   }
@@ -627,22 +610,7 @@
 }
 
 @media (max-width: 640px) {
-  .pagina-catalogo .encabezado-busqueda {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 14px;
-    padding: 18px 16px 10px;
-  }
-
-  .pagina-catalogo .encabezado-busqueda-logo {
-    width: 72px;
-    height: 60px;
-  }
-
-  .pagina-catalogo .encabezado-busqueda-logo .encabezado-logo {
-    height: 54px;
-  }
-
-  .pagina-catalogo .encabezado {
+  .pagina-catalogo .encabezado:not(.encabezado-busqueda) {
     padding-inline: 16px;
   }
 

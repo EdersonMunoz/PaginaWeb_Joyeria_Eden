@@ -1,6 +1,7 @@
 import "./Encabezado.css";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import iconoOpciones from "../assets/Iconos_HU2/iconoOpciones.png"; 
 import iconoLupa from "../assets/Iconos_HU2/iconoLupa.png";
@@ -45,7 +46,7 @@ function Encabezado({
     ? "/Admin"
     : esUsuario
       ? "/Usuario"
-      : "/";
+      : "/Inicio";
 
   useEffect(() => {
     if (!busquedaAbierta) {
@@ -211,20 +212,23 @@ function Encabezado({
               {esAdministrador ? (
                 <>
                   <Link
-                    to="/Admin/Productos/RegistrarProducto"
+                    to="/Admin/RegistrarProducto"
                     onClick={() => setMenuAbierto(false)}
                   >
                     Registrar producto/os
                   </Link>
                   <Link
-                    to="/Admin/Productos/ModificarProducto"
+                    to="/Admin/ModificarProducto"
                     onClick={() => setMenuAbierto(false)}
                   >
                     Modificar producto/os
                   </Link>
-                  <button type="button">
+                  <Link
+                    to="/Admin/GestionProductos"
+                    onClick={() => setMenuAbierto(false)}
+                  >
                     Gestión de productos
-                  </button>
+                  </Link>
                 </>
               ) : (
                 <>
@@ -238,7 +242,7 @@ function Encabezado({
                 <button type="button">
                   Cuenta <img src={iconoAjustes} alt="" />
                 </button>
-                <Link to="/" onClick={() => setMenuAbierto(false)}>
+                <Link to="/Inicio" onClick={() => setMenuAbierto(false)}>
                   Cerrar sesión
                 </Link>
               </div>
@@ -247,7 +251,7 @@ function Encabezado({
         </div>
       )}
       </header>
-      {busquedaAbierta && (
+      {busquedaAbierta && createPortal(
         <div
           className="encabezado-busqueda-capa"
           role="dialog"
@@ -263,7 +267,8 @@ function Encabezado({
               <img src={iconoLupa} alt="" />
               <span className="visualmente-oculto">Buscar productos</span>
               <input
-                type="search"
+                type="text"
+                inputMode="search"
                 placeholder="Buscar"
                 value={consulta}
                 onChange={(event) => onCambiarConsulta(event.target.value)}
@@ -279,8 +284,11 @@ function Encabezado({
               Cerrar
             </button>
           </header>
-          {contenidoBusqueda}
-        </div>
+          <div className="encabezado-busqueda-resultados">
+            {contenidoBusqueda}
+          </div>
+        </div>,
+        document.body,
       )}
     </>
   );

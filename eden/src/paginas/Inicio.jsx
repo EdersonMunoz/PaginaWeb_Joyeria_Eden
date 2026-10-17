@@ -107,17 +107,25 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
         consulta={consulta}
         contenidoBusqueda={
           consultaNormalizada ? (
-            <div className="inicio-resultados-busqueda">
-              <h2 id="inicio-resultados-busqueda-titulo">Resultados de búsqueda</h2>
+            <section aria-labelledby="inicio-resultados-busqueda-titulo">
+              <h2
+                id="inicio-resultados-busqueda-titulo"
+                className="catalogo-titulo-busqueda"
+              >
+                Resultados de búsqueda
+              </h2>
               {resultadosBusqueda.length ? (
                 <ListaProductos
                   productos={resultadosBusqueda}
                   onSeleccionarProducto={setProductoSeleccionado}
+                  soloLectura={administrador}
                 />
               ) : (
-                <p>No encontramos productos para “{consulta.trim()}”.</p>
+                <p className="catalogo-busqueda-vacia">
+                  No encontramos productos para “{consulta.trim()}”.
+                </p>
               )}
-            </div>
+            </section>
           ) : null
         }
         onCambiarConsulta={setConsulta}
@@ -127,8 +135,7 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
         mostrarLogin={!sesionIniciada}
         ocultarTendencias
         menuDeshabilitado={!sesionIniciada}
-        ocultarIconoBusqueda={administrador}
-        onAbrirBusqueda={sesionIniciada && !administrador ? () => setBusquedaAbierta(true) : undefined}
+        onAbrirBusqueda={sesionIniciada ? () => setBusquedaAbierta(true) : undefined}
       />
 
       <section className="inicio-principal" aria-labelledby="inicio-titulo">

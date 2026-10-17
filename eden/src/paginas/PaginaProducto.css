@@ -317,6 +317,10 @@
     font-size: calc(22 * var(--u));
   }
 
+  .pagina-editar.pagina-producto .campo-ref-error input {
+    border-left-color: #e5262d;
+  }
+
   .pagina-editar.pagina-producto .campo-ref input::placeholder {
     font-size: calc(16 * var(--u));
   }
