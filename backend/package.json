@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node servidor.js",
     "dev": "node --watch-path=./servidor.js --watch-path=./baseDatos.js --watch-path=./validar.js --watch-path=./subirFoto.js --watch-path=./rutas servidor.js",
-    "prueba": "node prueba.js"
+    "prueba": "node prueba.js",
+    "test": "node --test"
   },
   "dependencies": {
     "cors": "^2.8.5",
