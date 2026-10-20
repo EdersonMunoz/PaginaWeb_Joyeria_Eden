@@ -24,7 +24,7 @@ export function limpiarPrecio(valor) {
 
 /**
  * Valida los datos de un producto.
- * @param {object} datos  campos que llegan del formulario
+ * @param {object} datos   campos que llegan del formulario
  * @param {object} opciones
  *   esRegistro: true en HU1 (stock debe ser mayor que 0 y la foto es obligatoria)
  *   tieneFoto:  si llegó una foto en la petición
@@ -42,6 +42,7 @@ export function validarProducto(datos, { esRegistro, tieneFoto }) {
   if (
     precioTexto === "" ||
     precioTexto.includes("-") ||
+    /e/i.test(precioTexto) ||
     !Number.isInteger(precio) ||
     precio <= 0 ||
     precio > PRECIO_MAXIMO
@@ -58,6 +59,7 @@ export function validarProducto(datos, { esRegistro, tieneFoto }) {
   if (
     stockTexto === "" ||
     stockTexto.includes("-") ||
+    /e/i.test(stockTexto) ||
     !Number.isInteger(stock) ||
     stock < stockMinimo ||
     stock > STOCK_MAXIMO

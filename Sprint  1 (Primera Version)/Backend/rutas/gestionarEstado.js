@@ -5,8 +5,8 @@ import { ejecutar, buscarProductoPorId } from "../baseDatos.js";
 
 const router = Router();
 
-const MENSAJE_INACTIVADO = "El producto fue removido del catálogo correctamente";
-const MENSAJE_ACTIVADO = "El producto fue publicado en el catálogo correctamente";
+const MENSAJE_INACTIVADO = "¡Producto inactivado correctamente!";
+const MENSAJE_ACTIVADO = "¡Producto activado correctamente!";
 const MENSAJE_SIN_UNIDADES =
   "Error al activar el producto. Por favor verifica que existan unidades disponibles";
 

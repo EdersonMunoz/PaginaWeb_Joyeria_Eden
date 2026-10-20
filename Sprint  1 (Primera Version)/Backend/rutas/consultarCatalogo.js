@@ -3,7 +3,7 @@
 //     ?estado=Activo (por defecto) | Inactivo | todos
 //     ?categoria=Anillos,Cadenas   (una o varias, separadas por coma)
 //     ?precioMin=150000&precioMax=4000000
-//     ?q=bright                     (busca en nombre, referencia, categoría y descripción)
+//     ?q=bright                    (busca en nombre, referencia, categoría y descripción)
 // GET /api/productos/:id    detalle de un producto
 import { Router } from "express";
 import { ejecutar, SELECT_PRODUCTO, buscarProductoPorId } from "../baseDatos.js";
@@ -16,7 +16,11 @@ router.get("/", async (req, res) => {
   const datos = {};
 
   // Por defecto el cliente solo ve los productos activos (HU4)
-  const estado = req.query.estado ?? "Activo";
+  let estado = req.query.estado;
+  if (!["Activo", "Inactivo", "todos"].includes(estado)) {
+    estado = "Activo";
+  }
+
   if (estado === "Activo" || estado === "Inactivo") {
     condiciones.push("p.estado = :estado");
     datos.estado = estado;
@@ -28,10 +32,14 @@ router.get("/", async (req, res) => {
       .split(",")
       .map((c) => c.trim())
       .filter((c) => CATEGORIAS.includes(c));
+
     if (categorias.length > 0) {
       const marcadores = categorias.map((_c, i) => `:cat${i}`);
       categorias.forEach((c, i) => (datos[`cat${i}`] = c));
       condiciones.push(`c.nombre IN (${marcadores.join(", ")})`);
+    } else {
+      // Si enviaron categorías y ninguna es válida (ej. 'Zapatos'), retornar vacio directamente
+      return res.json({ productos: [] });
     }
   }
 
