@@ -16,7 +16,7 @@ Bienvenidos al repositorio de **Joyería y Perfumería Edén**, el espacio digit
 ## 🛠️ Tecnologías Utilizadas
 
 * **Frontend:** react
-* **Backend:**  c#
+* **Backend:**  Node.js
 * **Base de Datos:** SQL
 
 ## ⚙️ Funcionalidades del sistema
@@ -44,4 +44,5 @@ Bienvenidos al repositorio de **Joyería y Perfumería Edén**, el espacio digit
 | Luis Fernando Becerra Fernández | Analista y Diseñador |
 | Luis Miguel Solis Bolaños | Desarrollador |
 | José David Gómez Cifuentes | Desarrollador |
+| Jose Carlos Ortiz Chamorro  | Desarrollador |
 | Ederson Muñoz Caicedo | Tester |
