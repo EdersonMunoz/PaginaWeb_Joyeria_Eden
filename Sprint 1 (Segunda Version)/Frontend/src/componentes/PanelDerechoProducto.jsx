@@ -8,7 +8,8 @@ function PanelDerechoProducto({
   refValor = "",
   refError = false,
   refMensaje = "",
-  imagenError = false,
+                                imagenError = false,
+                                fotoObligatoria = false,
   onChangeReferencia,
   onChangeInput,
   deshabilitarFoto = false,
@@ -77,8 +78,8 @@ function PanelDerechoProducto({
             <span>Add photo</span>
           </button>
 
-          {imagenError && (
-            <span className="asterisco-error" aria-hidden="true">*</span>
+          {fotoObligatoria && (
+              <span className="asterisco-error" aria-hidden="true">*</span>
           )}
         </div>
       </div>

@@ -165,6 +165,7 @@ function RegistrarProducto({ agregarProducto }) {
           imagenPreview={imagenPreview}
           onCambiarImagen={manejarCambioImagen}
           imagenError={errores.imagen}
+          fotoObligatoria
           refValor={producto.ref}
           refError={errores.ref}
           onChangeInput={manejarCambioInput}
