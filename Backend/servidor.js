@@ -6,7 +6,6 @@ import cors from "cors";
 import multer from "multer";
 import { pathToFileURL } from "node:url";
 import { iniciarBaseDatos, cerrarBaseDatos } from "./baseDatos.js";
-import { carpetaFotos } from "./subirFoto.js";
 
 import consultarCatalogo from "./rutas/consultarCatalogo.js"; // HU3
 import registrarProducto from "./rutas/registrarProducto.js"; // HU1
@@ -29,7 +28,8 @@ export function crearApp() {
     }),
   );
   app.use(express.json());
-  app.use("/fotos", express.static(carpetaFotos));
+  // Las fotos ya no las sirve el backend: el navegador las carga directo
+  // del bucket de Oracle Cloud (ver almacenFotos.js)
 
   app.get("/api/salud", (_req, res) => res.json({ ok: true }));
 

@@ -8,7 +8,8 @@ import {
   buscarProductoPorReferencia,
 } from "../baseDatos.js";
 import { validarProducto, hayErrores } from "../validar.js";
-import { subirFoto, rutaPublicaFoto, borrarFoto } from "../subirFoto.js";
+import { subirFoto } from "../subirFoto.js";
+import { subirAlBucket, nombreFoto } from "../almacenFotos.js";
 
 const router = Router();
 
@@ -28,12 +29,10 @@ router.get("/referencia/:ref", async (req, res) => {
 });
 
 router.put("/:id", subirFoto, async (req, res) => {
-  const fotoNueva = req.file ? rutaPublicaFoto(req.file) : null;
   const id = Number(req.params.id);
 
   const actual = Number.isInteger(id) ? await buscarProductoPorId(id) : null;
   if (!actual) {
-    borrarFoto(fotoNueva);
     return res.status(404).json({ mensaje: "El producto no existe." });
   }
 
@@ -44,8 +43,22 @@ router.put("/:id", subirFoto, async (req, res) => {
 
   // Escenarios 2 y 3: campos vacíos o valores numéricos no válidos
   if (hayErrores(errores)) {
-    borrarFoto(fotoNueva);
     return res.status(400).json({ mensaje: MENSAJE_ERROR, errores });
+  }
+
+  // Si el admin subió una foto nueva, se sube al bucket; si no, queda la anterior
+  const cambiaFoto = Boolean(req.file);
+  const fotoNueva = cambiaFoto ? nombreFoto(actual.ref, req.file) : null;
+  if (cambiaFoto) {
+    try {
+      await subirAlBucket(fotoNueva, req.file.buffer, req.file.mimetype);
+    } catch (error) {
+      console.error(error);
+      return res.status(502).json({
+        mensaje: "No se pudo guardar la foto en la nube. Intenta de nuevo",
+        errores: { imagen: true },
+      });
+    }
   }
 
   // Escenario 1: modificación exitosa.
@@ -57,7 +70,7 @@ router.put("/:id", subirFoto, async (req, res) => {
             categoria_id = (SELECT id FROM categoria WHERE nombre = :categoria),
             stock = :stock,
             descripcion = :descripcion,
-            imagen = :imagen,
+            ${cambiaFoto ? "imagen = :imagen," : ""}
             estado = CASE WHEN :stock <= 0 THEN 'Inactivo' ELSE estado END
       WHERE id = :id`,
     {
@@ -66,12 +79,10 @@ router.put("/:id", subirFoto, async (req, res) => {
       categoria: valores.categoria,
       stock: valores.stock,
       descripcion: valores.descripcion,
-      imagen: fotoNueva ?? actual.imagen,
+      ...(cambiaFoto ? { imagen: fotoNueva } : {}),
       id,
     },
   );
-
-  if (fotoNueva) borrarFoto(actual.imagen);
 
   const producto = await buscarProductoPorId(id);
   res.json({ mensaje: MENSAJE_EXITO, producto });

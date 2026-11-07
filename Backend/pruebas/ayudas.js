@@ -4,10 +4,14 @@
 //  - Funciones para armar formularios y hacer peticiones
 // Este archivo NO es una prueba (no termina en .test.js), por eso `node --test` no lo ejecuta solo.
 import { before, after, beforeEach } from "node:test";
-import fs from "node:fs";
 import { crearApp } from "../servidor.js";
 import { usarEjecutorDePrueba } from "../baseDatos.js";
-import { carpetaFotos } from "../subirFoto.js";
+import { usarAlmacenDePrueba } from "../almacenFotos.js";
+
+// Bucket falso: guarda en memoria las fotos que el backend "sube" a Oracle Cloud
+export const bucket = { fotos: new Map() };
+process.env.FOTOS_PAR_URL = "https://objectstorage.prueba.oraclecloud.com/p/TOKEN-SECRETO/n/ns/b/eden-fotos/o/";
+export const URL_BUCKET = "https://objectstorage.prueba.oraclecloud.com/n/ns/b/eden-fotos/o/";
 
 // ---------------------------------------------------------------
 // Base de datos falsa
@@ -25,7 +29,7 @@ export function agregarProducto(extra = {}) {
     categoria: "Anillos",
     stock: 10,
     descripcion: "Anillo de oro de 18 quilates",
-    imagen: "/fotos/prueba.png",
+    imagen: "productos/prueba.png", // nombre de la foto dentro del bucket
     estado: "Activo",
     ...extra,
   };
@@ -59,8 +63,9 @@ function instalarBaseFalsa() {
         categoria: datos.categoria,
         stock: datos.stock,
         descripcion: datos.descripcion,
-        imagen: datos.imagen,
       });
+      // La foto solo cambia si el admin subió una nueva
+      if ("imagen" in datos) producto.imagen = datos.imagen;
       if (datos.stock <= 0) producto.estado = "Inactivo";
       return { filas: [], afectadas: 1 };
     }
@@ -87,12 +92,13 @@ function instalarBaseFalsa() {
 // ---------------------------------------------------------------
 let servidor;
 let API;
-let fotosAntes;
 
 export function prepararEntorno() {
   before(async () => {
     instalarBaseFalsa();
-    fotosAntes = new Set(fs.readdirSync(carpetaFotos));
+    usarAlmacenDePrueba(async (nombre, bytes, tipo) => {
+      bucket.fotos.set(nombre, { bytes, tipo });
+    });
     await new Promise((listo) => {
       servidor = crearApp().listen(0, "127.0.0.1", listo);
     });
@@ -101,23 +107,20 @@ export function prepararEntorno() {
 
   after(async () => {
     await new Promise((listo) => servidor.close(listo));
-    // Borra las fotos que las pruebas dejaron en backend/fotos
-    for (const archivo of fs.readdirSync(carpetaFotos)) {
-      if (!fotosAntes.has(archivo)) fs.rmSync(`${carpetaFotos}/${archivo}`, { force: true });
-    }
   });
 
   beforeEach(() => {
     bd.productos = [];
     bd.consultas = [];
     bd.siguienteId = 1;
+    bucket.fotos.clear();
   });
 }
 
 // ---------------------------------------------------------------
 // Peticiones
 // ---------------------------------------------------------------
-const PNG = Buffer.from(
+export const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=",
   "base64",
 );
