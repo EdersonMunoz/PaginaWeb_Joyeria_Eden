@@ -11,6 +11,7 @@ import consultarCatalogo from "./rutas/consultarCatalogo.js"; // HU3
 import registrarProducto from "./rutas/registrarProducto.js"; // HU1
 import modificarProducto from "./rutas/modificarProducto.js"; // HU2
 import gestionarEstado from "./rutas/gestionarEstado.js"; // HU4
+import autenticacion from "./rutas/autenticacion.js"; // Sprint 2 · cuentas e inicio de sesión
 
 export function crearApp() {
   const app = express();
@@ -38,6 +39,7 @@ export function crearApp() {
   app.use("/api/productos", registrarProducto); // HU1 · Registrar producto
   app.use("/api/productos", modificarProducto); // HU2 · Modificar producto
   app.use("/api/productos", gestionarEstado); //   HU4 · Inactivar y activar
+  app.use("/api/autenticacion", autenticacion); // Sprint 2 · Registro, login y ajustes de cuenta
 
   app.use((_req, res) => res.status(404).json({ mensaje: "Ruta no encontrada" }));
 
