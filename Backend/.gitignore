@@ -1,4 +1,4 @@
 node_modules
 .env
-fotos/*
-!fotos/.gitkeep
+Wallet_*/
+wallet*/
