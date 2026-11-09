@@ -3,8 +3,11 @@
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 const RUTA_PRODUCTOS = `${API_URL}/api/productos`;
+const RUTA_AUTENTICACION = `${API_URL}/api/autenticacion`;
 
-// Las fotos que sube el admin viven en el backend; las de prueba, en public/productos del frontend
+// Las fotos de los productos están en el bucket de Oracle Cloud: el backend ya manda
+// la dirección completa (https://objectstorage...). Se deja el caso "/fotos/" por si
+// alguien usa una base vieja.
 const normalizarProducto = (producto) =>
   producto && {
     ...producto,
@@ -28,6 +31,16 @@ async function pedir(ruta, opciones) {
   }
 }
 
+async function pedirAutenticacion(ruta, opciones) {
+  try {
+    const respuesta = await fetch(`${RUTA_AUTENTICACION}${ruta}`, opciones);
+    const cuerpo = await respuesta.json().catch(() => ({}));
+    return { ...cuerpo, ok: respuesta.ok, estado: respuesta.status };
+  } catch {
+    return { ok: false, mensaje: "No se pudo conectar con el servidor" };
+  }
+}
+
 const formularioProducto = (campos, archivo) => {
   const datos = new FormData();
   ["ref", "nombre", "precio", "categoria", "stock", "descripcion"].forEach((campo) => {
@@ -39,6 +52,37 @@ const formularioProducto = (campos, archivo) => {
 
 // HU3 · todos los productos (el catálogo del cliente filtra los inactivos)
 export const listarProductos = () => pedir("?estado=todos");
+
+export const iniciarSesion = (identificador, password) =>
+  pedirAutenticacion("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identificador, password }),
+  });
+
+export const registrarCuenta = (campos) =>
+  pedirAutenticacion("/registro", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(campos),
+  });
+
+export const actualizarCuenta = (id, campos) =>
+  pedirAutenticacion(`/cuenta/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(campos),
+  });
+
+export const cambiarEstadoCuenta = (id, estado) =>
+  pedirAutenticacion(`/cuenta/${id}/estado`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ estado }),
+  });
+
+export const desactivarCuenta = (id) =>
+  pedirAutenticacion(`/cuenta/${id}/desactivar`, { method: "PATCH" });
 
 // HU1 · registrar
 export const registrarProducto = (campos, archivo) =>
