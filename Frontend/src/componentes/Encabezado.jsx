@@ -3,15 +3,15 @@ import "./Encabezado.css";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
-import iconoOpciones from "../assets/Iconos_HU2/iconoOpciones.png"; 
-import iconoLupa from "../assets/Iconos_HU2/iconoLupa.png";
+import iconoOpciones from "../assets/iconossvg/iconoOpciones.svg";
+import iconoLupa from "../assets/iconossvg/iconobuscar.svg";
 import logo from "../assets/Iconos_HU2/Logo.png";
-import iconoCarrito from "../assets/Iconos_HU2/iconoCarrito.png";
-import iconoCorazon from "../assets/Iconos_HU2/iconoCorazon.png";
+import iconoCarrito from "../assets/iconossvg/iconoCarrito.svg";
+import iconoCorazon from "../assets/iconossvg/iconocorazon2.svg";
 import iconoTendencias from "../assets/iconoTendencias.png";
-import iconoCuenta from "../assets/iconoCuenta.png";
-import iconoAjustes from "../assets/iconoAjustes.png";
-import iconoX from "../assets/iconoX.png";
+import iconoCuenta from "../assets/iconossvg/iconoCuenta.svg";
+import iconoAjustes from "../assets/iconossvg/iconoConfiguracion.svg";
+import iconoX from "../assets/iconossvg/iconoX.svg";
 
 function Encabezado({
   acciones,
@@ -30,10 +30,21 @@ function Encabezado({
   mostrarTendencias = false,
   menuDeshabilitado = false,
   ocultarIconoBusqueda = false,
+  ocultarChevronPerfil = false,
   vistaAdminSoloLectura = false,
 }) {
   const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [perfilAbierto, setPerfilAbierto] = useState(false);
+  const usuarioGuardado = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("eden.usuario") ?? "null");
+    } catch {
+      return null;
+    }
+  })();
+  const nombreUsuario = usuarioGuardado?.nombre?.trim() || "Nombre y apellido";
+  const correoUsuario = usuarioGuardado?.correo?.trim() || "Correo";
   const esAdministrador =
     administrador || location.pathname.startsWith("/Admin");
   const esUsuario = sesionIniciada && !esAdministrador;
@@ -83,6 +94,21 @@ function Encabezado({
     return () => document.removeEventListener("keydown", cerrarConEscape);
   }, [menuAbierto]);
 
+  useEffect(() => {
+    if (!perfilAbierto) {
+      return undefined;
+    }
+
+    const cerrarPerfil = (event) => {
+      if (!event.target.closest(".encabezado-perfil")) {
+        setPerfilAbierto(false);
+      }
+    };
+
+    document.addEventListener("click", cerrarPerfil);
+    return () => document.removeEventListener("click", cerrarPerfil);
+  }, [perfilAbierto]);
+
   return (
     <>
       <header
@@ -93,6 +119,11 @@ function Encabezado({
           <div className="icono-subrayado">
             <img src={iconoOpciones} alt="Opciones" className="encabezado-icono" />
           </div>
+        ) : !administrador && !sesionIniciada && mostrarLogin ? (
+          <Link className="boton-login" to="/InicioSesion" translate="no">
+            <img src={iconoCuenta} alt="" className="encabezado-cuenta-icono" />
+            User login
+          </Link>
         ) : (
           <button
             className="icono-subrayado encabezado-boton-menu"
@@ -140,14 +171,83 @@ function Encabezado({
                 onClick={onVerPerfil}
                 aria-label="Ver perfil"
               >
-                <img src={iconoCuenta} alt="" />
+                <img src={iconoCuenta} alt="" className="encabezado-cuenta-icono" />
                 Ver perfil
+                <svg
+                  className="chevron-abierto"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 8 6 6 6-6" />
+                </svg>
               </button>
+            ) : !administrador && !sesionIniciada && mostrarLogin ? (
+              <Link className="boton-login encabezado-login-estatico encabezado-login-visitante" to="/InicioSesion" translate="no">
+                <img src={iconoCuenta} alt="" className="encabezado-cuenta-icono" />
+                User login
+                <svg
+                  className="encabezado-chevron-login"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 8 6 6 6-6" />
+                </svg>
+              </Link>
             ) : (
-              <span className="boton-login encabezado-login-estatico">
-                <img src={iconoCuenta} alt="" />
-                {administrador || sesionIniciada ? "Ver perfil" : "User login"}
-              </span>
+              <div className="encabezado-perfil">
+                <button
+                  className="boton-login encabezado-login-estatico"
+                  type="button"
+                  aria-expanded={perfilAbierto}
+                  aria-haspopup="menu"
+                  onClick={() => setPerfilAbierto((abierto) => !abierto)}
+                >
+                  <img src={iconoCuenta} alt="" className="encabezado-cuenta-icono" />
+                  {administrador || sesionIniciada ? "Ver perfil" : "User login"}
+                  {!ocultarChevronPerfil && (
+                    <svg
+                      className={perfilAbierto ? "chevron-abierto" : ""}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 8 6 6 6-6" />
+                    </svg>
+                  )}
+                </button>
+                {perfilAbierto && (
+                  <div className="encabezado-menu-perfil" role="menu">
+                    <div className="encabezado-perfil-resumen" role="presentation">
+                      <strong>{nombreUsuario}</strong>
+                      <span>{correoUsuario}</span>
+                    </div>
+                    <Link
+                      to={`${esAdministrador ? "/Admin" : "/Usuario"}/Ajustes_cuenta`}
+                      role="menuitem"
+                      onClick={() => setPerfilAbierto(false)}
+                    >
+                      Ajustes de la cuenta
+                    </Link>
+                    <Link to="/Inicio" role="menuitem" onClick={() => setPerfilAbierto(false)}>
+                      Cerrar sesión
+                    </Link>
+                  </div>
+                )}
+              </div>
             )
           )}
 
@@ -237,11 +337,15 @@ function Encabezado({
                 </>
               )}
             </nav>
-            {sesionIniciada && (
+            {(sesionIniciada || esAdministrador) && (
               <div className="inicio-menu-pie">
-                <button type="button">
+                <Link
+                  className="inicio-menu-cuenta-link"
+                  to={`${esAdministrador ? "/Admin" : "/Usuario"}/Ajustes_cuenta`}
+                  onClick={() => setMenuAbierto(false)}
+                >
                   Cuenta <img src={iconoAjustes} alt="" />
-                </button>
+                </Link>
                 <Link to="/Inicio" onClick={() => setMenuAbierto(false)}>
                   Cerrar sesión
                 </Link>

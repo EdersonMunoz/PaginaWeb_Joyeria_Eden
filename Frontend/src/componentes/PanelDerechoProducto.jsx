@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import iconoMas from "../assets/Iconos_HU2/iconoMas.png";
+import iconoMas from "../assets/iconossvg/iconMas.svg";
 import "./PanelDerechoProducto.css";
 
 function PanelDerechoProducto({
