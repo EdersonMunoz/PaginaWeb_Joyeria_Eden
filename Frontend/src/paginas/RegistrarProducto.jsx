@@ -5,8 +5,9 @@ import FormularioProducto from "../componentes/FormularioProducto";
 import PanelDerechoProducto from "../componentes/PanelDerechoProducto";
 import "./EditarProducto.css";
 import "./PaginaProducto.css";
-import iconoChulito from "../assets/iconoChulito.png";
-import iconoGuardado from "../assets/iconoGuardado.png";
+import iconoChulito from "../assets/iconossvg/iconochulito.svg";
+import iconoGuardado from "../assets/iconossvg/iconoGuardado.svg";
+import iconoX from "../assets/iconossvg/iconoX.svg";
 
 const productoInicial = {
   nombre: "",
@@ -175,12 +176,7 @@ function RegistrarProducto({ agregarProducto }) {
       {mostrarModalExito && (
         <div className="overlay-modal">
           <div className="modal-contenido modal-exito" role="status">
-            <img
-              className="icono-modal-exito"
-              src={iconoGuardado}
-              alt=""
-              aria-hidden="true"
-            />
+            <img className="icono-modal-exito" src={iconoGuardado} alt="" aria-hidden="true" />
             <span>¡Producto Registrado Exitosamente!</span>
           </div>
         </div>
@@ -189,19 +185,7 @@ function RegistrarProducto({ agregarProducto }) {
       {mostrarModalError && (
         <div className="overlay-modal">
           <div className="modal-contenido modal-error" role="alert">
-            <svg
-              className="icono-modal-error"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#d93025"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <img className="icono-modal-error" src={iconoX} alt="" aria-hidden="true" />
             <div className="texto-modal-error">
               {mensajeServidor && !mensajeServidor.startsWith("Error al registrar") ? (
                 <p>{mensajeServidor}</p>

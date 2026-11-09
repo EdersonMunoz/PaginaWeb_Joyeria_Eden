@@ -1,5 +1,5 @@
-import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
-import iconoCandado from "../assets/Iconos_HU2/iconoCandado.png";
+import iconoLapiz from "../assets/iconossvg/iconoLapiz.svg";
+import iconoCandado from "../assets/iconossvg/iconoCandado.svg";
 import "./FormularioProducto.css";
 
 function FormularioProducto({
@@ -15,12 +15,7 @@ function FormularioProducto({
   onSubmit,
 }) {
   const indicadorCampo = mostrarCandados ? (
-    <img
-      src={iconoCandado}
-      alt=""
-      aria-hidden="true"
-      className="icono-candado"
-    />
+    <img src={iconoCandado} alt="" aria-hidden="true" className="icono-candado" />
   ) : (
     <span className="asterisco-rojo">*</span>
   );

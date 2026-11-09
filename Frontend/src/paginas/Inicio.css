@@ -6,6 +6,24 @@
   background: #fbf9f4;
 }
 
+.inicio-mensaje-cuenta {
+  position: fixed;
+  z-index: 15;
+  top: 24px;
+  left: 50%;
+  width: min(760px, calc(100% - 32px));
+  margin: 0;
+  padding: 14px 22px;
+  transform: translateX(-50%);
+  border: 2px solid #00594d;
+  border-radius: 12px;
+  background: #fbf9f4;
+  color: #00594d;
+  font-size: 15px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
+}
+
 .pagina-inicio .encabezado {
   position: sticky;
   z-index: 3;
@@ -168,15 +186,17 @@
   flex-direction: column;
   padding: 10px 11px 12px;
   color: #111;
-  background: #fff;
-  border-radius: 16px;
+  background: #fbf9f4;
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgb(0 0 0 / 12%);
 }
 
 .inicio-mas-vendido-imagen {
   width: 100%;
   aspect-ratio: 1;
   margin-bottom: 8px;
-  object-fit: cover;
+  object-fit: contain;
+  background: transparent;
   border-radius: 14px;
   transition: transform 180ms ease;
 }

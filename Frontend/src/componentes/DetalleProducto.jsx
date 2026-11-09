@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import iconoCarrito from "../assets/Iconos_HU2/iconoCarrito.png";
-import iconoCorazon from "../assets/Iconos_HU2/iconoCorazon.png";
-import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
+import iconoCarrito from "../assets/iconossvg/iconoCarrito.svg";
+import iconoCorazon from "../assets/iconossvg/iconocorazon2.svg";
+import iconoLapiz from "../assets/iconossvg/iconoLapiz.svg";
 import iconoActivar from "../assets/iconoActivar.png";
 import iconoBloquear from "../assets/iconoBloquear.png";
 import "./DetalleProducto.css";

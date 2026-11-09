@@ -8,6 +8,9 @@ import Catalogo from "./paginas/Catalogo";
 import GestionProductos from "./paginas/GestionProductos";
 import RegistrarProducto from "./paginas/RegistrarProducto";
 import EditarProducto from "./paginas/EditarProducto";
+import InicioSesion from "./paginas/InicioSesion";
+import RegistroCuenta from "./paginas/RegistroCuenta";
+import AjustesCuenta from "./paginas/AjustesCuenta";
 
 function App() {
   // Los productos vienen de la base de datos Oracle a través del backend
@@ -69,6 +72,10 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/Inicio" replace />} />
         <Route path="/Inicio" element={<Inicio />} />
+        <Route path="/InicioSesion" element={<InicioSesion />} />
+        <Route path="/Registro" element={<RegistroCuenta />} />
+        <Route path="/Usuario/Ajustes_cuenta" element={<AjustesCuenta />} />
+        <Route path="/Admin/Ajustes_cuenta" element={<AjustesCuenta />} />
         <Route path="/Usuario" element={<InicioUsuario productos={productos} />} />
         <Route path="/Admin" element={<InicioAdmin productos={productos} />} />
         <Route path="/Inicio/Catalogo" element={<Catalogo productos={productos} />} />
