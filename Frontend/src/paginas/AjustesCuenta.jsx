@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
 import iconoCandado from "../assets/iconossvg/iconoCandado.svg";
 import { actualizarCuenta, desactivarCuenta } from "../api";
+import { actualizarUsuario, cerrarSesion, obtenerUsuario } from "../sesion";
 import { esPasswordValida, esTelefonoValido } from "../validacionesCuenta";
 import "./AjustesCuenta.css";
 import "../componentes/EncabezadoFigma.css";
@@ -11,7 +12,7 @@ function AjustesCuenta() {
   const navigate = useNavigate();
   const location = useLocation();
   const esAdministrador = location.pathname.startsWith("/Admin/");
-  const cuenta = JSON.parse(localStorage.getItem("eden.usuario") ?? "null");
+  const cuenta = obtenerUsuario();
   const nombreGuardado = cuenta?.nombre?.trim() ?? "";
   const partesNombre = nombreGuardado.split(/\s+/);
   const inicial = {
@@ -138,7 +139,7 @@ function AjustesCuenta() {
       correo: formulario.correo,
       direccion: formulario.direccion.trim(),
     };
-    localStorage.setItem("eden.usuario", JSON.stringify(cuentaActualizada));
+    actualizarUsuario(cuentaActualizada);
     setGuardado({ ...formulario });
     setErrores({});
     setMensaje("Datos actualizados correctamente");
@@ -153,7 +154,7 @@ function AjustesCuenta() {
       setConfirmarDesactivacion(false);
       return;
     }
-    localStorage.removeItem("eden.usuario");
+    cerrarSesion();
     setConfirmarDesactivacion(false);
     navigate("/Inicio", {
       state: {

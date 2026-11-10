@@ -8,6 +8,7 @@ import logo from "../assets/Logo-Eden.png";
 import iconoCuenta from "../assets/iconossvg/iconoCuenta.svg";
 import iconoCandado from "../assets/iconossvg/iconoCandado.svg";
 import { iniciarSesion } from "../api";
+import { guardarSesion } from "../sesion";
 import "./InicioSesion.css";
 
 function InicioSesion() {
@@ -63,7 +64,7 @@ function InicioSesion() {
     const destino = respuesta.usuario?.rol?.toLowerCase() === "admin"
       ? "/Admin"
       : "/Usuario";
-    localStorage.setItem("eden.usuario", JSON.stringify(respuesta.usuario));
+    guardarSesion(respuesta.usuario, respuesta.token);
     navigate(destino, { state: { usuario: respuesta.usuario } });
   };
 
