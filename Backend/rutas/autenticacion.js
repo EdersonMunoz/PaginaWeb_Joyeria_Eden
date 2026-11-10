@@ -7,6 +7,55 @@ const router = Router();
 const hashPassword = (password) =>
   createHash("sha256").update(password, "utf8").digest("hex");
 
+function validarDatosCuenta(cuerpo, { passwordOpcional = false } = {}) {
+  const datos = {
+    nombre: String(cuerpo?.nombre ?? "").trim(),
+    identificacion: String(cuerpo?.identificacion ?? "").trim(),
+    telefono: String(cuerpo?.telefono ?? "").trim(),
+    usuario: String(cuerpo?.usuario ?? "").trim(),
+    correo: String(cuerpo?.correo ?? "").trim().toLowerCase(),
+    password: String(cuerpo?.password ?? ""),
+    direccion: String(cuerpo?.direccion ?? "").trim(),
+  };
+  const faltanCampos =
+    !datos.nombre ||
+    !datos.identificacion ||
+    !datos.telefono ||
+    !datos.usuario ||
+    !datos.correo ||
+    (!passwordOpcional && !datos.password) ||
+    !datos.direccion;
+
+  if (faltanCampos) {
+    return {
+      datos,
+      codigo: "CAMPOS_VACIOS",
+      mensaje: "Por favor, complete todos los campos obligatorios",
+    };
+  }
+
+  const passwordInvalida =
+    (!passwordOpcional || datos.password !== "") &&
+    (datos.password.length < 8 || !datos.password.trim());
+  const formatoInvalido =
+    datos.nombre.length > 100 ||
+    datos.identificacion.length > 30 ||
+    !/^\+?[\d ]{7,20}$/.test(datos.telefono) ||
+    !/^[a-zA-Z0-9._-]{3,30}$/.test(datos.usuario) ||
+    datos.correo.length > 150 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo) ||
+    datos.direccion.length > 300 ||
+    passwordInvalida;
+
+  return formatoInvalido
+    ? {
+        datos,
+        codigo: "FORMATO_INVALIDO",
+        mensaje: "Uno o más campos no cuentan con el formato adecuado",
+      }
+    : { datos };
+}
+
 router.post("/login", async (req, res) => {
   const identificador = String(req.body?.identificador ?? "").trim();
   const password = String(req.body?.password ?? "");
@@ -62,35 +111,14 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/registro", async (req, res) => {
-  const nombre = String(req.body?.nombre ?? "").trim();
-  const identificacion = String(req.body?.identificacion ?? "").trim();
-  const telefono = String(req.body?.telefono ?? "").trim();
-  const usuario = String(req.body?.usuario ?? "").trim();
-  const correo = String(req.body?.correo ?? "").trim().toLowerCase();
-  const password = String(req.body?.password ?? "");
-  const direccion = String(req.body?.direccion ?? "").trim();
-
-  if (!nombre || !identificacion || !telefono || !usuario || !correo || !password || !direccion) {
+  const validacion = validarDatosCuenta(req.body);
+  if (validacion.mensaje) {
     return res.status(400).json({
-      mensaje: "Por favor, complete todos los campos obligatorios",
-      codigo: "CAMPOS_VACIOS",
+      mensaje: validacion.mensaje,
+      codigo: validacion.codigo,
     });
   }
-  if (
-    identificacion.length > 30 ||
-    telefono.length > 20 ||
-    nombre.length > 100 ||
-    usuario.length > 50 ||
-    correo.length > 150 ||
-    direccion.length > 300 ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) ||
-    password.length < 8
-  ) {
-    return res.status(400).json({
-      mensaje: "Uno o más campos no cuentan con el formato adecuado",
-      codigo: "FORMATO_INVALIDO",
-    });
-  }
+  const { nombre, identificacion, telefono, usuario, correo, password, direccion } = validacion.datos;
 
   const rol = usuario.toLowerCase().startsWith("admin") ? "admin" : "cliente";
   try {
@@ -125,41 +153,26 @@ router.post("/registro", async (req, res) => {
 
 router.put("/cuenta/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const nombre = String(req.body?.nombre ?? "").trim();
-  const identificacion = String(req.body?.identificacion ?? "").trim();
-  const telefono = String(req.body?.telefono ?? "").trim();
-  const usuario = String(req.body?.usuario ?? "").trim();
-  const correo = String(req.body?.correo ?? "").trim().toLowerCase();
-  const password = String(req.body?.password ?? "");
-  const direccion = String(req.body?.direccion ?? "").trim();
-
-  if (
-    !Number.isInteger(id) ||
-    !nombre ||
-    !identificacion ||
-    identificacion.length > 30 ||
-    !telefono ||
-    telefono.length > 20 ||
-    nombre.length > 100 ||
-    !usuario ||
-    usuario.length > 50 ||
-    !correo ||
-    correo.length > 150 ||
-    !direccion ||
-    direccion.length > 300 ||
-    (password && password.length < 8)
-  ) {
+  const validacion = validarDatosCuenta(req.body, { passwordOpcional: true });
+  if (!Number.isInteger(id)) {
     return res.status(400).json({
       mensaje: "Uno o más campos no cuentan con el formato adecuado",
       codigo: "FORMATO_INVALIDO",
     });
   }
+  if (validacion.mensaje) {
+    return res.status(400).json({
+      mensaje: validacion.mensaje,
+      codigo: validacion.codigo,
+    });
+  }
+  const { nombre, identificacion, telefono, usuario, correo, password, direccion } = validacion.datos;
 
   try {
     const camposPassword = password
       ? ", password_hash = :passwordHash"
       : "";
-    await ejecutar(
+    const resultado = await ejecutar(
       `UPDATE usuario
           SET nombre = :nombre, identificacion = :identificacion,
               telefono = :telefono, usuario = :usuario,
@@ -176,6 +189,9 @@ router.put("/cuenta/:id", async (req, res) => {
         ...(password ? { passwordHash: hashPassword(password) } : {}),
       },
     );
+    if (resultado.afectadas === 0) {
+      return res.status(404).json({ mensaje: "La cuenta no existe" });
+    }
   } catch (error) {
     if (error.errorNum === 1) {
       return res.status(409).json({
@@ -208,10 +224,13 @@ router.patch("/cuenta/:id/desactivar", async (req, res) => {
   if (!Number.isInteger(id)) {
     return res.status(400).json({ mensaje: "Identificador de cuenta inválido" });
   }
-  await ejecutar(
+  const resultado = await ejecutar(
     `UPDATE usuario SET estado = 'Inactivo' WHERE id = :id`,
     { id },
   );
+  if (resultado.afectadas === 0) {
+    return res.status(404).json({ mensaje: "La cuenta no existe" });
+  }
   return res.json({ mensaje: "Cuenta actualizada", estado: "Inactivo" });
 });
 
