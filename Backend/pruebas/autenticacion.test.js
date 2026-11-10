@@ -72,7 +72,9 @@ test("registro, inicio de sesión y actualización conservan los datos del perfi
   });
   assert.equal(registro.status, 201);
   assert.equal(cuentas.length, 1);
-  assert.equal(cuentas[0].passwordHash, hash(perfil.password));
+  const hashGuardado = cuentas[0].passwordHash;
+  assert.notEqual(hashGuardado, hash(perfil.password));
+  assert.match(hashGuardado, /^scrypt\$/);
   assert.equal("password" in cuentas[0], false);
   for (const campo of ["nombre", "identificacion", "telefono", "usuario", "correo", "direccion"]) {
     assert.equal(cuentas[0][campo], perfil[campo]);
@@ -110,7 +112,7 @@ test("registro, inicio de sesión y actualización conservan los datos del perfi
   assert.match(consultaActualizacion.sql, /telefono = :telefono/);
   assert.match(consultaActualizacion.sql, /direccion = :direccion/);
   assert.doesNotMatch(consultaActualizacion.sql, /password_hash/);
-  assert.equal(cuentas[0].passwordHash, hash(perfil.password));
+  assert.equal(cuentas[0].passwordHash, hashGuardado);
   for (const campo of ["identificacion", "telefono", "direccion"]) {
     assert.equal(cuentas[0][campo], perfilActualizado[campo]);
   }
