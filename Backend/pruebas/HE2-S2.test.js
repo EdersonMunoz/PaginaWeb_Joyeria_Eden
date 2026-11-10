@@ -50,7 +50,8 @@ function instalarBaseFalsa() {
       const repetida = cuentas.some(
         (c) =>
           c.correo.toLowerCase() === datos.correo.toLowerCase() ||
-          c.usuario.toLowerCase() === datos.usuario.toLowerCase(),
+          c.usuario.toLowerCase() === datos.usuario.toLowerCase() ||
+          c.identificacion === datos.identificacion,
       );
       if (repetida) throw errorDuplicado();
       cuentas.push(cuentaBase(datos));
@@ -68,7 +69,8 @@ function instalarBaseFalsa() {
         (c) =>
           c.id !== datos.id &&
           (c.correo.toLowerCase() === datos.correo.toLowerCase() ||
-            c.usuario.toLowerCase() === datos.usuario.toLowerCase()),
+            c.usuario.toLowerCase() === datos.usuario.toLowerCase() ||
+            c.identificacion === datos.identificacion),
       );
       if (repetida) throw errorDuplicado();
       Object.assign(cuenta, datos);
@@ -194,7 +196,7 @@ describe("2 · Registrar cuenta", () => {
     agregarCuenta({ correo: "carlos@example.com" });
     const r = await registrar({});
     assert.equal(r.estado, 409);
-    assert.equal(r.cuerpo.mensaje, "El correo o nombre de usuario ya está registrado");
+    assert.equal(r.cuerpo.mensaje, "El correo, nombre de usuario o identificación ya está registrado");
     assert.equal(cuentas.length, 1, "no debe crear una segunda cuenta");
   });
 
@@ -271,7 +273,7 @@ describe("3 · Ajustes de la cuenta", () => {
       direccion: "Calle 10 # 5-20",
     });
     assert.equal(r.estado, 409);
-    assert.equal(r.cuerpo.mensaje, "El correo o nombre de usuario ya está registrado");
+    assert.equal(r.cuerpo.mensaje, "El correo, nombre de usuario o identificación ya está registrado");
     assert.equal(cuentas[0].correo, "ana@example.com", "el correo no debe cambiar");
   });
 

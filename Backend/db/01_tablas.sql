@@ -101,13 +101,17 @@ CREATE TABLE usuario (
   correo         VARCHAR2(150)  NOT NULL,
   usuario        VARCHAR2(50)   NOT NULL,
   direccion      VARCHAR2(300)  NOT NULL,
-  -- La contraseña nunca se guarda: solo su hash SHA-256 (64 caracteres)
-  password_hash  VARCHAR2(64)   NOT NULL,
+  -- La contraseña nunca se guarda: solo su hash.
+  password_hash  VARCHAR2(255)  NOT NULL,
   rol            VARCHAR2(20)   DEFAULT 'cliente' NOT NULL,
   estado         VARCHAR2(10)   DEFAULT 'Activo' NOT NULL,
   CONSTRAINT uq_usuario_correo UNIQUE (correo),
   CONSTRAINT uq_usuario_nombre UNIQUE (usuario),
+  CONSTRAINT uq_usuario_identificacion UNIQUE (identificacion),
   -- Igual que en PRODUCTO: Oracle no tiene ENUM, el CHECK limita los valores
   CONSTRAINT ck_usuario_rol    CHECK (rol IN ('cliente', 'admin')),
   CONSTRAINT ck_usuario_estado CHECK (estado IN ('Activo', 'Inactivo'))
 );
+
+CREATE UNIQUE INDEX uq_usuario_nombre_ci ON usuario (LOWER(usuario));
+CREATE UNIQUE INDEX uq_usuario_correo_ci ON usuario (LOWER(correo));
