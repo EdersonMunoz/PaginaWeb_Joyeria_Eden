@@ -33,4 +33,6 @@
 | HE2-S2-PU029 | Funcional: actualizar con usuario con espacios o símbolos devuelve 400 y no se guarda | Funcional | prueba automática |
 | HE2-S2-PU030 | Funcional: actualizar con teléfono con letras devuelve 400 y no se guarda | Funcional | prueba automática |
 | HE2-S2-PU031 | Mejora: contraseñas iguales deben tener hashes distintos y no ser SHA-256 simple | Mejora | prueba automática |
-| HE2-S2-PU032 | Seguridad: modificar productos sin token devuelve 401 y con token de cliente devuelve 403 | Seguridad | prueba automática (pendiente) |
+| HE2-S2-PU032 | Seguridad: POST /api/productos sin token devuelve 401, con token de cliente 403 y con token de administrador permite el registro | Seguridad | prueba automática |
+| HE2-S2-PU033 | Seguridad: iniciar sesión con hash SHA-256 antiguo lo migra a scrypt y permite volver a iniciar sesión | Seguridad | prueba automática |
+| HE2-S2-PU034 | Seguridad: un token con la firma alterada devuelve 401 | Seguridad | prueba automática |

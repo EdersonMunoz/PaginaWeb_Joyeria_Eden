@@ -1,8 +1,11 @@
 import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
-import { crearApp } from "../servidor.js";
 import { usarEjecutorDePrueba } from "../baseDatos.js";
+
+process.env.SECRETO_SESION = "secreto-fijo-de-prueba-para-sesiones";
+const { crearApp } = await import("../servidor.js");
+const { crearToken } = await import("../sesion.js");
 
 let servidor;
 let api;
@@ -104,7 +107,10 @@ test("registro, inicio de sesión y actualización conservan los datos del perfi
   delete perfilActualizado.password;
   const actualizacion = await fetch(`${api}/api/autenticacion/cuenta/1`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${crearToken({ id: 1, rol: "cliente" })}`,
+    },
     body: JSON.stringify(perfilActualizado),
   });
   assert.equal(actualizacion.status, 200);

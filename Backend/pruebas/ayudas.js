@@ -4,9 +4,12 @@
 //  - Funciones para armar formularios y hacer peticiones
 // Este archivo NO es una prueba (no termina en .test.js), por eso `node --test` no lo ejecuta solo.
 import { before, after, beforeEach } from "node:test";
-import { crearApp } from "../servidor.js";
 import { usarEjecutorDePrueba } from "../baseDatos.js";
 import { usarAlmacenDePrueba } from "../almacenFotos.js";
+
+process.env.SECRETO_SESION = "secreto-fijo-de-prueba-para-sesiones";
+const { crearApp } = await import("../servidor.js");
+const { crearToken } = await import("../sesion.js");
 
 // Bucket falso: guarda en memoria las fotos que el backend "sube" a Oracle Cloud
 export const bucket = { fotos: new Map() };
@@ -158,8 +161,25 @@ export function formularioConArchivoDeTexto(campos) {
   return datos;
 }
 
-export async function pedir(ruta, opciones) {
-  const respuesta = await fetch(`${API}${ruta}`, opciones);
+export async function pedir(ruta, opciones = {}, { autenticar = true } = {}) {
+  const metodo = String(opciones.method ?? "GET").toUpperCase();
+  const esRutaProtegida =
+    ruta === "/api/productos" && metodo === "POST" ||
+    /^\/api\/productos\/[^/]+$/.test(ruta) && metodo === "PUT" ||
+    /^\/api\/productos\/[^/]+\/estado$/.test(ruta) && metodo === "PATCH" ||
+    /^\/api\/productos\/referencia\/[^/]+$/.test(ruta) && metodo === "GET";
+  const headers = { ...opciones.headers };
+
+  if (autenticar && esRutaProtegida && !headers.Authorization) {
+    headers.Authorization = `Bearer ${crearToken({ id: 1, rol: "admin" })}`;
+  }
+
+  const idCuenta = ruta.match(/^\/api\/autenticacion\/cuenta\/(\d+)(?:\/desactivar)?$/);
+  if (autenticar && idCuenta && ["PUT", "PATCH"].includes(metodo) && !headers.Authorization) {
+    headers.Authorization = `Bearer ${crearToken({ id: Number(idCuenta[1]), rol: "cliente" })}`;
+  }
+
+  const respuesta = await fetch(`${API}${ruta}`, { ...opciones, headers });
   return { estado: respuesta.status, cuerpo: await respuesta.json() };
 }
 

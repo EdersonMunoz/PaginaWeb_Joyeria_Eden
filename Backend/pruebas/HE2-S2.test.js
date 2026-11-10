@@ -12,8 +12,11 @@
 import { createHash } from "node:crypto";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { crearApp } from "../servidor.js";
 import { usarEjecutorDePrueba } from "../baseDatos.js";
+
+process.env.SECRETO_SESION = "secreto-fijo-de-prueba-para-sesiones";
+const { crearApp } = await import("../servidor.js");
+const { crearToken } = await import("../sesion.js");
 
 // ---------------------------------------------------------------
 // Tabla USUARIO falsa en memoria (hace lo mismo que Oracle para estas consultas)
@@ -83,7 +86,7 @@ function instalarBaseFalsa() {
       return { filas: [], afectadas: 1 };
     }
     if (sql.includes("SET estado")) {
-      // El login reactiva con el literal 'Activo'; desactivar usa 'Inactivo'; el PATCH /estado manda :estado
+      // El login reactiva con el literal 'Activo'; desactivar usa 'Inactivo'.
       const cuenta = cuentas.find((c) => c.id === datos.id);
       if (!cuenta) return { filas: [], afectadas: 0 };
       cuenta.estado = sql.includes("'Activo'") ? "Activo" : sql.includes("'Inactivo'") ? "Inactivo" : datos.estado;
@@ -115,9 +118,20 @@ beforeEach(() => {
 });
 
 async function pedir(ruta, metodo, cuerpo, cabeceras = {}) {
+  const headers = { "Content-Type": "application/json", ...cabeceras };
+  const idCuenta = ruta.match(/^\/cuenta\/(\d+)(?:\/desactivar)?$/);
+  if (
+    idCuenta &&
+    ["PUT", "PATCH"].includes(metodo) &&
+    !Object.hasOwn(cabeceras, "Authorization")
+  ) {
+    const id = Number(idCuenta[1]);
+    const cuenta = cuentas.find((item) => item.id === id);
+    headers.Authorization = `Bearer ${crearToken({ id, rol: cuenta?.rol ?? "cliente" })}`;
+  }
   const respuesta = await fetch(`${API}${ruta}`, {
     method: metodo,
-    headers: { "Content-Type": "application/json", ...cabeceras },
+    headers,
     body: cuerpo ? JSON.stringify(cuerpo) : undefined,
   });
   return { estado: respuesta.status, cuerpo: await respuesta.json() };
@@ -330,13 +344,17 @@ describe("4 · Validaciones de formato y cuentas inexistentes", () => {
   });
 
   test("HE2-S2-PU019 · (-) Actualizar una cuenta que no existe: no debe decir que se actualizó", async () => {
-    const r = await pedir("/cuenta/999", "PUT", datosActualizar);
+    const r = await pedir("/cuenta/999", "PUT", datosActualizar, {
+      Authorization: `Bearer ${crearToken({ id: 999, rol: "cliente" })}`,
+    });
     assert.equal(r.estado, 404);
     assert.notEqual(r.cuerpo.mensaje, "La información de la cuenta se actualizó correctamente");
   });
 
   test("HE2-S2-PU020 · (-) Desactivar una cuenta que no existe: no debe responder éxito", async () => {
-    const r = await pedir("/cuenta/999/desactivar", "PATCH");
+    const r = await pedir("/cuenta/999/desactivar", "PATCH", undefined, {
+      Authorization: `Bearer ${crearToken({ id: 999, rol: "cliente" })}`,
+    });
     assert.equal(r.estado, 404);
   });
 });
@@ -361,7 +379,7 @@ describe("5 · Hallazgos de la revisión", () => {
     const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", {
       ...datosActualizar,
       nombre: "Nombre no autorizado",
-    });
+    }, { Authorization: "" });
     assert.deepEqual(
       { estado: r.estado, cuenta: cuentas[0] },
       { estado: 401, cuenta: antes },
@@ -381,7 +399,7 @@ describe("5 · Hallazgos de la revisión", () => {
       `/cuenta/${cuenta.id}`,
       "PUT",
       { ...datosActualizar, nombre: "Nombre no autorizado" },
-      encabezado("token-de-otra-cuenta"),
+      encabezado(crearToken({ id: otra.id, rol: otra.rol })),
     );
     assert.deepEqual(
       { estado: r.estado, cuenta: cuentas[0], otra: cuentas[1] },
@@ -392,7 +410,7 @@ describe("5 · Hallazgos de la revisión", () => {
 
   test("HE2-S2-PU023 · (-) Seguridad: desactivar una cuenta sin sesión devuelve 401 y sigue Activa", async () => {
     const cuenta = agregarCuenta();
-    const r = await pedir(`/cuenta/${cuenta.id}/desactivar`, "PATCH");
+    const r = await pedir(`/cuenta/${cuenta.id}/desactivar`, "PATCH", undefined, { Authorization: "" });
     assert.deepEqual(
       { estado: r.estado, cuenta: cuentas[0].estado },
       { estado: 401, cuenta: "Activo" },
@@ -402,7 +420,7 @@ describe("5 · Hallazgos de la revisión", () => {
 
   test("HE2-S2-PU024 · (-) Seguridad: desactivar una cuenta con el token de otra cuenta devuelve 403", async () => {
     const cuenta = agregarCuenta();
-    agregarCuenta({
+    const otra = agregarCuenta({
       correo: "otra@example.com",
       usuario: "otrapersona",
       identificacion: "987654321",
@@ -411,7 +429,7 @@ describe("5 · Hallazgos de la revisión", () => {
       `/cuenta/${cuenta.id}/desactivar`,
       "PATCH",
       undefined,
-      encabezado("token-de-otra-cuenta"),
+      encabezado(crearToken({ id: otra.id, rol: otra.rol })),
     );
     assert.deepEqual(
       { estado: r.estado, cuenta: cuentas[0].estado },
@@ -572,10 +590,6 @@ describe("5 · Hallazgos de la revisión", () => {
     );
   });
 
-  test.todo(
-    "HE2-S2-PU032 · (-) Seguridad: modificar productos sin token devuelve 401 y con token de cliente devuelve 403 (pendiente de integrar el fixture de ayudas.js)",
-  );
-
   test("HE2-S2-PU033 · (+) Seguridad: iniciar sesión con hash SHA-256 antiguo lo migra a scrypt y permite volver a iniciar sesión", async () => {
     const cuenta = agregarCuenta();
     const hashAntiguo = cuenta.passwordHash;
@@ -588,5 +602,16 @@ describe("5 · Hallazgos de la revisión", () => {
 
     const segundoInicio = await iniciarSesion("anaperez", "EdenPrueba123");
     assert.equal(segundoInicio.estado, 200);
+  });
+
+  test("HE2-S2-PU034 · (-) Seguridad: un token con la firma alterada devuelve 401", async () => {
+    const cuenta = agregarCuenta();
+    const tokenValido = crearToken({ id: cuenta.id, rol: cuenta.rol });
+    const [payload, firma] = tokenValido.split(".");
+    const firmaAlterada = `${firma.slice(0, -1)}${firma.endsWith("A") ? "B" : "A"}`;
+    const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", datosActualizar, {
+      Authorization: `Bearer ${payload}.${firmaAlterada}`,
+    });
+    assert.equal(r.estado, 401);
   });
 });

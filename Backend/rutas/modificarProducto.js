@@ -10,6 +10,7 @@ import {
 import { validarProducto, hayErrores } from "../validar.js";
 import { subirFoto } from "../subirFoto.js";
 import { subirAlBucket, nombreFoto } from "../almacenFotos.js";
+import { requiereRol, requiereSesion } from "../sesion.js";
 
 const router = Router();
 
@@ -18,7 +19,7 @@ const MENSAJE_ERROR =
   "Error al actualizar producto. Por favor completa todos los campos obligatorios y/o corrige los valores numéricos";
 
 // Dado: "he consultado un producto por su referencia"
-router.get("/referencia/:ref", async (req, res) => {
+router.get("/referencia/:ref", requiereSesion, requiereRol("admin"), async (req, res) => {
   const producto = await buscarProductoPorReferencia(req.params.ref.trim());
   if (!producto) {
     return res
@@ -28,7 +29,7 @@ router.get("/referencia/:ref", async (req, res) => {
   res.json({ producto });
 });
 
-router.put("/:id", subirFoto, async (req, res) => {
+router.put("/:id", requiereSesion, requiereRol("admin"), subirFoto, async (req, res) => {
   const id = Number(req.params.id);
 
   const actual = Number.isInteger(id) ? await buscarProductoPorId(id) : null;
