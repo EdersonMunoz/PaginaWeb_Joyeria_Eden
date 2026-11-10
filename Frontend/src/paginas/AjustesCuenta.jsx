@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
 import iconoCandado from "../assets/iconossvg/iconoCandado.svg";
 import { actualizarCuenta, desactivarCuenta } from "../api";
+import { esPasswordValida, esTelefonoValido } from "../validacionesCuenta";
 import "./AjustesCuenta.css";
 import "../componentes/EncabezadoFigma.css";
 
@@ -77,10 +78,10 @@ function AjustesCuenta() {
       apellido: !formulario.apellido.trim(),
       identificacion:
         !formulario.identificacion.trim() || formulario.identificacion.length > 30,
-      telefono: !formulario.telefono.trim(),
+      telefono: !esTelefonoValido(formulario.telefono),
       usuario: !/^[a-zA-Z0-9._-]{3,30}$/.test(formulario.usuario),
       correo: !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formulario.correo),
-      password: formulario.password ? formulario.password.length < 8 : false,
+      password: formulario.password ? !esPasswordValida(formulario.password) : false,
       direccion: !formulario.direccion.trim(),
     };
     if (formulario.correo !== inicial.correo && !formulario.repetirCorreo.trim()) {
@@ -93,7 +94,21 @@ function AjustesCuenta() {
     }
     setErrores(nuevosErrores);
     if (Object.values(nuevosErrores).some(Boolean)) {
-      setMensaje("Uno o más campos no cuentan con el formato adecuado");
+      const erroresActivos = Object.entries(nuevosErrores).filter(([, error]) => error);
+      const soloErroresCoincidencia =
+        erroresActivos.length > 0 &&
+        erroresActivos.every(([campo]) =>
+          (campo === "repetirCorreo" &&
+            formulario.repetirCorreo.trim() &&
+            formulario.correo !== formulario.repetirCorreo) ||
+          (campo === "repetirPassword" &&
+            formulario.password &&
+            formulario.repetirPassword &&
+            formulario.password !== formulario.repetirPassword),
+        );
+      setMensaje(soloErroresCoincidencia
+        ? "Alguno/s de los campos no coinciden, por favor verificar."
+        : "Uno o más campos no cuentan con el formato adecuado");
       setTipoMensaje("error");
       return;
     }
