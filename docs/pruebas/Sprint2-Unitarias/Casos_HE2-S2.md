@@ -1,36 +1,31 @@
 # Casos de prueba HE2-S2
 
-| ID | Descripción | Categoría | Evidencia |
-|---|---|---|---|
-| HE2-S2-PU001 | Inicio de sesión exitoso de un cliente con su nombre de usuario | Funcional | prueba automática |
-| HE2-S2-PU002 | Inicio de sesión exitoso de un administrador con su correo (sin importar mayúsculas) | Funcional | prueba automática |
-| HE2-S2-PU003 | Usuario no registrado | Funcional | prueba automática |
-| HE2-S2-PU004 | Contraseña incorrecta | Funcional | prueba automática |
-| HE2-S2-PU005 | Campos obligatorios vacíos al iniciar sesión | Funcional | prueba automática |
-| HE2-S2-PU006 | Iniciar sesión con una cuenta Inactiva la vuelve a activar | Funcional | prueba automática |
-| HE2-S2-PU007 | Registro exitoso: rol Cliente y la contraseña se guarda cifrada, no en texto | Funcional | prueba automática |
-| HE2-S2-PU008 | Correo o nombre de usuario ya registrado | Funcional | prueba automática |
-| HE2-S2-PU009 | Campos obligatorios vacíos al registrar | Funcional | prueba automática |
-| HE2-S2-PU010 | Formato inválido: correo sin @ y contraseña de menos de 8 caracteres | Funcional | prueba automática |
-| HE2-S2-PU011 | Registro de administrador: el usuario con el patrón especial "admin" recibe rol Administrador | Funcional | prueba automática |
-| HE2-S2-PU012 | Actualizar datos sin cambiar la contraseña: se guardan los datos y la clave sigue igual | Funcional | prueba automática |
-| HE2-S2-PU013 | Actualizar con un dato de formato incorrecto: se rechaza y no se guarda nada | Funcional | prueba automática |
-| HE2-S2-PU014 | Actualizar con un correo que ya usa otra cuenta: se rechaza | Funcional | prueba automática |
-| HE2-S2-PU015 | Desactivar la cuenta: queda Inactiva y no se borra | Funcional | prueba automática |
-| HE2-S2-PU016 | Actualizar con un correo sin formato válido: se rechaza | Funcional | prueba automática |
-| HE2-S2-PU017 | Registrar con un nombre de usuario con espacios y símbolos: se rechaza | Funcional | prueba automática |
-| HE2-S2-PU018 | Registrar con un teléfono que contiene letras: se rechaza | Funcional | prueba automática |
-| HE2-S2-PU019 | Actualizar una cuenta que no existe: no debe decir que se actualizó | Funcional | prueba automática |
-| HE2-S2-PU020 | Desactivar una cuenta que no existe: no debe responder éxito | Funcional | prueba automática |
-| HE2-S2-PU021 | Seguridad: actualizar una cuenta sin sesión devuelve 401 y no cambia los datos | Seguridad | prueba automática |
-| HE2-S2-PU022 | Seguridad: actualizar una cuenta con el token de otra cuenta devuelve 403 y no cambia nada | Seguridad | prueba automática |
-| HE2-S2-PU023 | Seguridad: desactivar una cuenta sin sesión devuelve 401 y sigue Activa | Seguridad | prueba automática |
-| HE2-S2-PU024 | Seguridad: desactivar una cuenta con el token de otra cuenta devuelve 403 | Seguridad | prueba automática |
-| HE2-S2-PU025 | Seguridad: el login devuelve token no vacío y permite actualizar la cuenta propia | Seguridad | prueba automática |
-| HE2-S2-PU026 | Mejora: registrar una identificación ya usada devuelve 409, también si la cuenta está Inactiva | Mejora | prueba automática |
-| HE2-S2-PU027 | Mejora: el usuario no distingue mayúsculas al registrarse y al iniciar sesión | Mejora | prueba automática |
-| HE2-S2-PU028 | Funcional: rechazar una contraseña de solo espacios y aceptar una frase segura | Funcional | prueba automática |
-| HE2-S2-PU029 | Funcional: actualizar con usuario con espacios o símbolos devuelve 400 y no se guarda | Funcional | prueba automática |
-| HE2-S2-PU030 | Funcional: actualizar con teléfono con letras devuelve 400 y no se guarda | Funcional | prueba automática |
-| HE2-S2-PU031 | Mejora: contraseñas iguales deben tener hashes distintos y no ser SHA-256 simple | Mejora | prueba automática |
-| HE2-S2-PU032 | Seguridad: modificar productos sin token devuelve 401 y con token de cliente devuelve 403 | Seguridad | prueba automática (pendiente) |
+Excel de referencia: [Excel de pruebas unitarias · Iteración 1](https://docs.google.com/spreadsheets/d/1DUmL9V6PA3Rgsgjag73S4yorTZxQg3umn4vKrZ82HIY/edit?usp=sharing).
+
+| ID | Campos | Valores | Resultado esperado | Evidencia |
+|---|---|---|---|---|
+| HE2-S2-PU001 | Usuario y contraseña / (Pantalla: Iniciar sesión) | Usuario: anaperez / Contraseña: EdenPrueba123 / (cuenta de cliente) | El sistema iniciará la sesión, mostrará el catálogo con la cuenta de rol Cliente y no devolverá la contraseña (ni su hash) al navegador. | Prueba automática |
+| HE2-S2-PU002 | Correo y contraseña / (Pantalla: Iniciar sesión) | Correo: ADMIN@Eden.com (con mayúsculas) / Contraseña: admin1234 / (cuenta de administrador) | El sistema iniciará la sesión sin distinguir mayúsculas del correo y entrará con rol Administrador. | Prueba automática |
+| HE2-S2-PU003 | Correo / Usuario / (Pantalla: Iniciar sesión) | Correo: nadie@example.com (no registrado) / Contraseña: cualquiera123 | El sistema no iniciará la sesión y mostrará “Las credenciales ingresadas no corresponden a ninguna cuenta”. | Prueba automática |
+| HE2-S2-PU004 | Contraseña / (Pantalla: Iniciar sesión) | Usuario: anaperez (registrado) / Contraseña: OtraClave999 (incorrecta) | El sistema no iniciará la sesión y mostrará “Correo/Nombre usuario o contraseña incorrectos, vuelve a intentarlo”, permitiendo reintentar. | Prueba automática |
+| HE2-S2-PU005 | Correo / Usuario / Contraseña / (Pantalla: Iniciar sesión) | Usuario: (vacío) / Contraseña: (vacío) | El sistema no iniciará la sesión y mostrará el mensaje "Por favor complete los campos obligatorios" y resaltará el usuario y la contraseña en rojo. | Prueba automática |
+| HE2-S2-PU006 | Estado de la cuenta / (Pantalla: Iniciar sesión) | Usuario: anaperez / Contraseña: EdenPrueba123 / La cuenta debe de estar en estado Inactivo para poder realizar la prueba | El sistema iniciará la sesión y la cuenta volverá a quedar en estado Activo. | Prueba automática |
+| HE2-S2-PU007 | Todos los campos / (Pantalla: Registrar cuenta) | Nombre: Carlos Gómez / Identificación: 1061234567 / Teléfono: 3109876543 / Usuario: carlosgomez / Correo: carlos@example.com / Dirección: Carrera 7 # 12-34 / Contraseña: ClaveSegura123 | El sistema registrará la cuenta con rol Cliente, mostrará “Se registro la cuenta con exito” y guardará la contraseña cifrada (no en texto plano). | Prueba automática |
+| HE2-S2-PU008 | Correo / Usuario / (Pantalla: Registrar cuenta) | Correo: carlos@example.com (ya existe) Resto igual al caso 007 | El sistema no registrará la cuenta y mostrará “El correo o nombre de usuario ya está registrado”. | Prueba automática |
+| HE2-S2-PU009 | Nombre / Dirección / (Pantalla: Registrar cuenta) | Nombre: "   " (solo espacios) / Dirección: (vacío) / Resto igual al caso 007 | El sistema no registrará la cuenta y mostrará “Por favor, complete todos los campos obligatorios”. | Prueba automática |
+| HE2-S2-PU010 | Correo / Contraseña / (Pantalla: Registrar cuenta) | Caso A – Correo: carlos.example.com (sin @) / Caso B – Contraseña: abc1234 (7 caracteres) / Resto igual al caso 007 | El sistema no registrará la cuenta y mostrará “Uno o más campos no cuentan con el formato adecuado”. | Prueba automática |
+| HE2-S2-PU011 | Usuario / (Pantalla: Registrar cuenta) | Usuario: admin.carlos (patrón de administrador) / Correo: carlos.admin@example.com / Resto igual al caso 007 | El sistema registrará la cuenta con rol Administrador. | Prueba automática |
+| HE2-S2-PU012 | Datos personales / (Pantalla: Ajustes de la cuenta) ingresamos como anaperez | Nombre: Ana María Pérez / Teléfono: 3117654321 / Dirección: Carrera 7 # 12-34 / Contraseña: (sin cambiar) | El sistema guardará los datos, mostrará “Datos actualizados correctamente” y la contraseña anterior seguirá igual. | Prueba automática |
+| HE2-S2-PU013 | Teléfono / (Pantalla: Ajustes de la cuenta) | Teléfono: 333333333333333333333 (21 dígitos, máximo 20) / Resto igual al caso 012 | El sistema no guardará los cambios, resaltará el campo y mostrará “Uno o más campos no cuentan con el formato adecuado”. | Prueba automática |
+| HE2-S2-PU014 | Correo / (Pantalla: Ajustes de la cuenta) | Correo: otra@example.com (ya lo usa otra cuenta) / Resto igual al caso 012 | El sistema no guardará los cambios y mostrará “El correo o nombre de usuario ya está registrado”. | Prueba automática |
+| HE2-S2-PU015 | Estado / (Pantalla: Ajustes de la cuenta) | Acción: Desactivar cuenta → Confirmar | El sistema dejará la cuenta en estado Inactivo, sin borrarla de la base de datos. | Prueba automática |
+| HE2-S2-PU016 | Correo / (Pantalla: Ajustes de la cuenta) | Correo: ana.example.com (sin @) / Resto igual al caso 012 | El sistema no guardará los cambios, resaltará el campo Correo y mostrará “Uno o más campos no cuentan con el formato adecuado”. | Prueba automática |
+| HE2-S2-PU017 | Usuario / (Pantalla: Registrar cuenta) | Usuario: carlos gomez! (con espacio y símbolo) / Resto igual al caso 007 | El sistema no registrará la cuenta, resaltará el campo Usuario y mostrará “Uno o más campos no cuentan con el formato adecuado”. | Prueba automática |
+| HE2-S2-PU018 | Teléfono / (Pantalla: Registrar cuenta) | Teléfono: abc123xyz (con letras) / Resto igual al caso 007 | El sistema no registrará la cuenta, resaltará el campo Teléfono y mostrará “Uno o más campos no cuentan con el formato adecuado”. | Prueba automática |
+| HE2-S2-PU019 | Identificación / (Pantalla: Registrar cuenta) | Identificación: 123456789 (ya la usa la cuenta anaperez) / Resto igual al caso 007 | El sistema no registrará la cuenta y mostrará “El correo o nombre de usuario ya está registrado”. | Prueba automática |
+| HE2-S2-PU020 | Usuario / (Pantalla: Registrar cuenta) | Usuario: maria (ya existe la cuenta “Maria”) / Resto igual al caso 007 | El sistema no registrará la cuenta y mostrará “El correo o nombre de usuario ya está registrado”. | Prueba automática |
+| HE2-S2-PU021 | Contraseña / (Pantalla: Registrar cuenta) | Contraseña: 10 espacios / Confirmar contraseña: 10 espacios / Resto igual al caso 007 | El sistema no registrará la cuenta, resaltará el campo y mostrará “Uno o más campos no cuentan con el formato adecuado”. | Prueba automática |
+| HE2-S2-PU022 | Usuario / (Pantalla: Ajustes de la cuenta) | Usuario: carlos gomez! (con espacio y símbolo) / Resto igual al caso 012 | El sistema no guardará los cambios y mostrará “Uno o más campos no cuentan con el formato adecuado”. | Prueba automática |
+| HE2-S2-PU023 | Teléfono / (Pantalla: Ajustes de la cuenta) | Teléfono: abc123xyz (con letras) / Resto igual al caso 012 | El sistema no guardará los cambios y mostrará “Uno o más campos no cuentan con el formato adecuado”. | Prueba automática |
+| HE2-S2-PU024 | Correo y repetir correo / (Pantalla: Registrar cuenta) | Correo: carlos@example.com / Repetir correo: otro@example.com / Resto igual al caso 007 | El sistema no registrará la cuenta, resaltará el campo y mostrará “Alguno/s de los campos no coinciden, por favor verificar.” | Pantalla |
+| HE2-S2-PU025 | Contraseña y confirmar contraseña / (Pantalla: Registrar cuenta) | Contraseña: ClaveSegura123 / Confirmar contraseña: ClaveSegura124 / Resto igual al caso 007 | El sistema no registrará la cuenta, resaltará el campo y mostrará “Alguno/s de los campos no coinciden, por favor verificar.” | Pantalla |
