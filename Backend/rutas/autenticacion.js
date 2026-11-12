@@ -141,7 +141,7 @@ router.post("/registro", async (req, res) => {
   } catch (error) {
     if (error.errorNum === 1) {
       return res.status(409).json({
-        mensaje: "El correo o nombre de usuario ya está registrado",
+        mensaje: "El correo, nombre de usuario o identificación ya está registrado",
         codigo: "CUENTA_DUPLICADA",
       });
     }
@@ -195,7 +195,7 @@ router.put("/cuenta/:id", async (req, res) => {
   } catch (error) {
     if (error.errorNum === 1) {
       return res.status(409).json({
-        mensaje: "El correo o nombre de usuario ya está registrado",
+        mensaje: "El correo, nombre de usuario o identificación ya está registrado",
         codigo: "CUENTA_DUPLICADA",
       });
     }
