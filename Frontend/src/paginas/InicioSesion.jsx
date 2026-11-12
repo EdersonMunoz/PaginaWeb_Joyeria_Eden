@@ -53,7 +53,7 @@ function InicioSesion() {
         respuesta.codigo === "CUENTA_NO_EXISTE"
           ? "Las credenciales ingresadas no corresponden a ninguna cuenta"
           : respuesta.codigo === "CREDENCIALES_INCORRECTAS"
-            ? "Correo/Nombre usuario o contraseña incorrectos"
+            ? "Correo/Nombre usuario o contraseña incorrectos, vuelve a intentarlo"
             : respuesta.mensaje,
       );
       return;

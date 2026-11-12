@@ -2,6 +2,12 @@ import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registrarCuenta } from "../api";
+import {
+  esCorreoValido,
+  esPasswordValida,
+  esTelefonoValido,
+  esUsuarioValido,
+} from "../validacionesCuenta";
 import AuthLayout from "../componentes/AuthLayout";
 import PrimaryButton from "../componentes/PrimaryButton";
 import fondoRegistro from "../assets/fondo_Prototipo_Registrar_Cuenta.jpg";
@@ -60,33 +66,60 @@ function RegistroCuenta() {
     if (!campos.identificacion.trim() || campos.identificacion.length > 30) {
       nuevosErrores.identificacion = "Este campo es obligatorio";
     }
-    if (!campos.telefono.trim()) nuevosErrores.telefono = "Este campo es obligatorio";
-    if (!campos.usuario.trim()) nuevosErrores.usuario = "Este campo es obligatorio";
+    if (!campos.telefono.trim()) {
+      nuevosErrores.telefono = "Este campo es obligatorio";
+    } else if (!esTelefonoValido(campos.telefono)) {
+      nuevosErrores.telefono = "Ingresa un teléfono válido";
+    }
+    if (!campos.usuario.trim()) {
+      nuevosErrores.usuario = "Este campo es obligatorio";
+    } else if (!esUsuarioValido(campos.usuario)) {
+      nuevosErrores.usuario = "Ingresa un nombre de usuario válido";
+    }
+    if (!campos.correo.trim()) {
+      nuevosErrores.correo = "Este campo es obligatorio";
+    } else if (!esCorreoValido(campos.correo)) {
+      nuevosErrores.correo = "Ingresa un correo válido";
+    }
     if (!campos.repetirCorreo.trim()) {
       nuevosErrores.repetirCorreo = "Este campo es obligatorio";
     }
     if (!campos.direccion.trim()) nuevosErrores.direccion = "Este campo es obligatorio";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.correo)) {
-      nuevosErrores.correo = "Ingresa un correo válido";
-    }
     if (campos.repetirCorreo && campos.correo !== campos.repetirCorreo) {
       nuevosErrores.repetirCorreo = "Los correos no coinciden";
     }
-    if (campos.password.length < 8) {
-      nuevosErrores.password = "La contraseña debe tener mínimo 8 caracteres";
+    if (!campos.password) {
+      nuevosErrores.password = "Este campo es obligatorio";
+    } else if (!esPasswordValida(campos.password)) {
+      nuevosErrores.password = campos.password.length < 8
+        ? "La contraseña debe tener mínimo 8 caracteres"
+        : "La contraseña no puede contener solo espacios en blanco";
     }
-    if (campos.password !== campos.confirmarPassword) {
+    if (!campos.confirmarPassword) {
+      nuevosErrores.confirmarPassword = "Este campo es obligatorio";
+    }
+    if (campos.confirmarPassword && campos.password !== campos.confirmarPassword) {
       nuevosErrores.confirmarPassword = "Las contraseñas no coinciden";
     }
 
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length) {
-      const camposVacios = Object.values(campos).some((valor) => !valor.trim());
-      setMensaje(
-        camposVacios
-          ? "Por favor, complete todos los campos obligatorios."
-          : "Uno o más campos no cuentan con el formato adecuado",
+      const camposVacios = Object.entries(campos).some(([nombre, valor]) =>
+        nombre === "password" || nombre === "confirmarPassword"
+          ? valor === ""
+          : !valor.trim(),
       );
+      const erroresSoloDeCoincidencia =
+        !camposVacios &&
+        Object.values(nuevosErrores).every((error) =>
+          error === "Los correos no coinciden" ||
+          error === "Las contraseñas no coinciden",
+        );
+      setMensaje(camposVacios
+        ? "Por favor, complete todos los campos obligatorios."
+        : erroresSoloDeCoincidencia
+          ? "Alguno/s de los campos no coinciden, por favor verificar."
+          : "Uno o más campos no cuentan con el formato adecuado");
       setMensajeError(true);
       return;
     }
