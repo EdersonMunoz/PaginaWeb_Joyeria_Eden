@@ -46,6 +46,12 @@ const errorDuplicado = () => Object.assign(new Error("ORA-00001"), { errorNum: 1
 
 function instalarBaseFalsa() {
   usarEjecutorDePrueba(async (sql, datos) => {
+    if (sql.includes("SET password_hash")) {
+      const cuenta = cuentas.find((c) => c.id === datos.id);
+      if (!cuenta) return { filas: [], afectadas: 0 };
+      cuenta.passwordHash = datos.passwordHash;
+      return { filas: [], afectadas: 1 };
+    }
     if (sql.includes("INSERT INTO usuario")) {
       const repetida = cuentas.some(
         (c) =>
@@ -189,7 +195,7 @@ describe("2 · Registrar cuenta", () => {
     assert.equal(cuentas.length, 1);
     assert.equal(cuentas[0].rol, "cliente");
     assert.notEqual(cuentas[0].passwordHash, datosRegistro.password, "la contraseña no debe guardarse en texto plano");
-    assert.equal(cuentas[0].passwordHash, hash(datosRegistro.password));
+    assert.match(cuentas[0].passwordHash, /^scrypt\$/);
   });
 
   test("HE2-S2-PU008 · (-) Correo o nombre de usuario ya registrado", async () => {

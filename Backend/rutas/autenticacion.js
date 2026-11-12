@@ -1,11 +1,41 @@
-import { createHash } from "node:crypto";
+import {
+  createHash,
+  randomBytes,
+  scrypt as scryptCallback,
+  timingSafeEqual,
+} from "node:crypto";
+import { promisify } from "node:util";
 import { Router } from "express";
 import { ejecutar } from "../baseDatos.js";
 
 const router = Router();
+const scrypt = promisify(scryptCallback);
 
-const hashPassword = (password) =>
-  createHash("sha256").update(password, "utf8").digest("hex");
+async function hashPassword(password) {
+  const salt = randomBytes(16);
+  const derivedKey = await scrypt(password, salt, 64);
+  return `scrypt$${salt.toString("hex")}$${derivedKey.toString("hex")}`;
+}
+
+async function verificarPassword(password, hashGuardado) {
+  if (!hashGuardado.startsWith("scrypt$")) {
+    return hashGuardado === createHash("sha256").update(password, "utf8").digest("hex");
+  }
+
+  const [, saltHex, hashHex, ...resto] = hashGuardado.split("$");
+  if (
+    resto.length > 0 ||
+    !/^[a-f\d]{32}$/i.test(saltHex ?? "") ||
+    !/^[a-f\d]{128}$/i.test(hashHex ?? "")
+  ) {
+    return false;
+  }
+
+  const salt = Buffer.from(saltHex, "hex");
+  const hashEsperado = Buffer.from(hashHex, "hex");
+  const hashCalculado = await scrypt(password, salt, 64);
+  return timingSafeEqual(hashCalculado, hashEsperado);
+}
 
 function validarDatosCuenta(cuerpo, { passwordOpcional = false } = {}) {
   const datos = {
@@ -83,11 +113,23 @@ router.post("/login", async (req, res) => {
     });
   }
 
-  if (cuenta.passwordHash !== hashPassword(password)) {
+  if (!(await verificarPassword(password, cuenta.passwordHash))) {
     return res.status(401).json({
       mensaje: "Correo/Nombre usuario o contraseña incorrectos, vuelve a intentarlo",
       codigo: "CREDENCIALES_INCORRECTAS",
     });
+  }
+
+  if (!cuenta.passwordHash.startsWith("scrypt$")) {
+    try {
+      const passwordHash = await hashPassword(password);
+      await ejecutar(
+        `UPDATE usuario SET password_hash = :passwordHash WHERE id = :id`,
+        { passwordHash, id: cuenta.id },
+      );
+    } catch (error) {
+      console.error("No se pudo actualizar el hash de la contraseña heredada", error);
+    }
   }
 
   if (cuenta.estado === "Inactivo") {
@@ -134,7 +176,7 @@ router.post("/registro", async (req, res) => {
         correo,
         usuario,
         direccion,
-        passwordHash: hashPassword(password),
+        passwordHash: await hashPassword(password),
         rol,
       },
     );
@@ -186,7 +228,7 @@ router.put("/cuenta/:id", async (req, res) => {
         usuario,
         correo,
         direccion,
-        ...(password ? { passwordHash: hashPassword(password) } : {}),
+        ...(password ? { passwordHash: await hashPassword(password) } : {}),
       },
     );
     if (resultado.afectadas === 0) {
