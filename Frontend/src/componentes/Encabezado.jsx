@@ -237,7 +237,7 @@ function Encabezado({
                     >
                       Ajustes de la cuenta
                     </Link>
-                    <Link to="/Inicio" replace role="menuitem" onClick={cerrarSesion}>
+                    <Link to="/Inicio" replace role="menuitem" onClick={() => cerrarSesion()}>
                       Cerrar sesión
                     </Link>
                   </div>
@@ -341,7 +341,7 @@ function Encabezado({
                 >
                   Cuenta <img src={iconoAjustes} alt="" />
                 </Link>
-                <Link to="/Inicio" replace onClick={cerrarSesion}>
+                <Link to="/Inicio" replace onClick={() => cerrarSesion()}>
                   Cerrar sesión
                 </Link>
               </div>

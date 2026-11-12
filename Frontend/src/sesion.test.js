@@ -37,6 +37,30 @@ describe("sesión", () => {
     assert.equal(obtenerToken(almacen), null);
   });
 
+  it("cerrar sesión ignora un evento como argumento y borra usuario y token", () => {
+    const almacen = crearAlmacen();
+    const descriptorAnterior = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: almacen,
+    });
+
+    try {
+      guardarSesion({ id: 1, rol: "cliente" }, "token-prueba");
+
+      assert.equal(cerrarSesion({ type: "click" }), true);
+      assert.equal(obtenerUsuario(), null);
+      assert.equal(obtenerToken(), null);
+    } finally {
+      if (descriptorAnterior) {
+        Object.defineProperty(globalThis, "localStorage", descriptorAnterior);
+      } else {
+        delete globalThis.localStorage;
+      }
+    }
+  });
+
   it("actualizar usuario conserva el token", () => {
     const almacen = crearAlmacen();
     guardarSesion({ id: 1, rol: "cliente" }, "token-prueba", almacen);

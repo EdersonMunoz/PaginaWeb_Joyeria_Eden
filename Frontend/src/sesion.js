@@ -2,7 +2,7 @@ const CLAVE_USUARIO = "eden.usuario";
 const CLAVE_TOKEN = "eden.token";
 
 function obtenerAlmacen(almacen) {
-  return almacen ?? globalThis.localStorage;
+  return typeof almacen?.getItem === "function" ? almacen : globalThis.localStorage;
 }
 
 export function guardarSesion(usuario, token, almacen) {
