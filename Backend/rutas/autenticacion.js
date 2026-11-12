@@ -7,6 +7,7 @@ import {
 import { promisify } from "node:util";
 import { Router } from "express";
 import { ejecutar } from "../baseDatos.js";
+import { crearToken, requiereSesion } from "../sesion.js";
 
 const router = Router();
 const scrypt = promisify(scryptCallback);
@@ -138,6 +139,7 @@ router.post("/login", async (req, res) => {
   }
 
   return res.json({
+    token: crearToken({ id: cuenta.id, rol: cuenta.rol }),
     usuario: {
       id: cuenta.id,
       nombre: cuenta.nombre,
@@ -193,7 +195,12 @@ router.post("/registro", async (req, res) => {
   return res.status(201).json({ mensaje: "Se registro la cuenta con exito" });
 });
 
-router.put("/cuenta/:id", async (req, res) => {
+router.put("/cuenta/:id", requiereSesion, (req, res, next) => {
+  if (Number(req.params.id) !== Number(req.sesion.id)) {
+    return res.status(403).json({ mensaje: "No tienes permiso para esta acción" });
+  }
+  return next();
+}, async (req, res) => {
   const id = Number(req.params.id);
   const validacion = validarDatosCuenta(req.body, { passwordOpcional: true });
   if (!Number.isInteger(id)) {
@@ -247,21 +254,12 @@ router.put("/cuenta/:id", async (req, res) => {
   return res.json({ mensaje: "La información de la cuenta se actualizó correctamente" });
 });
 
-router.patch("/cuenta/:id/estado", async (req, res) => {
-  const id = Number(req.params.id);
-  const estado = String(req.body?.estado ?? "");
-  if (!Number.isInteger(id) || !["Activo", "Inactivo"].includes(estado)) {
-    return res.status(400).json({ mensaje: "Estado de cuenta inválido" });
+router.patch("/cuenta/:id/desactivar", requiereSesion, (req, res, next) => {
+  if (Number(req.params.id) !== Number(req.sesion.id)) {
+    return res.status(403).json({ mensaje: "No tienes permiso para esta acción" });
   }
-
-  await ejecutar(
-    `UPDATE usuario SET estado = :estado WHERE id = :id`,
-    { id, estado },
-  );
-  return res.json({ mensaje: "Cuenta actualizada", estado });
-});
-
-router.patch("/cuenta/:id/desactivar", async (req, res) => {
+  return next();
+}, async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
     return res.status(400).json({ mensaje: "Identificador de cuenta inválido" });

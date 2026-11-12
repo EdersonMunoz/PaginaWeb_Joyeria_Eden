@@ -5,6 +5,7 @@ import { ejecutar, buscarProductoPorReferencia } from "../baseDatos.js";
 import { validarProducto, hayErrores } from "../validar.js";
 import { subirFoto } from "../subirFoto.js";
 import { subirAlBucket, nombreFoto } from "../almacenFotos.js";
+import { requiereRol, requiereSesion } from "../sesion.js";
 
 const router = Router();
 
@@ -12,7 +13,7 @@ const MENSAJE_EXITO = "¡Producto Registrado Exitosamente!";
 const MENSAJE_ERROR =
   "Error al registrar producto. Por favor completa todos los campos obligatorios y/o corrige los valores numéricos";
 
-router.post("/", subirFoto, async (req, res) => {
+router.post("/", requiereSesion, requiereRol("admin"), subirFoto, async (req, res) => {
   const { errores, valores } = validarProducto(req.body, {
     esRegistro: true,
     tieneFoto: Boolean(req.file),

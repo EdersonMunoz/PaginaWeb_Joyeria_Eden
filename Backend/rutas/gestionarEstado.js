@@ -2,6 +2,7 @@
 // PATCH /api/productos/:id/estado     cuerpo JSON: { "estado": "Activo" | "Inactivo" }
 import { Router } from "express";
 import { ejecutar, buscarProductoPorId } from "../baseDatos.js";
+import { requiereRol, requiereSesion } from "../sesion.js";
 
 const router = Router();
 
@@ -10,7 +11,7 @@ const MENSAJE_ACTIVADO = "El producto fue publicado en el catálogo correctament
 const MENSAJE_SIN_UNIDADES =
   "Error al activar el producto. Por favor verifica que existan unidades disponibles";
 
-router.patch("/:id/estado", async (req, res) => {
+router.patch("/:id/estado", requiereSesion, requiereRol("admin"), async (req, res) => {
   const id = Number(req.params.id);
   const estado = req.body?.estado;
 

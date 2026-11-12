@@ -12,8 +12,11 @@
 import { createHash } from "node:crypto";
 import { test, describe, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { crearApp } from "../servidor.js";
 import { usarEjecutorDePrueba } from "../baseDatos.js";
+
+process.env.SECRETO_SESION = "secreto-fijo-de-prueba-para-sesiones";
+const { crearApp } = await import("../servidor.js");
+const { crearToken } = await import("../sesion.js");
 
 // ---------------------------------------------------------------
 // Tabla USUARIO falsa en memoria (hace lo mismo que Oracle para estas consultas)
@@ -124,6 +127,9 @@ async function pedir(ruta, metodo, cuerpo, cabeceras = {}) {
 }
 const iniciarSesion = (identificador, password) => pedir("/login", "POST", { identificador, password });
 const registrar = (campos) => pedir("/registro", "POST", { ...datosRegistro, ...campos });
+const autorizacionCuenta = (cuenta) => ({
+  Authorization: `Bearer ${crearToken({ id: cuenta.id, rol: cuenta.rol })}`,
+});
 
 // Datos válidos para registrar una cuenta (HE2-HU3 y HU4)
 const datosRegistro = {
@@ -245,7 +251,7 @@ describe("3 · Ajustes de la cuenta", () => {
       usuario: "anaperez",
       correo: "ana@example.com",
       direccion: "Carrera 7 # 12-34",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 200);
     assert.equal(cuentas[0].nombre, "Ana María Pérez");
     assert.equal(cuentas[0].telefono, "3117654321");
@@ -261,7 +267,7 @@ describe("3 · Ajustes de la cuenta", () => {
       usuario: "anaperez",
       correo: "ana@example.com",
       direccion: "Calle 10 # 5-20",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 400);
     assert.equal(r.cuerpo.mensaje, "Uno o más campos no cuentan con el formato adecuado");
     assert.equal(cuentas[0].telefono, "3001234567", "el teléfono no debe cambiar");
@@ -277,7 +283,7 @@ describe("3 · Ajustes de la cuenta", () => {
       usuario: "anaperez",
       correo: "otra@example.com",
       direccion: "Calle 10 # 5-20",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 409);
     assert.equal(r.cuerpo.mensaje, "El correo, nombre de usuario o identificación ya está registrado");
     assert.equal(cuentas[0].correo, "ana@example.com", "el correo no debe cambiar");
@@ -285,7 +291,7 @@ describe("3 · Ajustes de la cuenta", () => {
 
   test("HE2-S2-PU015 · (+) Desactivar la cuenta: queda Inactiva y no se borra", async () => {
     const cuenta = agregarCuenta();
-    const r = await pedir(`/cuenta/${cuenta.id}/desactivar`, "PATCH");
+    const r = await pedir(`/cuenta/${cuenta.id}/desactivar`, "PATCH", undefined, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 200);
     assert.equal(r.cuerpo.estado, "Inactivo");
     assert.equal(cuentas.length, 1, "la cuenta se conserva (no se pierde el historial)");
@@ -309,7 +315,12 @@ describe("4 · Validaciones de formato", () => {
 
   test("HE2-S2-PU016 · (-) Actualizar con un correo sin formato válido: se rechaza", async () => {
     const cuenta = agregarCuenta();
-    const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", { ...datosActualizar, correo: "ana.example.com" });
+    const r = await pedir(
+      `/cuenta/${cuenta.id}`,
+      "PUT",
+      { ...datosActualizar, correo: "ana.example.com" },
+      autorizacionCuenta(cuenta),
+    );
     assert.equal(r.estado, 400);
     assert.equal(r.cuerpo.mensaje, "Uno o más campos no cuentan con el formato adecuado");
     assert.equal(cuentas[0].correo, "ana@example.com", "el correo no debe cambiar");
@@ -441,7 +452,7 @@ describe("5 · Casos adicionales de validación y reglas de negocio", () => {
     const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", {
       ...datosActualizar,
       usuario: "ana persona!",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.deepEqual(
       { estado: r.estado, usuario: cuentas[0].usuario },
       { estado: 400, usuario: "anaperez" },
@@ -454,7 +465,7 @@ describe("5 · Casos adicionales de validación y reglas de negocio", () => {
     const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", {
       ...datosActualizar,
       telefono: "300abc4567",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.deepEqual(
       { estado: r.estado, telefono: cuentas[0].telefono },
       { estado: 400, telefono: "3001234567" },
