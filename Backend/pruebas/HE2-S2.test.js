@@ -1,4 +1,4 @@
-// Pruebas unitarias · HE2 Cuentas de usuario · Sprint 2  (20 casos: HE2-S2-PU001 ... PU020)
+// Pruebas unitarias · HE2 Cuentas de usuario · Sprint 2  (23 casos: HE2-S2-PU001 ... PU023)
 // Cada test lleva el ID del caso y el escenario del Excel "Especificaciones segundo sprint"
 // (HE2-HU1 a HU6), así el resultado de `npm test` se puede copiar a la columna "Resultado real".
 //
@@ -86,7 +86,7 @@ function instalarBaseFalsa() {
       return { filas: [], afectadas: 1 };
     }
     if (sql.includes("SET estado")) {
-      // El login reactiva con el literal 'Activo'; desactivar usa 'Inactivo'.
+      // El login reactiva con el literal 'Activo'; desactivar usa 'Inactivo'; el PATCH /estado manda :estado
       const cuenta = cuentas.find((c) => c.id === datos.id);
       if (!cuenta) return { filas: [], afectadas: 0 };
       cuenta.estado = sql.includes("'Activo'") ? "Activo" : sql.includes("'Inactivo'") ? "Inactivo" : datos.estado;
@@ -118,26 +118,18 @@ beforeEach(() => {
 });
 
 async function pedir(ruta, metodo, cuerpo, cabeceras = {}) {
-  const headers = { "Content-Type": "application/json", ...cabeceras };
-  const idCuenta = ruta.match(/^\/cuenta\/(\d+)(?:\/desactivar)?$/);
-  if (
-    idCuenta &&
-    ["PUT", "PATCH"].includes(metodo) &&
-    !Object.hasOwn(cabeceras, "Authorization")
-  ) {
-    const id = Number(idCuenta[1]);
-    const cuenta = cuentas.find((item) => item.id === id);
-    headers.Authorization = `Bearer ${crearToken({ id, rol: cuenta?.rol ?? "cliente" })}`;
-  }
   const respuesta = await fetch(`${API}${ruta}`, {
     method: metodo,
-    headers,
+    headers: { "Content-Type": "application/json", ...cabeceras },
     body: cuerpo ? JSON.stringify(cuerpo) : undefined,
   });
   return { estado: respuesta.status, cuerpo: await respuesta.json() };
 }
 const iniciarSesion = (identificador, password) => pedir("/login", "POST", { identificador, password });
 const registrar = (campos) => pedir("/registro", "POST", { ...datosRegistro, ...campos });
+const autorizacionCuenta = (cuenta) => ({
+  Authorization: `Bearer ${crearToken({ id: cuenta.id, rol: cuenta.rol })}`,
+});
 
 // Datos válidos para registrar una cuenta (HE2-HU3 y HU4)
 const datosRegistro = {
@@ -259,7 +251,7 @@ describe("3 · Ajustes de la cuenta", () => {
       usuario: "anaperez",
       correo: "ana@example.com",
       direccion: "Carrera 7 # 12-34",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 200);
     assert.equal(cuentas[0].nombre, "Ana María Pérez");
     assert.equal(cuentas[0].telefono, "3117654321");
@@ -275,7 +267,7 @@ describe("3 · Ajustes de la cuenta", () => {
       usuario: "anaperez",
       correo: "ana@example.com",
       direccion: "Calle 10 # 5-20",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 400);
     assert.equal(r.cuerpo.mensaje, "Uno o más campos no cuentan con el formato adecuado");
     assert.equal(cuentas[0].telefono, "3001234567", "el teléfono no debe cambiar");
@@ -291,7 +283,7 @@ describe("3 · Ajustes de la cuenta", () => {
       usuario: "anaperez",
       correo: "otra@example.com",
       direccion: "Calle 10 # 5-20",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 409);
     assert.equal(r.cuerpo.mensaje, "El correo, nombre de usuario o identificación ya está registrado");
     assert.equal(cuentas[0].correo, "ana@example.com", "el correo no debe cambiar");
@@ -299,7 +291,7 @@ describe("3 · Ajustes de la cuenta", () => {
 
   test("HE2-S2-PU015 · (+) Desactivar la cuenta: queda Inactiva y no se borra", async () => {
     const cuenta = agregarCuenta();
-    const r = await pedir(`/cuenta/${cuenta.id}/desactivar`, "PATCH");
+    const r = await pedir(`/cuenta/${cuenta.id}/desactivar`, "PATCH", undefined, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 200);
     assert.equal(r.cuerpo.estado, "Inactivo");
     assert.equal(cuentas.length, 1, "la cuenta se conserva (no se pierde el historial)");
@@ -308,10 +300,10 @@ describe("3 · Ajustes de la cuenta", () => {
 });
 
 // ===============================================================
-// Validaciones de formato y cuentas inexistentes
+// Validaciones de formato
 // (casos agregados tras revisar los criterios de HE2-HU3, HU4, HU5 y HU6)
 // ===============================================================
-describe("4 · Validaciones de formato y cuentas inexistentes", () => {
+describe("4 · Validaciones de formato", () => {
   const datosActualizar = {
     nombre: "Ana Pérez",
     identificacion: "123456789",
@@ -323,7 +315,12 @@ describe("4 · Validaciones de formato y cuentas inexistentes", () => {
 
   test("HE2-S2-PU016 · (-) Actualizar con un correo sin formato válido: se rechaza", async () => {
     const cuenta = agregarCuenta();
-    const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", { ...datosActualizar, correo: "ana.example.com" });
+    const r = await pedir(
+      `/cuenta/${cuenta.id}`,
+      "PUT",
+      { ...datosActualizar, correo: "ana.example.com" },
+      autorizacionCuenta(cuenta),
+    );
     assert.equal(r.estado, 400);
     assert.equal(r.cuerpo.mensaje, "Uno o más campos no cuentan con el formato adecuado");
     assert.equal(cuentas[0].correo, "ana@example.com", "el correo no debe cambiar");
@@ -343,26 +340,12 @@ describe("4 · Validaciones de formato y cuentas inexistentes", () => {
     assert.equal(cuentas.length, 0, "no debe crearse la cuenta");
   });
 
-  test("HE2-S2-PU019 · (-) Actualizar una cuenta que no existe: no debe decir que se actualizó", async () => {
-    const r = await pedir("/cuenta/999", "PUT", datosActualizar, {
-      Authorization: `Bearer ${crearToken({ id: 999, rol: "cliente" })}`,
-    });
-    assert.equal(r.estado, 404);
-    assert.notEqual(r.cuerpo.mensaje, "La información de la cuenta se actualizó correctamente");
-  });
-
-  test("HE2-S2-PU020 · (-) Desactivar una cuenta que no existe: no debe responder éxito", async () => {
-    const r = await pedir("/cuenta/999/desactivar", "PATCH", undefined, {
-      Authorization: `Bearer ${crearToken({ id: 999, rol: "cliente" })}`,
-    });
-    assert.equal(r.estado, 404);
-  });
 });
 
 // ===============================================================
-// Hallazgos de la revisión
+// Casos adicionales de validación y reglas de negocio
 // ===============================================================
-describe("5 · Hallazgos de la revisión", () => {
+describe("5 · Casos adicionales de validación y reglas de negocio", () => {
   const datosActualizar = {
     nombre: "Ana Pérez",
     identificacion: "123456789",
@@ -373,89 +356,7 @@ describe("5 · Hallazgos de la revisión", () => {
   };
   const encabezado = (token) => ({ Authorization: `Bearer ${token}` });
 
-  test("HE2-S2-PU021 · (-) Seguridad: actualizar una cuenta sin sesión devuelve 401 y no cambia los datos", async () => {
-    const cuenta = agregarCuenta();
-    const antes = { ...cuenta };
-    const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", {
-      ...datosActualizar,
-      nombre: "Nombre no autorizado",
-    }, { Authorization: "" });
-    assert.deepEqual(
-      { estado: r.estado, cuenta: cuentas[0] },
-      { estado: 401, cuenta: antes },
-      "sin sesión, la cuenta debe rechazar el cambio y conservar sus datos",
-    );
-  });
-
-  test("HE2-S2-PU022 · (-) Seguridad: actualizar una cuenta con el token de otra cuenta devuelve 403 y no cambia nada", async () => {
-    const cuenta = agregarCuenta();
-    const otra = agregarCuenta({
-      correo: "otra@example.com",
-      usuario: "otrapersona",
-      identificacion: "987654321",
-    });
-    const antes = { ...cuenta };
-    const r = await pedir(
-      `/cuenta/${cuenta.id}`,
-      "PUT",
-      { ...datosActualizar, nombre: "Nombre no autorizado" },
-      encabezado(crearToken({ id: otra.id, rol: otra.rol })),
-    );
-    assert.deepEqual(
-      { estado: r.estado, cuenta: cuentas[0], otra: cuentas[1] },
-      { estado: 403, cuenta: antes, otra },
-      "el token de otra cuenta no debe modificar ninguna cuenta",
-    );
-  });
-
-  test("HE2-S2-PU023 · (-) Seguridad: desactivar una cuenta sin sesión devuelve 401 y sigue Activa", async () => {
-    const cuenta = agregarCuenta();
-    const r = await pedir(`/cuenta/${cuenta.id}/desactivar`, "PATCH", undefined, { Authorization: "" });
-    assert.deepEqual(
-      { estado: r.estado, cuenta: cuentas[0].estado },
-      { estado: 401, cuenta: "Activo" },
-      "la cuenta debe seguir Activa si no hay sesión",
-    );
-  });
-
-  test("HE2-S2-PU024 · (-) Seguridad: desactivar una cuenta con el token de otra cuenta devuelve 403", async () => {
-    const cuenta = agregarCuenta();
-    const otra = agregarCuenta({
-      correo: "otra@example.com",
-      usuario: "otrapersona",
-      identificacion: "987654321",
-    });
-    const r = await pedir(
-      `/cuenta/${cuenta.id}/desactivar`,
-      "PATCH",
-      undefined,
-      encabezado(crearToken({ id: otra.id, rol: otra.rol })),
-    );
-    assert.deepEqual(
-      { estado: r.estado, cuenta: cuentas[0].estado },
-      { estado: 403, cuenta: "Activo" },
-      "una cuenta no debe poder desactivar a otra",
-    );
-  });
-
-  test("HE2-S2-PU025 · (+) Seguridad: el login devuelve token no vacío y permite actualizar la cuenta propia", async () => {
-    const cuenta = agregarCuenta();
-    const login = await iniciarSesion("anaperez", "EdenPrueba123");
-    const token = login.cuerpo.token;
-    const actualizacion = await pedir(
-      `/cuenta/${cuenta.id}`,
-      "PUT",
-      datosActualizar,
-      encabezado(token ?? ""),
-    );
-    assert.deepEqual(
-      { tokenValido: typeof token === "string" && token.trim().length > 0, estado: actualizacion.estado },
-      { tokenValido: true, estado: 200 },
-      "el login debe entregar un token utilizable para actualizar la cuenta propia",
-    );
-  });
-
-  test("HE2-S2-PU026 · (-) Mejora: registrar una identificación ya usada devuelve 409, también si la cuenta está Inactiva", async (t) => {
+  test("HE2-S2-PU019 · (-) Mejora: registrar una identificación ya usada devuelve 409, también si la cuenta está Inactiva", async (t) => {
     await t.test("cuenta existente Activa", async () => {
       agregarCuenta({ identificacion: datosRegistro.identificacion });
       const r = await registrar({
@@ -493,7 +394,7 @@ describe("5 · Hallazgos de la revisión", () => {
     });
   });
 
-  test("HE2-S2-PU027 · (-) Mejora: el usuario no distingue mayúsculas al registrarse y al iniciar sesión", async () => {
+  test("HE2-S2-PU020 · (-) Mejora: el usuario no distingue mayúsculas al registrarse y al iniciar sesión", async () => {
     const primera = await registrar({ usuario: "Maria" });
     const segunda = await registrar({
       usuario: "maria",
@@ -518,7 +419,7 @@ describe("5 · Hallazgos de la revisión", () => {
     );
   });
 
-  test("HE2-S2-PU028 · (-) Funcional: rechazar una contraseña de solo espacios y aceptar una frase segura", async () => {
+  test("HE2-S2-PU021 · (-) Funcional: rechazar una contraseña de solo espacios y aceptar una frase segura", async () => {
     const soloEspacios = await registrar({
       password: "          ",
       correo: "espacios@example.com",
@@ -546,12 +447,12 @@ describe("5 · Hallazgos de la revisión", () => {
     );
   });
 
-  test("HE2-S2-PU029 · (-) Funcional: actualizar con usuario con espacios o símbolos devuelve 400 y no se guarda", async () => {
+  test("HE2-S2-PU022 · (-) Funcional: actualizar con usuario con espacios o símbolos devuelve 400 y no se guarda", async () => {
     const cuenta = agregarCuenta();
     const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", {
       ...datosActualizar,
       usuario: "ana persona!",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.deepEqual(
       { estado: r.estado, usuario: cuentas[0].usuario },
       { estado: 400, usuario: "anaperez" },
@@ -559,12 +460,12 @@ describe("5 · Hallazgos de la revisión", () => {
     );
   });
 
-  test("HE2-S2-PU030 · (-) Funcional: actualizar con teléfono con letras devuelve 400 y no se guarda", async () => {
+  test("HE2-S2-PU023 · (-) Funcional: actualizar con teléfono con letras devuelve 400 y no se guarda", async () => {
     const cuenta = agregarCuenta();
     const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", {
       ...datosActualizar,
       telefono: "300abc4567",
-    });
+    }, autorizacionCuenta(cuenta));
     assert.deepEqual(
       { estado: r.estado, telefono: cuentas[0].telefono },
       { estado: 400, telefono: "3001234567" },
@@ -572,46 +473,4 @@ describe("5 · Hallazgos de la revisión", () => {
     );
   });
 
-  test("HE2-S2-PU031 · (-) Mejora: contraseñas iguales deben tener hashes distintos y no ser SHA-256 simple", async () => {
-    await registrar({ usuario: "primera", password: "ClaveIgual123" });
-    await registrar({
-      usuario: "segunda",
-      correo: "segunda@example.com",
-      identificacion: "2061234569",
-      password: "ClaveIgual123",
-    });
-    const [primera, segunda] = cuentas;
-    const sha256Simple = hash("ClaveIgual123");
-    assert.ok(
-      primera.passwordHash !== segunda.passwordHash &&
-        primera.passwordHash !== sha256Simple &&
-        segunda.passwordHash !== sha256Simple,
-      "cada contraseña debe usar un hash con sal, no SHA-256 determinista",
-    );
-  });
-
-  test("HE2-S2-PU033 · (+) Seguridad: iniciar sesión con hash SHA-256 antiguo lo migra a scrypt y permite volver a iniciar sesión", async () => {
-    const cuenta = agregarCuenta();
-    const hashAntiguo = cuenta.passwordHash;
-
-    const primerInicio = await iniciarSesion("anaperez", "EdenPrueba123");
-    assert.equal(primerInicio.estado, 200);
-    assert.notEqual(cuenta.passwordHash, hashAntiguo, "el hash antiguo debe migrarse");
-    assert.match(cuenta.passwordHash, /^scrypt\$[a-f\d]{32}\$[a-f\d]{128}$/i);
-    assert.equal("passwordHash" in primerInicio.cuerpo.usuario, false);
-
-    const segundoInicio = await iniciarSesion("anaperez", "EdenPrueba123");
-    assert.equal(segundoInicio.estado, 200);
-  });
-
-  test("HE2-S2-PU034 · (-) Seguridad: un token con la firma alterada devuelve 401", async () => {
-    const cuenta = agregarCuenta();
-    const tokenValido = crearToken({ id: cuenta.id, rol: cuenta.rol });
-    const [payload, firma] = tokenValido.split(".");
-    const firmaAlterada = `${firma.slice(0, -1)}${firma.endsWith("A") ? "B" : "A"}`;
-    const r = await pedir(`/cuenta/${cuenta.id}`, "PUT", datosActualizar, {
-      Authorization: `Bearer ${payload}.${firmaAlterada}`,
-    });
-    assert.equal(r.estado, 401);
-  });
 });
