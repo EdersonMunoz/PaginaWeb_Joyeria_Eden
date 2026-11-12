@@ -3,6 +3,7 @@ import "./Encabezado.css";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
+import { cerrarSesion, obtenerUsuario } from "../sesion";
 import iconoOpciones from "../assets/iconossvg/iconoOpciones.svg";
 import iconoLupa from "../assets/iconossvg/iconobuscar.svg";
 import logo from "../assets/Iconos_HU2/Logo.png";
@@ -36,13 +37,7 @@ function Encabezado({
   const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [perfilAbierto, setPerfilAbierto] = useState(false);
-  const usuarioGuardado = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("eden.usuario") ?? "null");
-    } catch {
-      return null;
-    }
-  })();
+  const usuarioGuardado = obtenerUsuario();
   const nombreUsuario = usuarioGuardado?.nombre?.trim() || "Nombre y apellido";
   const correoUsuario = usuarioGuardado?.correo?.trim() || "Correo";
   const esAdministrador =
@@ -242,7 +237,7 @@ function Encabezado({
                     >
                       Ajustes de la cuenta
                     </Link>
-                    <Link to="/Inicio" role="menuitem" onClick={() => setPerfilAbierto(false)}>
+                    <Link to="/Inicio" replace role="menuitem" onClick={() => cerrarSesion()}>
                       Cerrar sesión
                     </Link>
                   </div>
@@ -346,7 +341,7 @@ function Encabezado({
                 >
                   Cuenta <img src={iconoAjustes} alt="" />
                 </Link>
-                <Link to="/Inicio" onClick={() => setMenuAbierto(false)}>
+                <Link to="/Inicio" replace onClick={() => cerrarSesion()}>
                   Cerrar sesión
                 </Link>
               </div>

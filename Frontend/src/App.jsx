@@ -11,6 +11,7 @@ import EditarProducto from "./paginas/EditarProducto";
 import InicioSesion from "./paginas/InicioSesion";
 import RegistroCuenta from "./paginas/RegistroCuenta";
 import AjustesCuenta from "./paginas/AjustesCuenta";
+import RutaProtegida from "./componentes/RutaProtegida";
 
 function App() {
   // Los productos vienen de la base de datos Oracle a través del backend
@@ -74,33 +75,65 @@ function App() {
         <Route path="/Inicio" element={<Inicio />} />
         <Route path="/InicioSesion" element={<InicioSesion />} />
         <Route path="/Registro" element={<RegistroCuenta />} />
-        <Route path="/Usuario/Ajustes_cuenta" element={<AjustesCuenta />} />
-        <Route path="/Admin/Ajustes_cuenta" element={<AjustesCuenta />} />
-        <Route path="/Usuario" element={<InicioUsuario productos={productos} />} />
-        <Route path="/Admin" element={<InicioAdmin productos={productos} />} />
+        <Route
+          path="/Usuario/Ajustes_cuenta"
+          element={<RutaProtegida rol="cliente"><AjustesCuenta /></RutaProtegida>}
+        />
+        <Route
+          path="/Admin/Ajustes_cuenta"
+          element={<RutaProtegida rol="admin"><AjustesCuenta /></RutaProtegida>}
+        />
+        <Route
+          path="/Usuario"
+          element={<RutaProtegida rol="cliente"><InicioUsuario productos={productos} /></RutaProtegida>}
+        />
+        <Route
+          path="/Admin"
+          element={<RutaProtegida rol="admin"><InicioAdmin productos={productos} /></RutaProtegida>}
+        />
         <Route path="/Inicio/Catalogo" element={<Catalogo productos={productos} />} />
-        <Route path="/Admin/Catalogo" element={<Catalogo productos={productos} />} />
-        <Route path="/Usuario/Catalogo" element={<Catalogo productos={productos} />} />
+        <Route
+          path="/Admin/Catalogo"
+          element={<RutaProtegida rol="admin"><Catalogo productos={productos} /></RutaProtegida>}
+        />
+        <Route
+          path="/Usuario/Catalogo"
+          element={<RutaProtegida rol="cliente"><Catalogo productos={productos} /></RutaProtegida>}
+        />
         <Route
           path="/Admin/RegistrarProducto"
-          element={<RegistrarProducto agregarProducto={agregarProducto} />}
+          element={
+            <RutaProtegida rol="admin">
+              <RegistrarProducto agregarProducto={agregarProducto} />
+            </RutaProtegida>
+          }
         />
         <Route
           path="/Admin/GestionProductos"
           element={
+            <RutaProtegida rol="admin">
             <GestionProductos
               productos={productos}
               cambiarEstadoProducto={cambiarEstadoProducto}
             />
+            </RutaProtegida>
           }
         />
         <Route
           path="/Admin/ModificarProducto/:id"
-          element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
+          element={
+            <RutaProtegida rol="admin">
+              <EditarProducto productos={productos} editarProducto={editarProducto} />
+            </RutaProtegida>
+          }
         />
         <Route
           path="/Admin/ModificarProducto"
-          element={<EditarProducto productos={productos} editarProducto={editarProducto} />}
+          element={
+            <RutaProtegida rol="admin">
+              <EditarProducto productos={productos} editarProducto={editarProducto} />
+            </RutaProtegida>
+          }
         />
       </Routes>
     </>

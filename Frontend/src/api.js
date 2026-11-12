@@ -1,5 +1,7 @@
 // Comunicación con el backend (carpeta backend/ del proyecto).
 // La dirección se puede cambiar con la variable VITE_API_URL en un archivo .env del frontend.
+import { cerrarSesion, obtenerToken } from "./sesion";
+
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 const RUTA_PRODUCTOS = `${API_URL}/api/productos`;
@@ -16,9 +18,27 @@ const normalizarProducto = (producto) =>
       : producto.imagen,
   };
 
+function opcionesConSesion(opciones) {
+  const token = obtenerToken();
+  if (!token) return { opciones, envioToken: false };
+
+  return {
+    opciones: {
+      ...opciones,
+      headers: {
+        ...opciones.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    envioToken: true,
+  };
+}
+
 async function pedir(ruta, opciones) {
   try {
-    const respuesta = await fetch(`${RUTA_PRODUCTOS}${ruta}`, opciones);
+    const { opciones: opcionesAutenticadas, envioToken } = opcionesConSesion(opciones);
+    const respuesta = await fetch(`${RUTA_PRODUCTOS}${ruta}`, opcionesAutenticadas);
+    if (envioToken && respuesta.status === 401) cerrarSesion();
     const cuerpo = await respuesta.json().catch(() => ({}));
     return {
       ...cuerpo,
@@ -33,7 +53,9 @@ async function pedir(ruta, opciones) {
 
 async function pedirAutenticacion(ruta, opciones) {
   try {
-    const respuesta = await fetch(`${RUTA_AUTENTICACION}${ruta}`, opciones);
+    const { opciones: opcionesAutenticadas, envioToken } = opcionesConSesion(opciones);
+    const respuesta = await fetch(`${RUTA_AUTENTICACION}${ruta}`, opcionesAutenticadas);
+    if (envioToken && respuesta.status === 401) cerrarSesion();
     const cuerpo = await respuesta.json().catch(() => ({}));
     return { ...cuerpo, ok: respuesta.ok, estado: respuesta.status };
   } catch {
@@ -72,13 +94,6 @@ export const actualizarCuenta = (id, campos) =>
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(campos),
-  });
-
-export const cambiarEstadoCuenta = (id, estado) =>
-  pedirAutenticacion(`/cuenta/${id}/estado`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ estado }),
   });
 
 export const desactivarCuenta = (id) =>
