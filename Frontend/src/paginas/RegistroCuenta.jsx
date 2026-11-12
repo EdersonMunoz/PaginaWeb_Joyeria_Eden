@@ -44,7 +44,7 @@ function RegistroCuenta() {
     if (!registroExitoso) return undefined;
     const temporizador = window.setTimeout(() => {
       navigate("/InicioSesion", {
-        state: { mensajeExito: "Se registro la cuenta con exito" },
+        state: { mensajeExito: "Se registró la cuenta con éxito" },
       });
     }, 3000);
     return () => window.clearTimeout(temporizador);
@@ -139,7 +139,7 @@ function RegistroCuenta() {
       return;
     }
 
-    setMensaje("Se registro la cuenta con exito");
+    setMensaje("Se registró la cuenta con éxito");
     setMensajeError(false);
     setRegistroExitoso(true);
   };
