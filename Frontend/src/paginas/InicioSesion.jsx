@@ -44,7 +44,7 @@ function InicioSesion() {
 
     setErrores(camposErrores);
     if (Object.values(camposErrores).some(Boolean)) {
-      setMensaje("Por favor, complete todos los campos obligatorios.");
+      setMensaje("Por favor complete los campos obligatorios");
       return;
     }
 

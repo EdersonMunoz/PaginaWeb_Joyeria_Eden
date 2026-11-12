@@ -92,7 +92,7 @@ router.post("/login", async (req, res) => {
   const password = String(req.body?.password ?? "");
 
   if (!identificador || !password) {
-    return res.status(400).json({ mensaje: "El usuario y la contraseña son obligatorios." });
+    return res.status(400).json({ mensaje: "Por favor complete los campos obligatorios" });
   }
 
   const { filas } = await ejecutar(
@@ -192,7 +192,7 @@ router.post("/registro", async (req, res) => {
     throw error;
   }
 
-  return res.status(201).json({ mensaje: "Se registro la cuenta con exito" });
+  return res.status(201).json({ mensaje: "Se registró la cuenta con éxito" });
 });
 
 router.put("/cuenta/:id", requiereSesion, (req, res, next) => {

@@ -197,7 +197,7 @@ describe("2 · Registrar cuenta", () => {
   test("HE2-S2-PU007 · (+) Registro exitoso: rol Cliente y la contraseña se guarda cifrada, no en texto", async () => {
     const r = await registrar({});
     assert.equal(r.estado, 201);
-    assert.equal(r.cuerpo.mensaje, "Se registro la cuenta con exito");
+    assert.equal(r.cuerpo.mensaje, "Se registró la cuenta con éxito");
     assert.equal(cuentas.length, 1);
     assert.equal(cuentas[0].rol, "cliente");
     assert.notEqual(cuentas[0].passwordHash, datosRegistro.password, "la contraseña no debe guardarse en texto plano");
