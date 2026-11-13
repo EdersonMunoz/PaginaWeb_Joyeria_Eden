@@ -1,6 +1,6 @@
 # Casos de prueba HE2-S2
 
-Excel de referencia: [Excel de pruebas unitarias · Iteración 1](https://docs.google.com/spreadsheets/d/1DUmL9V6PA3Rgsgjag73S4yorTZxQg3umn4vKrZ82HIY/edit?usp=sharing).
+Excel de referencia: [Excel de pruebas unitarias · Iteración 1](https://docs.google.com/spreadsheets/d/1DUmL9V6PA3Rgsgjag73S4yorTZxQg3umn4vKrZ82HIY/edit?usp=sharing) · [Iteración 2](https://docs.google.com/spreadsheets/d/15gy8P3GKWWGEPZYNIznOExQECNFOMSobo1EdyvuUs9I/edit?usp=sharing).
 
 | ID | Campos | Valores | Resultado esperado | Evidencia |
 |---|---|---|---|---|
