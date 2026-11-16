@@ -208,7 +208,7 @@ describe("2 · Registrar cuenta", () => {
     agregarCuenta({ correo: "carlos@example.com" });
     const r = await registrar({});
     assert.equal(r.estado, 409);
-    assert.equal(r.cuerpo.mensaje, "El correo, nombre de usuario o identificación ya está registrado");
+    assert.equal(r.cuerpo.mensaje, "El correo, nombre de usuario o identificación ya se encuentran asociados a una cuenta.");
     assert.equal(cuentas.length, 1, "no debe crear una segunda cuenta");
   });
 
@@ -285,7 +285,7 @@ describe("3 · Ajustes de la cuenta", () => {
       direccion: "Calle 10 # 5-20",
     }, autorizacionCuenta(cuenta));
     assert.equal(r.estado, 409);
-    assert.equal(r.cuerpo.mensaje, "El correo, nombre de usuario o identificación ya está registrado");
+    assert.equal(r.cuerpo.mensaje, "El correo, nombre de usuario o identificación ya se encuentran asociados a una cuenta.");
     assert.equal(cuentas[0].correo, "ana@example.com", "el correo no debe cambiar");
   });
 
@@ -367,7 +367,7 @@ describe("5 · Casos adicionales de validación y reglas de negocio", () => {
         { estado: r.estado, mensaje: r.cuerpo.mensaje, cuentas: cuentas.length },
         {
           estado: 409,
-          mensaje: "El correo, nombre de usuario o identificación ya está registrado",
+          mensaje: "El correo, nombre de usuario o identificación ya se encuentran asociados a una cuenta.",
           cuentas: 1,
         },
         "no debe registrarse una identificación que ya pertenece a otra cuenta",
@@ -386,7 +386,7 @@ describe("5 · Casos adicionales de validación y reglas de negocio", () => {
         { estado: r.estado, mensaje: r.cuerpo.mensaje, cuentas: cuentas.length },
         {
           estado: 409,
-          mensaje: "El correo, nombre de usuario o identificación ya está registrado",
+          mensaje: "El correo, nombre de usuario o identificación ya se encuentran asociados a una cuenta.",
           cuentas: 1,
         },
         "el estado Inactivo no debe permitir duplicar la identificación",
@@ -412,7 +412,7 @@ describe("5 · Casos adicionales de validación y reglas de negocio", () => {
       {
         registroInicial: 201,
         registroDuplicado: 409,
-        mensaje: "El correo, nombre de usuario o identificación ya está registrado",
+        mensaje: "El correo, nombre de usuario o identificación ya se encuentran asociados a una cuenta.",
         inicioSesion: 200,
       },
       "los nombres de usuario deben ser únicos sin distinguir mayúsculas",
