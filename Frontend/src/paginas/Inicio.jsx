@@ -62,6 +62,7 @@ const productosMasVendidos = [
 function Inicio({ administrador = false, usuario = false, productos = [] }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const mensajeCuentaDesactivada = location.state?.varianteMensaje === "cuenta-desactivada";
   const [busquedaAbierta, setBusquedaAbierta] = useState(false);
   const [consulta, setConsulta] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -114,7 +115,23 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
         .join(" ")}
     >
       {location.state?.mensaje && (
-        <p className="inicio-mensaje-cuenta" role="status">
+      <p
+        className={`inicio-mensaje-cuenta${mensajeCuentaDesactivada ? " inicio-mensaje-cuenta--desactivada" : ""}`}
+        role="status"
+      >
+        {mensajeCuentaDesactivada && (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m5 12 4 4L19 6" />
+          </svg>
+        )}
           {location.state.mensaje}
         </p>
       )}

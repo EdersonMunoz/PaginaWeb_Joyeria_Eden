@@ -158,6 +158,7 @@ function AjustesCuenta() {
     setConfirmarDesactivacion(false);
     navigate("/Inicio", {
       state: {
+        varianteMensaje: "cuenta-desactivada",
         mensaje:
           "Su cuenta ha sido desactivada exitosamente, recuerde que al volver a iniciar sesión su cuenta se activará nuevamente",
       },

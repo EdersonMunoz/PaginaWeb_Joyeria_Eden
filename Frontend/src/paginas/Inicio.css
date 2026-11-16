@@ -24,6 +24,22 @@
   box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
 }
 
+.inicio-mensaje-cuenta--desactivada {
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transform: translate(-50%, -50%);
+  text-align: left;
+}
+
+.inicio-mensaje-cuenta--desactivada svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
 .pagina-inicio .encabezado {
   position: sticky;
   z-index: 3;
