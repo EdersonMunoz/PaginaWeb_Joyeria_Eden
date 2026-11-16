@@ -254,7 +254,7 @@ function AjustesCuenta() {
                   Desactivar<br />Cuenta
                 </button>
                 <button className={`ajustes-actualizar${cambiado ? " activo" : ""}`} type="submit" disabled={!cambiado}>
-                  Guardar
+                  Actualizar
                 </button>
               </div>
             </div>
