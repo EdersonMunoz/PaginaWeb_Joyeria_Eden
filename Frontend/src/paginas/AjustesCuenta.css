@@ -233,15 +233,12 @@ body:has(.pagina-ajustes) {
   height: 2rem;
   flex: 0 0 2rem;
   place-items: center;
-  border: 2px solid #1b4d3e;
-  border-radius: 50%;
   color: #1b4d3e;
   font-size: 1.7rem;
   line-height: 1;
 }
 
 .ajustes-feedback.error .ajustes-feedback-icon {
-  border-color: #ef3328;
   color: #ef3328;
 }
 

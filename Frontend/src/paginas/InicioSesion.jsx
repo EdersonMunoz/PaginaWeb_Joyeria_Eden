@@ -23,9 +23,12 @@ function InicioSesion() {
     if (!mensaje) return undefined;
     const temporizador = window.setTimeout(() => {
       setMensaje("");
+      if (location.state?.mensajeExito) {
+        navigate("/InicioSesion", { replace: true, state: null });
+      }
     }, 3000);
     return () => window.clearTimeout(temporizador);
-  }, [mensaje]);
+  }, [location.state?.mensajeExito, mensaje, navigate]);
 
   const limpiarMensajeExito = () => {
     if (location.state?.mensajeExito) {
@@ -44,7 +47,7 @@ function InicioSesion() {
 
     setErrores(camposErrores);
     if (Object.values(camposErrores).some(Boolean)) {
-      setMensaje("Por favor complete los campos obligatorios");
+      setMensaje("Por favor, complete todos los campos obligatorios.");
       return;
     }
 

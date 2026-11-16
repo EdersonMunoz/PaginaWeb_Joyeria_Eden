@@ -34,6 +34,7 @@ function AjustesCuenta() {
   const [tipoMensaje, setTipoMensaje] = useState("success");
   const [confirmarDesactivacion, setConfirmarDesactivacion] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [repetirPasswordVisible, setRepetirPasswordVisible] = useState(false);
   const cambiado = Object.keys(guardado).some((campo) => formulario[campo] !== guardado[campo]);
 
   useEffect(() => {
@@ -158,6 +159,7 @@ function AjustesCuenta() {
     setConfirmarDesactivacion(false);
     navigate("/Inicio", {
       state: {
+        varianteMensaje: "cuenta-desactivada",
         mensaje:
           "Su cuenta ha sido desactivada exitosamente, recuerde que al volver a iniciar sesión su cuenta se activará nuevamente",
       },
@@ -210,43 +212,19 @@ function AjustesCuenta() {
                 error={errores.password}
                 onChange={cambiar}
                 placeholder="Deja vacío para conservar la contraseña actual"
-                trailing={
-                  <button type="button" className="ajustes-mostrar-password" aria-label={passwordVisible ? "Ocultar contraseña" : "Mostrar contraseña"} onClick={() => setPasswordVisible((visible) => !visible)}>
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      {passwordVisible ? (
-                        <>
-                          <path d="m3 3 18 18" />
-                          <path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c5.1 0 8.5 4.8 9.5 7a17 17 0 0 1-3.1 4.1" />
-                          <path d="M6.6 6.6C4.8 8 3.5 10 2.5 12c1 2.2 4.4 7 9.5 7 1.1 0 2.1-.2 3-.6" />
-                        </>
-                      ) : (
-                        <>
-                          <path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z" />
-                          <circle cx="12" cy="12" r="2.5" />
-                        </>
-                      )}
-                    </svg>
-                  </button>
-                }
+                trailing={<BotonMostrarPassword visible={passwordVisible} onToggle={() => setPasswordVisible((visible) => !visible)} etiqueta="contraseña" />}
               />
               <Campo
                 label="Repetir contraseña"
                 name="repetirPassword"
-                type="password"
+                type={repetirPasswordVisible ? "text" : "password"}
                 value={formulario.repetirPassword}
                 error={errores.repetirPassword}
                 onChange={cambiar}
                 disabled={!formulario.password}
                 bloqueado={!formulario.password}
                 placeholder="Repite la nueva contraseña"
+                trailing={formulario.password ? <BotonMostrarPassword visible={repetirPasswordVisible} onToggle={() => setRepetirPasswordVisible((visible) => !visible)} etiqueta="contraseña repetida" /> : null}
               />
               <Campo label="Dirección" name="direccion" value={formulario.direccion} error={errores.direccion} onChange={cambiar} />
               <div className="ajustes-acciones">
@@ -295,6 +273,40 @@ function Campo({ label, name, type = "text", value, error, onChange, trailing, d
       </span>
       {error && <small className="ajustes-error">Campo obligatorio o valor inválido</small>}
     </label>
+  );
+}
+
+function BotonMostrarPassword({ visible, onToggle, etiqueta }) {
+  return (
+    <button
+      type="button"
+      className="ajustes-mostrar-password"
+      aria-label={visible ? `Ocultar ${etiqueta}` : `Mostrar ${etiqueta}`}
+      onClick={onToggle}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        {visible ? (
+          <>
+            <path d="m3 3 18 18" />
+            <path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c5.1 0 8.5 4.8 9.5 7a17 17 0 0 1-3.1 4.1" />
+            <path d="M6.6 6.6C4.8 8 3.5 10 2.5 12c1 2.2 4.4 7 9.5 7 1.1 0 2.1-.2 3-.6" />
+          </>
+        ) : (
+          <>
+            <path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z" />
+            <circle cx="12" cy="12" r="2.5" />
+          </>
+        )}
+      </svg>
+    </button>
   );
 }
 

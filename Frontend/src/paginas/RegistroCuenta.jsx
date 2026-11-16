@@ -32,23 +32,12 @@ function RegistroCuenta() {
   const [errores, setErrores] = useState({});
   const [mensaje, setMensaje] = useState("");
   const [mensajeError, setMensajeError] = useState(false);
-  const [registroExitoso, setRegistroExitoso] = useState(false);
 
   useEffect(() => {
     if (!mensaje) return undefined;
     const temporizador = window.setTimeout(() => setMensaje(""), 3000);
     return () => window.clearTimeout(temporizador);
   }, [mensaje]);
-
-  useEffect(() => {
-    if (!registroExitoso) return undefined;
-    const temporizador = window.setTimeout(() => {
-      navigate("/InicioSesion", {
-        state: { mensajeExito: "Se registró la cuenta con éxito" },
-      });
-    }, 3000);
-    return () => window.clearTimeout(temporizador);
-  }, [registroExitoso, navigate]);
 
   const cambiarCampo = (event) => {
     const { name, value } = event.target;
@@ -139,9 +128,9 @@ function RegistroCuenta() {
       return;
     }
 
-    setMensaje("Se registró la cuenta con éxito");
-    setMensajeError(false);
-    setRegistroExitoso(true);
+    navigate("/InicioSesion", {
+      state: { mensajeExito: "Se registró la cuenta con éxito" },
+    });
   };
 
   return (
