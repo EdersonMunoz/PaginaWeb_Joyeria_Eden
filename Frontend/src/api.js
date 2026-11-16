@@ -34,7 +34,7 @@ function opcionesConSesion(opciones) {
   };
 }
 
-async function pedir(ruta, opciones) {
+async function pedir(ruta, opciones = {}) {
   try {
     const { opciones: opcionesAutenticadas, envioToken } = opcionesConSesion(opciones);
     const respuesta = await fetch(`${RUTA_PRODUCTOS}${ruta}`, opcionesAutenticadas);
@@ -51,7 +51,7 @@ async function pedir(ruta, opciones) {
   }
 }
 
-async function pedirAutenticacion(ruta, opciones) {
+async function pedirAutenticacion(ruta, opciones = {}) {
   try {
     const { opciones: opcionesAutenticadas, envioToken } = opcionesConSesion(opciones);
     const respuesta = await fetch(`${RUTA_AUTENTICACION}${ruta}`, opcionesAutenticadas);
