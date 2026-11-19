@@ -18,7 +18,9 @@ const normalizarProducto = (producto) =>
       : producto.imagen,
   };
 
-function opcionesConSesion(opciones) {
+function opcionesConSesion(opciones, incluirSesion = true) {
+  if (!incluirSesion) return { opciones, envioToken: false };
+
   const token = obtenerToken();
   if (!token) return { opciones, envioToken: false };
 
@@ -34,33 +36,76 @@ function opcionesConSesion(opciones) {
   };
 }
 
-async function pedir(ruta, opciones = {}) {
-  try {
-    const { opciones: opcionesAutenticadas, envioToken } = opcionesConSesion(opciones);
-    const respuesta = await fetch(`${RUTA_PRODUCTOS}${ruta}`, opcionesAutenticadas);
-    if (envioToken && respuesta.status === 401) cerrarSesion();
-    const cuerpo = await respuesta.json().catch(() => ({}));
-    return {
-      ...cuerpo,
-      ok: respuesta.ok,
-      producto: normalizarProducto(cuerpo.producto),
-      productos: cuerpo.productos?.map(normalizarProducto),
-    };
-  } catch {
-    return { ok: false, mensaje: "No se pudo conectar con el servidor" };
+function esAutenticacionRechazada(respuesta) {
+  return respuesta.status === 401 || respuesta.status === 403;
+}
+
+function cerrarSesionYRedirigir() {
+  cerrarSesion();
+  if (typeof window !== "undefined" && window.location.pathname !== "/InicioSesion") {
+    window.location.assign("/InicioSesion");
   }
 }
 
-async function pedirAutenticacion(ruta, opciones = {}) {
+async function leerRespuesta(respuesta) {
+  const cuerpo = await respuesta.json().catch(() => ({}));
+
+  return {
+    ...cuerpo,
+    ok: respuesta.ok,
+    estado: respuesta.status,
+    mensaje: respuesta.ok
+      ? cuerpo.mensaje
+      : cuerpo.mensaje ??
+        cuerpo.error ??
+        `Error ${respuesta.status}: ${respuesta.statusText || "respuesta del servidor"}`,
+  };
+}
+
+async function realizarPeticion(url, opciones, { publica = false, sinSesion = false } = {}) {
+  const { opciones: opcionesAutenticadas, envioToken } = opcionesConSesion(
+    opciones,
+    !sinSesion,
+  );
+  let respuesta;
   try {
-    const { opciones: opcionesAutenticadas, envioToken } = opcionesConSesion(opciones);
-    const respuesta = await fetch(`${RUTA_AUTENTICACION}${ruta}`, opcionesAutenticadas);
-    if (envioToken && respuesta.status === 401) cerrarSesion();
-    const cuerpo = await respuesta.json().catch(() => ({}));
-    return { ...cuerpo, ok: respuesta.ok, estado: respuesta.status };
+    respuesta = await fetch(url, opcionesAutenticadas);
   } catch {
     return { ok: false, mensaje: "No se pudo conectar con el servidor" };
   }
+
+  if (publica && envioToken && esAutenticacionRechazada(respuesta)) {
+    cerrarSesion();
+    try {
+      respuesta = await fetch(url, opciones);
+    } catch {
+      return { ok: false, mensaje: "No se pudo conectar con el servidor" };
+    }
+  } else if (!publica && esAutenticacionRechazada(respuesta)) {
+    cerrarSesionYRedirigir();
+  }
+
+  return leerRespuesta(respuesta);
+}
+
+async function pedir(ruta, opciones = {}, { publica = false } = {}) {
+  const respuesta = await realizarPeticion(
+    `${RUTA_PRODUCTOS}${ruta}`,
+    opciones,
+    { publica },
+  );
+  return {
+    ...respuesta,
+    producto: normalizarProducto(respuesta.producto),
+    productos: respuesta.productos?.map(normalizarProducto),
+  };
+}
+
+async function pedirAutenticacion(ruta, opciones = {}, { publica = false } = {}) {
+  return realizarPeticion(`${RUTA_AUTENTICACION}${ruta}`, opciones, {
+    publica,
+    sinSesion: publica,
+  });
 }
 
 const formularioProducto = (campos, archivo) => {
@@ -73,21 +118,22 @@ const formularioProducto = (campos, archivo) => {
 };
 
 // HU3 · todos los productos (el catálogo del cliente filtra los inactivos)
-export const listarProductos = () => pedir("?estado=todos");
+export const listarProductos = () =>
+  pedir("?estado=todos", {}, { publica: true });
 
 export const iniciarSesion = (identificador, password) =>
   pedirAutenticacion("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identificador, password }),
-  });
+  }, { publica: true });
 
 export const registrarCuenta = (campos) =>
   pedirAutenticacion("/registro", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(campos),
-  });
+  }, { publica: true });
 
 export const actualizarCuenta = (id, campos) =>
   pedirAutenticacion(`/cuenta/${id}`, {

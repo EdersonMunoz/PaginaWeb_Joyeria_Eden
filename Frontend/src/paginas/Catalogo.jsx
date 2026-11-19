@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
 import DetalleProducto from "../componentes/DetalleProducto";
 import ListaProductos from "../componentes/ListaProductos";
+import iconoBolsa from "../assets/iconossvg/iconoBolsa.svg";
+import { cantidadEnCarrito as unidadesEnCarrito, stockDisponible } from "../carrito";
 import "./Catalogo.css";
 import "../componentes/EncabezadoFigma.css";
 import "./CatalogoFigma.css";
@@ -32,7 +34,7 @@ const filtrosIniciales = {
 const normalizarTexto = (texto) =>
   texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
 
-function Catalogo({ productos }) {
+function Catalogo({ productos, carrito = [], agregarAlCarrito }) {
   const location = useLocation();
   const administrador = location.pathname.startsWith("/Admin");
   const usuario = location.pathname.startsWith("/Usuario");
@@ -48,6 +50,7 @@ function Catalogo({ productos }) {
   const [busquedaAbierta, setBusquedaAbierta] = useState(false);
   const [consulta, setConsulta] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [notificacionCarrito, setNotificacionCarrito] = useState("");
   const [filtrosAplicados, setFiltrosAplicados] = useState(filtrosIniciales);
   const [filtrosTemporales, setFiltrosTemporales] = useState(filtrosIniciales);
   const cerrarBusqueda = useCallback(() => {
@@ -77,6 +80,34 @@ function Catalogo({ productos }) {
         ).includes(consultaNormalizada),
       )
     : [];
+  const cantidadEnCarrito = carrito.reduce(
+    (total, item) => total + item.cantidad,
+    0,
+  );
+
+  useEffect(() => {
+    if (!notificacionCarrito) {
+      return undefined;
+    }
+
+    const temporizador = window.setTimeout(
+      () => setNotificacionCarrito(""),
+      3000,
+    );
+    return () => window.clearTimeout(temporizador);
+  }, [notificacionCarrito]);
+
+  const agregarProductoAlCarrito = (producto, cantidad = 1) => {
+    // HE3-HU1 escenario 5: lo que ya está en el carrito también cuenta para el stock
+    const disponibles =
+      stockDisponible(producto) - unidadesEnCarrito(carrito, producto.id);
+    agregarAlCarrito?.(producto, cantidad);
+    setNotificacionCarrito(
+      cantidad > disponibles
+        ? "Stock máximo alcanzado"
+        : "Se agregó el producto al carrito",
+    );
+  };
 
   useEffect(() => {
     if (!mostrarFiltros && !busquedaAbierta) {
@@ -279,6 +310,7 @@ function Catalogo({ productos }) {
             productos={productosBusqueda}
             onSeleccionarProducto={setProductoSeleccionado}
             soloLectura={administrador || vistaAdminSoloLectura}
+            onAgregarCarrito={agregarProductoAlCarrito}
           />
         ) : (
           <p className="catalogo-busqueda-vacia">
@@ -309,6 +341,7 @@ function Catalogo({ productos }) {
         sesionIniciada={sesionIniciada}
         mostrarLogin={!sesionIniciada}
         vistaAdminSoloLectura={vistaAdminSoloLectura}
+        carritoCantidad={cantidadEnCarrito}
         onAbrirBusqueda={abrirBusqueda}
         onCerrarBusqueda={cerrarBusqueda}
         onCambiarConsulta={setConsulta}
@@ -325,6 +358,7 @@ function Catalogo({ productos }) {
           productos={productosVisibles}
           onSeleccionarProducto={setProductoSeleccionado}
           soloLectura={vistaAdminSoloLectura}
+          onAgregarCarrito={agregarProductoAlCarrito}
         />
       </div>
 
@@ -332,10 +366,17 @@ function Catalogo({ productos }) {
         <DetalleProducto
           producto={productoSeleccionado}
           vistaAdminSoloLectura={vistaAdminSoloLectura}
+          onAgregarCarrito={agregarProductoAlCarrito}
           onCerrar={() => {
             setProductoSeleccionado(null);
           }}
         />
+      )}
+      {notificacionCarrito && (
+        <div className="catalogo-notificacion-carrito" role="status" aria-live="polite">
+          <img src={iconoBolsa} alt="" />
+          <span>{notificacionCarrito}</span>
+        </div>
       )}
     </main>
   );

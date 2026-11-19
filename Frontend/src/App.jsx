@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import * as api from "./api";
+import * as logicaCarrito from "./carrito";
 import Inicio from "./paginas/Inicio";
 import InicioUsuario from "./paginas/InicioUsuario";
 import InicioAdmin from "./paginas/InicioAdmin";
@@ -11,12 +12,22 @@ import EditarProducto from "./paginas/EditarProducto";
 import InicioSesion from "./paginas/InicioSesion";
 import RegistroCuenta from "./paginas/RegistroCuenta";
 import AjustesCuenta from "./paginas/AjustesCuenta";
+import Carrito from "./paginas/Carrito";
 import RutaProtegida from "./componentes/RutaProtegida";
 
 function App() {
   // Los productos vienen de la base de datos Oracle a través del backend
   const [productos, setProductos] = useState([]);
   const [errorConexion, setErrorConexion] = useState("");
+  const [carrito, setCarrito] = useState([]);
+  // El cupón vive aquí (y no dentro de la página del carrito) para que no se pierda
+  // al ir al catálogo y volver: así siempre se refleja en el total.
+  const [cuponCarrito, setCuponCarrito] = useState(null);
+  const carritoActual = useRef(carrito);
+
+  useEffect(() => {
+    carritoActual.current = carrito;
+  }, [carrito]);
 
   useEffect(() => {
     api.listarProductos().then((respuesta) => {
@@ -27,6 +38,27 @@ function App() {
         setErrorConexion(respuesta.mensaje ?? "No se pudo cargar el catálogo");
       }
     });
+  }, []);
+
+  // Sprint 3 · vuelve a pedir el catálogo al backend y pone el carrito al día con el
+  // inventario real de Oracle (precios, stock y productos que ya no están disponibles).
+  // Devuelve true si hubo que ajustar el carrito.
+  const actualizarInventario = useCallback(async () => {
+    const respuesta = await api.listarProductos();
+    if (!respuesta.ok) {
+      return false;
+    }
+
+    setProductos(respuesta.productos);
+    setErrorConexion("");
+    const { ajustado } = logicaCarrito.sincronizarCarrito(
+      carritoActual.current,
+      respuesta.productos,
+    );
+    setCarrito(
+      (actual) => logicaCarrito.sincronizarCarrito(actual, respuesta.productos).carrito,
+    );
+    return ajustado;
   }, []);
 
   const reemplazarProducto = (actualizado) =>
@@ -63,6 +95,37 @@ function App() {
     return respuesta;
   };
 
+  // Sprint 3 · HU1: el carrito sigue en memoria; las reglas están en carrito.js
+  const agregarAlCarrito = (producto, cantidad = 1) => {
+    setCarrito((actual) => logicaCarrito.agregarAlCarrito(actual, producto, cantidad));
+  };
+
+  const actualizarCantidadCarrito = (productoId, cantidad) => {
+    setCarrito((actual) => logicaCarrito.actualizarCantidad(actual, productoId, cantidad));
+  };
+
+  const eliminarDelCarrito = (productoId) => {
+    setCarrito((actual) => logicaCarrito.eliminarDelCarrito(actual, productoId));
+  };
+
+  // Sprint 3 · HU2: la compra ya quedó guardada en el backend. `inventario` es el stock
+  // y estado reales que devolvió Oracle ([{ id, stock, estado }]); no se calcula aquí.
+  const completarCompra = useCallback((inventario) => {
+    setProductos((actuales) => logicaCarrito.aplicarInventario(actuales, inventario));
+    setCarrito([]);
+    setCuponCarrito(null);
+  }, []);
+
+  const propiedadesCarrito = {
+    carrito,
+    actualizarCantidad: actualizarCantidadCarrito,
+    eliminarProducto: eliminarDelCarrito,
+    completarCompra,
+    actualizarInventario,
+    cupon: cuponCarrito,
+    cambiarCupon: setCuponCarrito,
+  };
+
   return (
     <>
       {errorConexion && (
@@ -91,14 +154,53 @@ function App() {
           path="/Admin"
           element={<RutaProtegida rol="admin"><InicioAdmin productos={productos} /></RutaProtegida>}
         />
-        <Route path="/Inicio/Catalogo" element={<Catalogo productos={productos} />} />
+        <Route
+          path="/Inicio/Catalogo"
+          element={
+            <Catalogo
+              productos={productos}
+              carrito={carrito}
+              agregarAlCarrito={agregarAlCarrito}
+            />
+          }
+        />
         <Route
           path="/Admin/Catalogo"
-          element={<RutaProtegida rol="admin"><Catalogo productos={productos} /></RutaProtegida>}
+          element={
+            <RutaProtegida rol="admin">
+              <Catalogo
+                productos={productos}
+                carrito={carrito}
+                agregarAlCarrito={agregarAlCarrito}
+              />
+            </RutaProtegida>
+          }
         />
         <Route
           path="/Usuario/Catalogo"
-          element={<RutaProtegida rol="cliente"><Catalogo productos={productos} /></RutaProtegida>}
+          element={
+            <RutaProtegida rol="cliente">
+              <Catalogo
+                productos={productos}
+                carrito={carrito}
+                agregarAlCarrito={agregarAlCarrito}
+              />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/Inicio/Carrito"
+          element={
+            <Carrito {...propiedadesCarrito} />
+          }
+        />
+        <Route
+          path="/Usuario/Carrito"
+          element={
+            <RutaProtegida rol="cliente">
+              <Carrito {...propiedadesCarrito} />
+            </RutaProtegida>
+          }
         />
         <Route
           path="/Admin/RegistrarProducto"

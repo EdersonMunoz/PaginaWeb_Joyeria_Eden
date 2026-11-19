@@ -42,6 +42,7 @@
 
 
 .icono-subrayado {
+  position: relative;
   padding: 0 10px 8px 10px;
   border-bottom: 2px solid #1b4d3e;
   display: inline-flex;
@@ -49,6 +50,32 @@
   justify-content: center;
 }
 
+.encabezado-carrito-contador {
+  position: absolute;
+  top: -4px;
+  right: 2px;
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  padding: 0 4px;
+  color: #004d40;
+  background: #fbf9f4;
+  border: 2px solid #004d40;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.encabezado-carrito {
+  color: inherit;
+  text-decoration: none;
+}
+
+.encabezado-carrito:focus-visible {
+  outline: 2px solid #1b4d3e;
+  outline-offset: 3px;
+}
 
 .contenedor-logo {
   padding-bottom: 10px;
