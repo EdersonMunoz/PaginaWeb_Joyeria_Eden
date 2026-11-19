@@ -5,6 +5,16 @@ function obtenerAlmacen(almacen) {
   return typeof almacen?.getItem === "function" ? almacen : globalThis.localStorage;
 }
 
+function obtenerAlmacenes(almacen) {
+  if (typeof almacen?.getItem === "function") {
+    return [almacen];
+  }
+
+  return [globalThis.localStorage, globalThis.sessionStorage].filter(
+    (destino) => typeof destino?.getItem === "function",
+  );
+}
+
 export function guardarSesion(usuario, token, almacen) {
   try {
     const destino = obtenerAlmacen(almacen);
@@ -17,20 +27,27 @@ export function guardarSesion(usuario, token, almacen) {
 }
 
 export function obtenerUsuario(almacen) {
-  try {
-    const usuario = obtenerAlmacen(almacen).getItem(CLAVE_USUARIO);
-    return usuario ? JSON.parse(usuario) : null;
-  } catch {
-    return null;
+  for (const destino of obtenerAlmacenes(almacen)) {
+    try {
+      const usuario = destino.getItem(CLAVE_USUARIO);
+      if (usuario) return JSON.parse(usuario);
+    } catch {
+      continue;
+    }
   }
+  return null;
 }
 
 export function obtenerToken(almacen) {
-  try {
-    return obtenerAlmacen(almacen).getItem(CLAVE_TOKEN) || null;
-  } catch {
-    return null;
+  for (const destino of obtenerAlmacenes(almacen)) {
+    try {
+      const token = destino.getItem(CLAVE_TOKEN);
+      if (token) return token;
+    } catch {
+      continue;
+    }
   }
+  return null;
 }
 
 export function actualizarUsuario(usuario, almacen) {
@@ -43,14 +60,17 @@ export function actualizarUsuario(usuario, almacen) {
 }
 
 export function cerrarSesion(almacen) {
-  try {
-    const destino = obtenerAlmacen(almacen);
-    destino.removeItem(CLAVE_USUARIO);
-    destino.removeItem(CLAVE_TOKEN);
-    return true;
-  } catch {
-    return false;
+  let limpiado = false;
+  for (const destino of obtenerAlmacenes(almacen)) {
+    try {
+      destino.removeItem(CLAVE_USUARIO);
+      destino.removeItem(CLAVE_TOKEN);
+      limpiado = true;
+    } catch {
+      continue;
+    }
   }
+  return limpiado;
 }
 
 export function decidirAcceso(usuario, rolRequerido) {

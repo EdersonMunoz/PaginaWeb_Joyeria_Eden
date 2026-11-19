@@ -6,10 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node servidor.js",
-    "dev": "node --watch-path=./servidor.js --watch-path=./baseDatos.js --watch-path=./validar.js --watch-path=./subirFoto.js --watch-path=./almacenFotos.js --watch-path=./rutas servidor.js",
+    "dev": "node --watch-path=./servidor.js --watch-path=./baseDatos.js --watch-path=./validar.js --watch-path=./subirFoto.js --watch-path=./almacenFotos.js --watch-path=./sesion.js --watch-path=./validarCompra.js --watch-path=./pedidos.js --watch-path=./rutas servidor.js",
     "prueba": "node prueba.js",
     "fotos": "node db/03_fotos.js",
-    "test": "node --test"
+    "test": "node --test",
+    "prueba:oracle": "node pruebas/oracle-real.test.js --oracle"
   },
   "dependencies": {
     "cors": "^2.8.5",

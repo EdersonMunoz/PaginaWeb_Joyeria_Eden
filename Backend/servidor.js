@@ -12,6 +12,8 @@ import registrarProducto from "./rutas/registrarProducto.js"; // HU1
 import modificarProducto from "./rutas/modificarProducto.js"; // HU2
 import gestionarEstado from "./rutas/gestionarEstado.js"; // HU4
 import autenticacion from "./rutas/autenticacion.js"; // Sprint 2 · cuentas e inicio de sesión
+import procesarCompra from "./rutas/procesarCompra.js"; // Sprint 3 · HU2 (y validación de HU1)
+import consultarComprobante from "./rutas/consultarComprobante.js"; // Sprint 3 · HU3
 
 export function crearApp() {
   const app = express();
@@ -40,6 +42,8 @@ export function crearApp() {
   app.use("/api/productos", modificarProducto); // HU2 · Modificar producto
   app.use("/api/productos", gestionarEstado); //   HU4 · Inactivar y activar
   app.use("/api/autenticacion", autenticacion); // Sprint 2 · Registro, login y ajustes de cuenta
+  app.use("/api/pedidos", procesarCompra); //       Sprint 3 · Procesar compra y validar cupón
+  app.use("/api/pedidos", consultarComprobante); // Sprint 3 · Consultar comprobante
 
   app.use((_req, res) => res.status(404).json({ mensaje: "Ruta no encontrada" }));
 
@@ -50,6 +54,12 @@ export function crearApp() {
         mensaje: "La foto debe estar en formato JPG, PNG o WEBP y/o el peso máximo permitido es 5 MB",
         errores: { imagen: true },
       });
+    }
+    // El cuerpo no es un JSON válido (o es demasiado grande): es un error de quien llama
+    if (error?.type === "entity.parse.failed" || error?.type === "entity.too.large") {
+      return res
+        .status(error.status ?? 400)
+        .json({ mensaje: "La solicitud no tiene un formato válido", codigo: "SOLICITUD_INVALIDA" });
     }
     console.error(error);
     res.status(500).json({ mensaje: "Error interno del servidor" });
