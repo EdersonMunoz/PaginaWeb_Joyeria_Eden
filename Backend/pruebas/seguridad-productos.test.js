@@ -10,6 +10,17 @@ import { crearToken } from "../sesion.js";
 
 prepararEntorno();
 
+test("HE2-S2-PU032 · Seguridad: el catálogo público ignora un token inválido", async () => {
+  const respuesta = await pedir(
+    "/api/productos?estado=todos",
+    { headers: { Authorization: "Bearer token-invalido" } },
+    { autenticar: false },
+  );
+
+  assert.equal(respuesta.estado, 200);
+  assert.ok(Array.isArray(respuesta.cuerpo.productos));
+});
+
 test("HE2-S2-PU032 · Seguridad: registrar productos exige sesión y rol administrador", async () => {
   const sinSesion = await pedir(
     "/api/productos",
