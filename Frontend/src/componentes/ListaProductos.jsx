@@ -9,6 +9,7 @@ function ListaProductos({
   modoInactivos = false,
   onEditarProducto,
   onCambiarEstadoProducto,
+  onAgregarCarrito,
 }) {
   return (
     <section className="catalogo-productos" aria-label="Productos">
@@ -22,6 +23,7 @@ function ListaProductos({
           modoInactivos={modoInactivos}
           onEditar={onEditarProducto}
           onCambiarEstado={onCambiarEstadoProducto}
+          onAgregarCarrito={onAgregarCarrito}
         />
       ))}
     </section>

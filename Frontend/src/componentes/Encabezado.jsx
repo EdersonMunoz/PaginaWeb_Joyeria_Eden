@@ -27,12 +27,14 @@ function Encabezado({
   sesionIniciada = false,
   mostrarLogin = false,
   ocultarCarrito = false,
+  ocultarFavoritos = false,
   ocultarTendencias = false,
   mostrarTendencias = false,
   menuDeshabilitado = false,
   ocultarIconoBusqueda = false,
   ocultarChevronPerfil = false,
   vistaAdminSoloLectura = false,
+  carritoCantidad = 0,
 }) {
   const location = useLocation();
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -53,6 +55,7 @@ function Encabezado({
     : esUsuario
       ? "/Usuario"
       : "/Inicio";
+  const rutaCarrito = esUsuario ? "/Usuario/Carrito" : "/Inicio/Carrito";
 
   useEffect(() => {
     if (!busquedaAbierta) {
@@ -247,12 +250,21 @@ function Encabezado({
           )}
 
           {!esAdministrador && !ocultarCarrito && (
-            <div className="icono-subrayado">
-              <img src={iconoCarrito} alt="Carrito" className="encabezado-icono" />
-            </div>
+            <Link
+              className="icono-subrayado encabezado-carrito"
+              to={rutaCarrito}
+              aria-label={`Abrir carrito: ${carritoCantidad} ${carritoCantidad === 1 ? "producto" : "productos"}`}
+            >
+              <img src={iconoCarrito} alt="" className="encabezado-icono" />
+              {carritoCantidad > 0 && (
+                <span className="encabezado-carrito-contador" aria-hidden="true">
+                  {carritoCantidad}
+                </span>
+              )}
+            </Link>
           )}
 
-          {!esAdministrador && (
+          {!esAdministrador && !ocultarFavoritos && (
             <div className="icono-subrayado">
               <img
                 src={administrador && mostrarTendencias && !ocultarTendencias ? iconoTendencias : iconoCorazon}
