@@ -61,6 +61,45 @@ describe("sesión", () => {
     }
   });
 
+  it("busca tokens en ambos almacenamientos y al cerrar limpia los dos", () => {
+    const localStorageAnterior = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const sessionStorageAnterior = Object.getOwnPropertyDescriptor(globalThis, "sessionStorage");
+    const local = crearAlmacen();
+    const session = crearAlmacen();
+
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: local,
+    });
+    Object.defineProperty(globalThis, "sessionStorage", {
+      configurable: true,
+      value: session,
+    });
+
+    try {
+      session.setItem("eden.token", "token-de-sesion");
+      session.setItem("eden.usuario", JSON.stringify({ id: 2, rol: "cliente" }));
+
+      assert.equal(obtenerToken(), "token-de-sesion");
+      assert.deepEqual(obtenerUsuario(), { id: 2, rol: "cliente" });
+      assert.equal(cerrarSesion(), true);
+      assert.equal(local.getItem("eden.token"), null);
+      assert.equal(session.getItem("eden.token"), null);
+      assert.equal(session.getItem("eden.usuario"), null);
+    } finally {
+      if (localStorageAnterior) {
+        Object.defineProperty(globalThis, "localStorage", localStorageAnterior);
+      } else {
+        delete globalThis.localStorage;
+      }
+      if (sessionStorageAnterior) {
+        Object.defineProperty(globalThis, "sessionStorage", sessionStorageAnterior);
+      } else {
+        delete globalThis.sessionStorage;
+      }
+    }
+  });
+
   it("actualizar usuario conserva el token", () => {
     const almacen = crearAlmacen();
     guardarSesion({ id: 1, rol: "cliente" }, "token-prueba", almacen);

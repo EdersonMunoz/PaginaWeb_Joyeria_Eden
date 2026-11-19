@@ -1,4 +1,8 @@
+import dotenv from "dotenv";
+import { fileURLToPath } from "node:url";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+
+dotenv.config({ path: fileURLToPath(new URL("./.env", import.meta.url)) });
 
 const VIGENCIA_SEGUNDOS = 8 * 60 * 60;
 let secreto = process.env.SECRETO_SESION;
@@ -65,6 +69,18 @@ export function requiereSesion(req, res, next) {
   }
   req.sesion = sesion;
   return next();
+}
+
+// Sprint 3 · rutas que aceptan invitados (comprar sin cuenta).
+//  - Sin cabecera Authorization: la petición sigue como invitado (req.sesion = null).
+//  - Con cabecera Authorization: el token DEBE ser válido; si no lo es se responde 401.
+//    Así una sesión vencida nunca se convierte en silencio en una compra de invitado.
+export function sesionOpcional(req, res, next) {
+  if (!req.get("Authorization")) {
+    req.sesion = null;
+    return next();
+  }
+  return requiereSesion(req, res, next);
 }
 
 export function requiereRol(rol) {

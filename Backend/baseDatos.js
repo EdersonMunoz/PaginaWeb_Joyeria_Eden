@@ -5,6 +5,7 @@ import { urlFoto } from "./almacenFotos.js";
 
 let pool = null;
 let ejecutorDePrueba = null;
+let conexionDePrueba = null;
 
 export async function iniciarBaseDatos() {
   // Base en Oracle Cloud (Autonomous Database): se conecta con el "wallet",
@@ -59,6 +60,56 @@ export async function ejecutar(sql, datos = {}) {
 // Solo para pruebas automáticas sin Oracle.
 export function usarEjecutorDePrueba(funcion) {
   ejecutorDePrueba = funcion;
+}
+
+// ---------------------------------------------------------------
+// Transacciones (Sprint 3 · procesar compra)
+// ---------------------------------------------------------------
+// ejecutar() confirma cada sentencia por separado (autoCommit), y eso no sirve
+// para una compra: el pedido, sus detalles y el descuento del inventario deben
+// guardarse TODOS o NINGUNO.
+//
+// enTransaccion(trabajo) abre UNA conexión, le entrega a `trabajo` un objeto
+// { ejecutar(sql, datos) } que usa esa misma conexión SIN autoCommit, y al final:
+//   - si `trabajo` termina bien  -> COMMIT  (conexion.commit())
+//   - si `trabajo` lanza un error -> ROLLBACK (conexion.rollback()) y relanza el error
+// La conexión siempre se devuelve al pool.
+export async function enTransaccion(trabajo) {
+  const conexion = conexionDePrueba
+    ? await conexionDePrueba()
+    : await oracledb.getConnection();
+  try {
+    const transaccion = {
+      async ejecutar(sql, datos = {}) {
+        const resultado = await conexion.execute(sql, datos, {
+          outFormat: oracledb.OUT_FORMAT_OBJECT,
+          autoCommit: false,
+        });
+        return {
+          filas: resultado.rows ?? [],
+          afectadas: resultado.rowsAffected ?? 0,
+        };
+      },
+    };
+    const resultado = await trabajo(transaccion);
+    await conexion.commit();
+    return resultado;
+  } catch (error) {
+    try {
+      await conexion.rollback();
+    } catch (errorRollback) {
+      console.error("No se pudo deshacer la transacción", errorRollback);
+    }
+    throw error;
+  } finally {
+    await conexion.close();
+  }
+}
+
+// Solo para pruebas automáticas sin Oracle: `fabrica` devuelve una conexión falsa
+// con la misma interfaz del driver (execute, commit, rollback, close).
+export function usarConexionDePrueba(fabrica) {
+  conexionDePrueba = fabrica;
 }
 
 // ---------------------------------------------------------------
