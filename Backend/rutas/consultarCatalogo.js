@@ -6,7 +6,7 @@
 //     ?q=bright                    (busca en nombre, referencia, categoría y descripción)
 // GET /api/productos/:id    detalle de un producto
 import { Router } from "express";
-import { ejecutar, SELECT_PRODUCTO, buscarProductoPorId } from "../baseDatos.js";
+import { ejecutar, SELECT_PRODUCTO, buscarProductoPorId, conUrlFoto } from "../baseDatos.js";
 import { CATEGORIAS } from "../validar.js";
 
 const router = Router();
@@ -65,7 +65,7 @@ router.get("/", async (req, res) => {
 
   const donde = condiciones.length ? `WHERE ${condiciones.join(" AND ")}` : "";
   const { filas } = await ejecutar(`${SELECT_PRODUCTO} ${donde} ORDER BY p.id`, datos);
-  res.json({ productos: filas });
+  res.json({ productos: filas.map(conUrlFoto) });
 });
 
 // Escenario 5: detalle ampliado del producto

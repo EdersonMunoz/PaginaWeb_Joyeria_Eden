@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import iconoCarrito from "../assets/Iconos_HU2/iconoCarrito.png";
-import iconoCorazon from "../assets/Iconos_HU2/iconoCorazon.png";
-import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
+import iconoCarrito from "../assets/iconossvg/iconoCarrito.svg";
+import iconoCampana from "../assets/iconossvg/iconoCampana.svg";
+import iconoCorazon from "../assets/iconossvg/iconocorazon2.svg";
+import iconoLapiz from "../assets/iconossvg/iconoLapiz.svg";
 import iconoActivar from "../assets/iconoActivar.png";
 import iconoBloquear from "../assets/iconoBloquear.png";
 import "./DetalleProducto.css";
@@ -21,9 +22,15 @@ function DetalleProducto({
   onSolicitarCambioEstado,
   onCancelarCambioEstado,
   onConfirmarCambioEstado,
+  onAgregarCarrito,
 }) {
   const [cantidad, setCantidad] = useState(1);
   const [favorito, setFavorito] = useState(false);
+  const [alertaStock, setAlertaStock] = useState(null);
+  const stock = Number(producto.stock);
+  const cantidadMaxima = Number.isFinite(stock)
+    ? Math.max(0, Math.floor(stock))
+    : Number.POSITIVE_INFINITY;
 
   useEffect(() => {
     const manejarEscape = (event) => {
@@ -39,6 +46,25 @@ function DetalleProducto({
     document.addEventListener("keydown", manejarEscape);
     return () => document.removeEventListener("keydown", manejarEscape);
   }, [confirmandoInactivacion, onCancelarCambioEstado, onCerrar]);
+
+  useEffect(() => {
+    if (!alertaStock) {
+      return undefined;
+    }
+
+    const temporizador = window.setTimeout(() => setAlertaStock(null), 3000);
+    return () => window.clearTimeout(temporizador);
+  }, [alertaStock]);
+
+  const aumentarCantidad = () => {
+    if (cantidad >= cantidadMaxima) {
+      setCantidad(cantidadMaxima);
+      setAlertaStock({ mensaje: "Stock máximo alcanzado" });
+      return;
+    }
+
+    setCantidad((actual) => Math.min(cantidadMaxima, actual + 1));
+  };
 
   return (
     <div
@@ -172,10 +198,8 @@ function DetalleProducto({
                     <button
                       type="button"
                       aria-label="Aumentar cantidad"
-                      disabled={vistaAdminSoloLectura || cantidad >= producto.stock}
-                      onClick={() =>
-                        setCantidad((valor) => Math.min(producto.stock, valor + 1))
-                      }
+                      disabled={vistaAdminSoloLectura || cantidadMaxima === 0}
+                      onClick={aumentarCantidad}
                     >
                       +
                     </button>
@@ -187,7 +211,12 @@ function DetalleProducto({
                 <button
                   className="detalle-producto-comprar"
                   type="button"
-                  disabled={vistaAdminSoloLectura}
+                  disabled={
+                    vistaAdminSoloLectura ||
+                    (Number.isFinite(Number(producto.stock)) &&
+                      Number(producto.stock) <= 0)
+                  }
+                  onClick={() => onAgregarCarrito?.(producto, cantidad)}
                 >
                   <img src={iconoCarrito} alt="" />
                   Comprar
@@ -196,6 +225,12 @@ function DetalleProducto({
             )}
           </div>
         </div>
+        {alertaStock && (
+          <div className="detalle-producto-alerta-stock" role="status" aria-live="polite">
+            <img src={iconoCampana} alt="" />
+            <span>{alertaStock.mensaje}</span>
+          </div>
+        )}
       </section>
     </div>
   );

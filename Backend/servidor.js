@@ -6,12 +6,14 @@ import cors from "cors";
 import multer from "multer";
 import { pathToFileURL } from "node:url";
 import { iniciarBaseDatos, cerrarBaseDatos } from "./baseDatos.js";
-import { carpetaFotos } from "./subirFoto.js";
 
 import consultarCatalogo from "./rutas/consultarCatalogo.js"; // HU3
 import registrarProducto from "./rutas/registrarProducto.js"; // HU1
 import modificarProducto from "./rutas/modificarProducto.js"; // HU2
 import gestionarEstado from "./rutas/gestionarEstado.js"; // HU4
+import autenticacion from "./rutas/autenticacion.js"; // Sprint 2 · cuentas e inicio de sesión
+import procesarCompra from "./rutas/procesarCompra.js"; // Sprint 3 · HU2 (y validación de HU1)
+import consultarComprobante from "./rutas/consultarComprobante.js"; // Sprint 3 · HU3
 
 export function crearApp() {
   const app = express();
@@ -29,7 +31,8 @@ export function crearApp() {
     }),
   );
   app.use(express.json());
-  app.use("/fotos", express.static(carpetaFotos));
+  // Las fotos ya no las sirve el backend: el navegador las carga directo
+  // del bucket de Oracle Cloud (ver almacenFotos.js)
 
   app.get("/api/salud", (_req, res) => res.json({ ok: true }));
 
@@ -38,6 +41,9 @@ export function crearApp() {
   app.use("/api/productos", registrarProducto); // HU1 · Registrar producto
   app.use("/api/productos", modificarProducto); // HU2 · Modificar producto
   app.use("/api/productos", gestionarEstado); //   HU4 · Inactivar y activar
+  app.use("/api/autenticacion", autenticacion); // Sprint 2 · Registro, login y ajustes de cuenta
+  app.use("/api/pedidos", procesarCompra); //       Sprint 3 · Procesar compra y validar cupón
+  app.use("/api/pedidos", consultarComprobante); // Sprint 3 · Consultar comprobante
 
   app.use((_req, res) => res.status(404).json({ mensaje: "Ruta no encontrada" }));
 
@@ -48,6 +54,12 @@ export function crearApp() {
         mensaje: "La foto debe estar en formato JPG, PNG o WEBP y/o el peso máximo permitido es 5 MB",
         errores: { imagen: true },
       });
+    }
+    // El cuerpo no es un JSON válido (o es demasiado grande): es un error de quien llama
+    if (error?.type === "entity.parse.failed" || error?.type === "entity.too.large") {
+      return res
+        .status(error.status ?? 400)
+        .json({ mensaje: "La solicitud no tiene un formato válido", codigo: "SOLICITUD_INVALIDA" });
     }
     console.error(error);
     res.status(500).json({ mensaje: "Error interno del servidor" });

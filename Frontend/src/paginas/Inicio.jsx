@@ -1,14 +1,15 @@
 import Encabezado from "../componentes/Encabezado";
 import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import DetalleProducto from "../componentes/DetalleProducto";
 import "./Inicio.css";
 import "../componentes/EncabezadoFigma.css";
 import "./InicioFigma.css";
 
 import fondoMenu from "../assets/fondoMenu.png";
-import iconoMas from "../assets/Iconos_HU2/iconoMas.png";
-import iconoCorazon from "../assets/Iconos_HU2/iconoCorazon.png";
 import ListaProductos from "../componentes/ListaProductos";
+import iconoMas from "../assets/iconossvg/iconMas.svg";
+import iconoCorazon from "../assets/iconossvg/iconocorazon2.svg";
 
 const normalizarTexto = (texto) =>
   texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
@@ -59,6 +60,9 @@ const productosMasVendidos = [
 ];
 
 function Inicio({ administrador = false, usuario = false, productos = [] }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const mensajeCuentaDesactivada = location.state?.varianteMensaje === "cuenta-desactivada";
   const [busquedaAbierta, setBusquedaAbierta] = useState(false);
   const [consulta, setConsulta] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -77,6 +81,14 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
           ).includes(consultaNormalizada),
       )
     : [];
+
+  useEffect(() => {
+    if (!location.state?.mensaje) return undefined;
+    const temporizador = window.setTimeout(() => {
+      navigate(location.pathname, { replace: true, state: null });
+    }, 3000);
+    return () => window.clearTimeout(temporizador);
+  }, [location.pathname, location.state?.mensaje, navigate]);
 
   useEffect(() => {
     if (!productoSeleccionado) {
@@ -102,6 +114,27 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
         .filter(Boolean)
         .join(" ")}
     >
+      {location.state?.mensaje && (
+      <p
+        className={`inicio-mensaje-cuenta${mensajeCuentaDesactivada ? " inicio-mensaje-cuenta--desactivada" : ""}`}
+        role="status"
+      >
+        {mensajeCuentaDesactivada && (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m5 12 4 4L19 6" />
+          </svg>
+        )}
+          {location.state.mensaje}
+        </p>
+      )}
       <Encabezado
         busquedaAbierta={busquedaAbierta}
         consulta={consulta}

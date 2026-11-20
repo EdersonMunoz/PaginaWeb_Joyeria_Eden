@@ -1,10 +1,16 @@
 // Comunicación con el backend (carpeta backend/ del proyecto).
 // La dirección se puede cambiar con la variable VITE_API_URL en un archivo .env del frontend.
+import { cerrarSesion, obtenerToken } from "./sesion";
+
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 const RUTA_PRODUCTOS = `${API_URL}/api/productos`;
+const RUTA_AUTENTICACION = `${API_URL}/api/autenticacion`;
+const RUTA_PEDIDOS = `${API_URL}/api/pedidos`;
 
-// Las fotos que sube el admin viven en el backend; las de prueba, en public/productos del frontend
+// Las fotos de los productos están en el bucket de Oracle Cloud: el backend ya manda
+// la dirección completa (https://objectstorage...). Se deja el caso "/fotos/" por si
+// alguien usa una base vieja.
 const normalizarProducto = (producto) =>
   producto && {
     ...producto,
@@ -13,19 +19,94 @@ const normalizarProducto = (producto) =>
       : producto.imagen,
   };
 
-async function pedir(ruta, opciones) {
+function opcionesConSesion(opciones, incluirSesion = true) {
+  if (!incluirSesion) return { opciones, envioToken: false };
+
+  const token = obtenerToken();
+  if (!token) return { opciones, envioToken: false };
+
+  return {
+    opciones: {
+      ...opciones,
+      headers: {
+        ...opciones.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    envioToken: true,
+  };
+}
+
+function esAutenticacionRechazada(respuesta) {
+  return respuesta.status === 401 || respuesta.status === 403;
+}
+
+function cerrarSesionYRedirigir() {
+  cerrarSesion();
+  if (typeof window !== "undefined" && window.location.pathname !== "/InicioSesion") {
+    window.location.assign("/InicioSesion");
+  }
+}
+
+async function leerRespuesta(respuesta) {
+  const cuerpo = await respuesta.json().catch(() => ({}));
+
+  return {
+    ...cuerpo,
+    ok: respuesta.ok,
+    estado: respuesta.status,
+    mensaje: respuesta.ok
+      ? cuerpo.mensaje
+      : cuerpo.mensaje ??
+        cuerpo.error ??
+        `Error ${respuesta.status}: ${respuesta.statusText || "respuesta del servidor"}`,
+  };
+}
+
+async function realizarPeticion(url, opciones, { publica = false, sinSesion = false } = {}) {
+  const { opciones: opcionesAutenticadas, envioToken } = opcionesConSesion(
+    opciones,
+    !sinSesion,
+  );
+  let respuesta;
   try {
-    const respuesta = await fetch(`${RUTA_PRODUCTOS}${ruta}`, opciones);
-    const cuerpo = await respuesta.json().catch(() => ({}));
-    return {
-      ...cuerpo,
-      ok: respuesta.ok,
-      producto: normalizarProducto(cuerpo.producto),
-      productos: cuerpo.productos?.map(normalizarProducto),
-    };
+    respuesta = await fetch(url, opcionesAutenticadas);
   } catch {
     return { ok: false, mensaje: "No se pudo conectar con el servidor" };
   }
+
+  if (publica && envioToken && esAutenticacionRechazada(respuesta)) {
+    cerrarSesion();
+    try {
+      respuesta = await fetch(url, opciones);
+    } catch {
+      return { ok: false, mensaje: "No se pudo conectar con el servidor" };
+    }
+  } else if (!publica && esAutenticacionRechazada(respuesta)) {
+    cerrarSesionYRedirigir();
+  }
+
+  return leerRespuesta(respuesta);
+}
+
+async function pedir(ruta, opciones = {}, { publica = false } = {}) {
+  const respuesta = await realizarPeticion(
+    `${RUTA_PRODUCTOS}${ruta}`,
+    opciones,
+    { publica },
+  );
+  return {
+    ...respuesta,
+    producto: normalizarProducto(respuesta.producto),
+    productos: respuesta.productos?.map(normalizarProducto),
+  };
+}
+
+async function pedirAutenticacion(ruta, opciones = {}, { publica = false } = {}) {
+  return realizarPeticion(`${RUTA_AUTENTICACION}${ruta}`, opciones, {
+    publica,
+    sinSesion: publica,
+  });
 }
 
 const formularioProducto = (campos, archivo) => {
@@ -38,7 +119,60 @@ const formularioProducto = (campos, archivo) => {
 };
 
 // HU3 · todos los productos (el catálogo del cliente filtra los inactivos)
-export const listarProductos = () => pedir("?estado=todos");
+export const listarProductos = () =>
+  pedir("?estado=todos", {}, { publica: true });
+
+export const iniciarSesion = (identificador, password) =>
+  pedirAutenticacion("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identificador, password }),
+  }, { publica: true });
+
+export const registrarCuenta = (campos) =>
+  pedirAutenticacion("/registro", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(campos),
+  }, { publica: true });
+
+export const actualizarCuenta = (id, campos) =>
+  pedirAutenticacion(`/cuenta/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(campos),
+  });
+
+export const desactivarCuenta = (id) =>
+  pedirAutenticacion(`/cuenta/${id}/desactivar`, { method: "PATCH" });
+
+// ---------------------------------------------------------------
+// Sprint 3 · carrito, compra y comprobante (/api/pedidos)
+// ---------------------------------------------------------------
+const JSON_POST = (cuerpo) => ({
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(cuerpo),
+});
+
+// HE3-HU2 · el backend dice si el cupón existe y cuánto descuenta: { cupon: { codigo, porcentaje } }
+export const validarCupon = (codigo) =>
+  realizarPeticion(`${RUTA_PEDIDOS}/cupon`, JSON_POST({ codigo }), {
+    publica: true,
+    sinSesion: true,
+  });
+
+// HE3-HU2 · procesa la compra (pago simulado) y devuelve el comprobante guardado en Oracle.
+// compra = { articulos: [{ productoId, cantidad }], metodoPago, direccion, codigoCupon, idSolicitud }
+// Con sesión iniciada el pedido queda a nombre de la cuenta; sin sesión se compra como invitado.
+export const procesarCompra = (compra) =>
+  realizarPeticion(RUTA_PEDIDOS, JSON_POST(compra));
+
+// HE3-HU3 · vuelve a consultar un comprobante. La clave solo aplica a compras de invitado.
+export const consultarComprobante = (numeroPedido, claveConsulta) =>
+  realizarPeticion(`${RUTA_PEDIDOS}/${encodeURIComponent(numeroPedido)}`, {
+    headers: claveConsulta ? { "X-Clave-Consulta": claveConsulta } : {},
+  });
 
 // HU1 · registrar
 export const registrarProducto = (campos, archivo) =>

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
-import iconoBoteBasura from "../assets/iconoBoteBasura.png";
-import iconoChulito from "../assets/iconoChulito.png";
-import iconoLapiz from "../assets/Iconos_HU2/iconoLapiz.png";
-import iconoRefrescar from "../assets/iconoRefrescar.png";
-import iconoX from "../assets/iconoX.png";
+import iconoBoteBasura from "../assets/iconossvg/iconoBorrar.svg";
+import iconoChulito from "../assets/iconossvg/iconochulito.svg";
+import iconoLapiz from "../assets/iconossvg/iconoLapiz.svg";
+import iconoRefrescar from "../assets/iconossvg/iconorefrescar.svg";
+import iconoX from "../assets/iconossvg/iconoX.svg";
 import "./GestionProductos.css";
 
 const formatoPrecio = new Intl.NumberFormat("es-CO", {
@@ -249,9 +249,7 @@ function GestionProductos({ productos, cambiarEstadoProducto }) {
             role={resultadoCambioEstado.tipo === "error" ? "alert" : "status"}
           >
             <img
-              src={
-                resultadoCambioEstado.tipo === "error" ? iconoX : iconoChulito
-              }
+              src={resultadoCambioEstado.tipo === "error" ? iconoX : iconoChulito}
               alt=""
             />
             <span>{resultadoCambioEstado.mensaje}</span>
