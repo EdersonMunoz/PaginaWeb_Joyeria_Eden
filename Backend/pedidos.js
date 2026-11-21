@@ -1,9 +1,16 @@
 // Pedidos (Sprint 3 · HE3-HU2 procesar compra y HE3-HU3 comprobante).
-// Aquí están las consultas a Oracle de las tablas PEDIDO y DETALLE_PEDIDO
-// (db/06_migracion_sprint3_compras.sql). Las rutas solo llaman a estas funciones.
+// Aquí están las consultas a Oracle de PEDIDO, DETALLE_PEDIDO y CUPON
+// (db/06_migracion_sprint3_compras.sql y db/07_migracion_cupones.sql).
+// Las rutas solo llaman a estas funciones.
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { ejecutar, enTransaccion } from "./baseDatos.js";
-import { calcularTotales } from "./validarCompra.js";
+import {
+  calcularTotales,
+  MENSAJE_CUPON_EXPIRADO,
+  MENSAJE_CUPON_INVALIDO,
+  MENSAJE_CUPON_LIMITE_SUPERADO,
+  MENSAJE_CUPON_YA_UTILIZADO,
+} from "./validarCompra.js";
 
 // Mayor valor que cabe en pedido.subtotal / pedido.total: NUMBER(14)
 const MONTO_MAXIMO = 99999999999999;
@@ -26,6 +33,55 @@ const sha256 = (valor) => createHash("sha256").update(valor, "utf8").digest("hex
 // pero ahora sale de la secuencia SEQ_PEDIDO de Oracle, así que nunca se repite.
 export const numeroDePedido = (id) => `ED-${String(id).padStart(8, "0")}`;
 export const esNumeroDePedido = (numero) => /^ED-\d{8,10}$/.test(numero);
+
+const SELECT_CUPON = `
+  SELECT c.codigo AS "codigo", c.porcentaje AS "porcentaje",
+         c.max_usos AS "maxUsos",
+         CASE
+           WHEN TRUNC(SYSDATE) > TRUNC(c.fecha_vencimiento) THEN 1
+           ELSE 0
+         END AS "expirado"
+    FROM cupon c
+   WHERE c.codigo = :codigo`;
+
+const SELECT_USOS_CUPON = `
+  SELECT COUNT(*) AS "usosGlobales",
+         COUNT(CASE WHEN p.usuario_id = :usuarioId THEN 1 END) AS "usosCuenta"
+    FROM pedido p
+   WHERE p.cupon = :codigo`;
+
+/**
+ * Busca un cupón y aplica el orden de rechazo: inexistente, expirado,
+ * ya utilizado por la cuenta y límite global. Con bloquear=true, bloquea
+ * primero la fila del cupón para serializar compras concurrentes.
+ */
+export async function buscarCupon(codigo, usuarioId, { ejecutar: ejecutarBase = ejecutar, bloquear = false } = {}) {
+  const consulta = bloquear ? `${SELECT_CUPON}\n     FOR UPDATE WAIT 10` : SELECT_CUPON;
+  const { filas } = await ejecutarBase(consulta, { codigo });
+  const fila = filas[0];
+  if (!fila) {
+    return { error: { codigo: "CUPON_INVALIDO", mensaje: MENSAJE_CUPON_INVALIDO } };
+  }
+  if (Number(fila.expirado) === 1) {
+    return { error: { codigo: "CUPON_EXPIRADO", mensaje: MENSAJE_CUPON_EXPIRADO } };
+  }
+
+  const conteo = await ejecutarBase(SELECT_USOS_CUPON, { codigo, usuarioId });
+  const { usosGlobales = 0, usosCuenta = 0 } = conteo.filas[0] ?? {};
+  if (Number(usosCuenta) > 0) {
+    return { error: { codigo: "CUPON_YA_UTILIZADO", mensaje: MENSAJE_CUPON_YA_UTILIZADO } };
+  }
+  if (Number(usosGlobales) >= Number(fila.maxUsos)) {
+    return { error: { codigo: "CUPON_LIMITE_SUPERADO", mensaje: MENSAJE_CUPON_LIMITE_SUPERADO } };
+  }
+
+  return {
+    cupon: {
+      codigo: fila.codigo,
+      porcentaje: Number(fila.porcentaje),
+    },
+  };
+}
 
 // ---------------------------------------------------------------
 // Lectura del comprobante (lo que quedó GUARDADO, no lo que mandó el navegador)
@@ -151,7 +207,25 @@ export async function registrarCompra(compra, sesion) {
       // 1. Comprador: los datos salen de la cuenta en Oracle, no del navegador.
       const cliente = await obtenerCliente(tx, usuarioId, compra.comprador);
 
-      // 2. Bloquear los productos (SELECT ... FOR UPDATE) y leer precio y stock reales.
+      // 2. Bloquear y validar el cupón antes de contar usos y registrar el pedido.
+      let cupon = null;
+      if (compra.codigoCupon) {
+        const validacionCupon = await buscarCupon(compra.codigoCupon, usuarioId, {
+          ejecutar: tx.ejecutar,
+          bloquear: true,
+        });
+        if (validacionCupon.error) {
+          throw new ErrorCompra(
+            400,
+            validacionCupon.error.codigo,
+            validacionCupon.error.mensaje,
+            { errores: { cupon: true } },
+          );
+        }
+        cupon = validacionCupon.cupon;
+      }
+
+      // 3. Bloquear los productos (SELECT ... FOR UPDATE) y leer precio y stock reales.
       //    Mientras esta transacción no termine, nadie más puede cambiar esas filas:
       //    una segunda compra del mismo producto espera aquí y después ve el stock ya descontado.
       const lineas = [];
@@ -199,15 +273,15 @@ export async function registrarCompra(compra, sesion) {
         );
       }
 
-      // 3. Dinero: todo se calcula aquí con los precios de Oracle.
-      const totales = calcularTotales(lineas, compra.cupon);
+      // 4. Dinero: todo se calcula aquí con los precios de Oracle.
+      const totales = calcularTotales(lineas, cupon);
       if (totales.subtotal > MONTO_MAXIMO) {
         throw new ErrorCompra(400, "MONTO_EXCEDIDO", "El valor de la compra supera el máximo permitido", {
           errores: { articulos: true },
         });
       }
 
-      // 4. Pedido: el número sale de la secuencia y la fecha del reloj de Oracle (SYSTIMESTAMP).
+      // 5. Pedido: el número sale de la secuencia y la fecha del reloj de Oracle (SYSTIMESTAMP).
       const secuencia = await tx.ejecutar(`SELECT seq_pedido.NEXTVAL AS "id" FROM dual`);
       const pedidoId = Number(secuencia.filas[0].id);
       await tx.ejecutar(
@@ -231,7 +305,7 @@ export async function registrarCompra(compra, sesion) {
           clienteCorreo: cliente?.correo || null,
           direccion: compra.direccion,
           metodoPago: compra.metodoPago,
-          cupon: compra.cupon?.codigo ?? null,
+          cupon: cupon?.codigo ?? null,
           porcentajeDescuento: totales.porcentajeDescuento,
           subtotal: totales.subtotal,
           descuento: totales.descuento,
@@ -241,7 +315,7 @@ export async function registrarCompra(compra, sesion) {
         },
       );
 
-      // 5. Detalle (fotografía del producto) + descuento del inventario, línea por línea.
+      // 6. Detalle (fotografía del producto) + descuento del inventario, línea por línea.
       const inventario = [];
       for (const [indice, linea] of totales.detalles.entries()) {
         await tx.ejecutar(
@@ -301,7 +375,7 @@ export async function registrarCompra(compra, sesion) {
         });
       }
 
-      // 6. El comprobante se arma leyendo lo que acaba de quedar guardado.
+      // 7. El comprobante se arma leyendo lo que acaba de quedar guardado.
       const guardado = await leerPedido(tx, "p.id = :id", { id: pedidoId });
       return {
         comprobante: guardado.comprobante,

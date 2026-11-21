@@ -23,7 +23,8 @@ backend/
 │   ├── 00_usuario.sql   solo si usan Oracle XE instalado (con Docker no hace falta)
 │   ├── 01_tablas.sql    tablas, secuencias y triggers
 │   ├── 02_datos.sql     productos de prueba
-│   └── 06_migracion_sprint3_compras.sql   Sprint 3: tablas PEDIDO y DETALLE_PEDIDO (NO borra nada)
+│   ├── 06_migracion_sprint3_compras.sql   Sprint 3: tablas PEDIDO y DETALLE_PEDIDO (NO borra nada)
+│   └── 07_migracion_cupones.sql           Sprint 3: tabla CUPON e índice de usos (NO borra nada)
 ├── pruebas/        pruebas automáticas (npm test)
 ├── fotos/          fotos que sube el admin
 └── prueba.js       prueba automática de las 4 historias
@@ -44,6 +45,7 @@ Abran y ejecuten como script (tecla **F5**), en este orden:
 1. `db/01_tablas.sql`  ← **solo en una base nueva y vacía: borra las tablas que existan**
 2. `db/02_datos.sql`
 3. `db/06_migracion_sprint3_compras.sql`  ← Sprint 3 (pedidos)
+4. `db/07_migracion_cupones.sql`  ← Sprint 3 (cupones; después de pedidos)
 
 ### Base que ya está funcionando (la de la nube o una local con datos): solo la migración
 
@@ -51,10 +53,12 @@ Para instalar el Sprint 3 en una base que ya tiene productos y usuarios **NO se 
 `01_tablas.sql`** (borraría todo). Solo se ejecuta, una vez, conectado como `eden` y con F5:
 
 - `db/06_migracion_sprint3_compras.sql`
+- `db/07_migracion_cupones.sql`
 
-Crea la secuencia `SEQ_PEDIDO` y las tablas `PEDIDO` y `DETALLE_PEDIDO`. No borra ni modifica
-`PRODUCTO`, `CATEGORIA` ni `USUARIO`, y se puede volver a ejecutar sin problema (cada objeto se
-crea solo si no existe). Al final muestra las dos tablas y la secuencia para confirmar.
+La migración 06 crea `SEQ_PEDIDO`, `PEDIDO` y `DETALLE_PEDIDO`. La migración 07 crea `CUPON`,
+el índice `IX_PEDIDO_CUPON` y los cupones de prueba si aún no existen. No borra ni modifica
+`PEDIDO` ni `DETALLE_PEDIDO`; ambas migraciones se pueden volver a ejecutar (cada objeto se crea
+solo si no existe).
 
 Los otros días solo hay que encender el contenedor: `docker start eden-oracle`.
 
@@ -103,7 +107,7 @@ Ctrl+C en las terminales del frontend y del backend, y luego `docker stop eden-o
 | HU2 | `PUT /api/productos/:id` | Modifica un producto (foto nueva opcional) |
 | HU4 | `PATCH /api/productos/:id/estado` | `{ "estado": "Activo" }` o `{ "estado": "Inactivo" }` |
 | Sprint 2 | `POST /api/autenticacion/login`, `POST /api/autenticacion/registro`, `PUT /api/autenticacion/cuenta/:id`, `PATCH /api/autenticacion/cuenta/:id/desactivar` | Cuentas e inicio de sesión |
-| HE3-HU2 | `POST /api/pedidos/cupon` | Requiere sesión; valida un cupón: `{ "codigo": "PROMO2026" }` → `{ "cupon": { "codigo", "porcentaje" } }` |
+| HE3-HU2 | `POST /api/pedidos/cupon` | Requiere sesión; valida vigencia, uso por cuenta y límite global: `{ "codigo": "PROMO2026" }` → `{ "cupon": { "codigo", "porcentaje" } }` |
 | HE3-HU1/HU2 | `POST /api/pedidos` | Requiere sesión; procesa la compra (pago simulado), descuenta el inventario y devuelve el comprobante |
 | HE3-HU3 | `GET /api/pedidos/:numero` | Requiere sesión; vuelve a consultar el comprobante solo para su dueño |
 
@@ -163,7 +167,10 @@ Errores (siempre `{ "mensaje", "codigo", ... }`):
 |---|---|---|
 | 400 | `CARRITO_VACIO`, `PRODUCTO_INVALIDO`, `CANTIDAD_INVALIDA` | Carrito vacío o cantidades que no son enteros mayores que cero |
 | 400 | `DATOS_PAGO_INVALIDOS` + `errores: { metodo, direccion }` | Sin método de pago ("Ninguno" no vale) o dirección inválida |
-| 400 | `CUPON_INVALIDO` + `errores: { cupon }` | El código no es `PROMO2026` |
+| 400 | `CUPON_INVALIDO` + `errores: { cupon }` | El código no existe: «El cupón ingresado no es válido» |
+| 400 | `CUPON_EXPIRADO` + `errores: { cupon }` | «El cupón ingresado ha expirado» |
+| 400 | `CUPON_YA_UTILIZADO` + `errores: { cupon }` | «Ya has utilizado este cupón anteriormente» |
+| 400 | `CUPON_LIMITE_SUPERADO` + `errores: { cupon }` | «Este cupón ya superó el límite de usos permitidos» |
 | 401 / 403 | `Debes iniciar sesión` / `SESION_INVALIDA` / `CUENTA_INACTIVA` | Token ausente o inválido, cuenta borrada o inactiva |
 | 409 | `STOCK_INSUFICIENTE`, `PRODUCTO_NO_DISPONIBLE` + `conflictos: [{ productoId, nombre, motivo, cantidadSolicitada, stockDisponible }]` | El inventario real no alcanza o el producto está inactivo / no existe |
 | 409 | `SOLICITUD_REPETIDA` | El `idSolicitud` ya lo usó otra persona |
@@ -214,8 +221,10 @@ npm run prueba:oracle    # OPCIONAL: Sprint 3 contra el Oracle real (ver abajo)
 - La referencia no se puede repetir.
 - Compra (Sprint 3): cantidades enteras mayores que cero y no mayores al stock; solo productos
   activos; método de pago de la lista (9 bancos/billeteras); dirección de al menos 5 caracteres
-  que no empiece por "Calle 0", "Carrera 0"...; cupón `PROMO2026` = 5 % sobre el subtotal,
-  redondeado al peso (la mitad sube); total = subtotal − descuento.
+  que no empiece por "Calle 0", "Carrera 0"...; cupón validado en `CUPON` y usos contados desde
+  `PEDIDO` (por cuenta y globalmente). La vigencia incluye todo el día de `FECHA_VENCIMIENTO`;
+  Oracle usa `SYSDATE`. El cupón válido aplica su porcentaje al subtotal, redondeado al peso
+  (la mitad sube); total = subtotal − descuento.
 
 ## Si algo falla
 - **"No se pudo conectar a Oracle"**: el contenedor está apagado (`docker start eden-oracle`) o el `.env` tiene otro puerto.

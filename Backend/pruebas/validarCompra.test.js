@@ -3,7 +3,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
-  buscarCupon,
   calcularTotales,
   direccionValida,
   validarCompra,
@@ -29,7 +28,7 @@ describe("validarCompra · carrito", () => {
       articulos: [{ productoId: 3, cantidad: 2 }],
       metodoPago: "Daviplata",
       direccion: "Calle 10A Norte #25A-03",
-      cupon: null,
+      codigoCupon: "",
       idSolicitud: null,
       comprador: null,
     });
@@ -98,21 +97,10 @@ describe("validarCompra · método de pago, dirección y cupón", () => {
     }
   });
 
-  test("buscarCupon normaliza el código y no acepta propiedades heredadas", () => {
-    assert.deepEqual(buscarCupon("PROMO2026"), { codigo: "PROMO2026", porcentaje: 5 });
-    assert.deepEqual(buscarCupon(" promo2026 "), { codigo: "PROMO2026", porcentaje: 5 });
-    for (const codigo of ["", "PROMO", "PROMO2026X", "constructor", "toString", "__proto__", null, undefined, {}]) {
-      assert.equal(buscarCupon(codigo), null, String(codigo));
-    }
-  });
-
-  test("un cupón incorrecto detiene la compra; uno vacío no", () => {
-    assert.equal(validarCompra(base({ codigoCupon: "NOEXISTE" })).error.codigo, "CUPON_INVALIDO");
-    assert.equal(validarCompra(base({ codigoCupon: "" })).valores.cupon, null);
-    assert.deepEqual(validarCompra(base({ codigoCupon: "promo2026" })).valores.cupon, {
-      codigo: "PROMO2026",
-      porcentaje: 5,
-    });
+  test("normaliza el código del cupón y deja su estado a cargo de la consulta Oracle", () => {
+    assert.equal(validarCompra(base({ codigoCupon: " promo2026 " })).valores.codigoCupon, "PROMO2026");
+    assert.equal(validarCompra(base({ codigoCupon: "NOEXISTE" })).valores.codigoCupon, "NOEXISTE");
+    assert.equal(validarCompra(base({ codigoCupon: "" })).valores.codigoCupon, "");
   });
 });
 
