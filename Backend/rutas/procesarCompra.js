@@ -8,14 +8,12 @@
 //     "direccion":   "Calle 10A Norte #25A-03",
 //     "codigoCupon": "PROMO2026",          (opcional)
 //     "idSolicitud": "f3b0c1e2-...",       (opcional: evita cobrar dos veces el mismo clic)
-//     "comprador":   { nombre, identificacion, telefono, correo }   (opcional, solo invitados)
 //   }
-//   Con sesión (Authorization: Bearer ...) el pedido queda a nombre de la cuenta.
-//   Sin sesión se compra como invitado, igual que la ruta pública /Inicio/Carrito.
+//   Requiere sesión (Authorization: Bearer ...); el pedido queda a nombre de la cuenta.
 //
 // POST /api/pedidos/cupon    valida un cupón:  { "codigo": "PROMO2026" } -> { codigo, porcentaje }
 import { Router } from "express";
-import { sesionOpcional } from "../sesion.js";
+import { requiereSesion } from "../sesion.js";
 import {
   buscarCupon,
   validarCompra,
@@ -29,7 +27,7 @@ const router = Router();
 const MENSAJE_EXITO = "Pago exitoso, compra realizada.";
 
 // HE3-HU2 escenario 2: el porcentaje lo decide el servidor, no la página
-router.post("/cupon", (req, res) => {
+router.post("/cupon", requiereSesion, (req, res) => {
   const codigo = typeof req.body?.codigo === "string" ? req.body.codigo.trim() : "";
   if (!codigo) {
     return res
@@ -46,7 +44,7 @@ router.post("/cupon", (req, res) => {
 });
 
 // HE3-HU2 escenarios 3 y 4
-router.post("/", sesionOpcional, async (req, res) => {
+router.post("/", requiereSesion, async (req, res) => {
   const { valores, error } = validarCompra(req.body);
   if (error) {
     return res.status(error.estado).json({
@@ -75,7 +73,6 @@ router.post("/", sesionOpcional, async (req, res) => {
     mensaje: MENSAJE_EXITO,
     comprobante: resultado.comprobante,
     inventario: resultado.inventario,
-    ...(resultado.claveConsulta ? { claveConsulta: resultado.claveConsulta } : {}),
   });
 });
 

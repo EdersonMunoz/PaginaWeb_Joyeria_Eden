@@ -71,10 +71,8 @@ export function requiereSesion(req, res, next) {
   return next();
 }
 
-// Sprint 3 · rutas que aceptan invitados (comprar sin cuenta).
-//  - Sin cabecera Authorization: la petición sigue como invitado (req.sesion = null).
-//  - Con cabecera Authorization: el token DEBE ser válido; si no lo es se responde 401.
-//    Así una sesión vencida nunca se convierte en silencio en una compra de invitado.
+// Middleware opcional conservado para rutas que permitan solicitudes anónimas.
+// Las rutas de pedidos requieren sesión mediante requiereSesion.
 export function sesionOpcional(req, res, next) {
   if (!req.get("Authorization")) {
     req.sesion = null;
