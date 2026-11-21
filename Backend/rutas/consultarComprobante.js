@@ -1,4 +1,4 @@
-// HE3-HU3-CA003 · Generar un comprobante digital de la venta
+// HE3-HU6 (comprobante de la compra) · Consultar el comprobante digital de la venta
 // GET /api/pedidos/:numero     vuelve a consultar el comprobante de un pedido (ej. ED-00000042)
 //   - Requiere la cabecera Authorization del MISMO usuario que compró.
 // Si el pedido no existe o no es de quien pregunta se responde 404 en ambos casos,

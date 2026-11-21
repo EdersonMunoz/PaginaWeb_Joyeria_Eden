@@ -20,7 +20,7 @@ const pendientes = { id: 4, ref: "ARE00001", nombre: "Pendientes Flora Celeste",
 const perfume = { id: 5, ref: "PER00002", nombre: "Versace Eros", precio: 364990, stock: 2, estado: "Activo" };
 const cupon = { codigo: "PROMO2026", porcentaje: 5 };
 
-describe("carrito · HE3-HU1 gestionar productos", () => {
+describe("HE3-HU2 · Agregar producto al carrito · escenarios 1 y 2", () => {
   it("agrega una unidad desde el catálogo y varias desde la ficha", () => {
     let carrito = agregarAlCarrito([], anillos);
     carrito = agregarAlCarrito(carrito, pendientes, 3);
@@ -33,7 +33,9 @@ describe("carrito · HE3-HU1 gestionar productos", () => {
     assert.equal(cantidadEnCarrito(carrito, anillos.id), 3);
     assert.equal(cantidadEnCarrito(carrito, 99), 0);
   });
+});
 
+describe("HE3-HU2 escenario 1 y HE3-HU3 escenario 2 · límite por stock al agregar", () => {
   it("no pasa del stock y devuelve el mismo carrito cuando ya está en el máximo", () => {
     const carrito = agregarAlCarrito([], perfume, 5);
     assert.equal(carrito[0].cantidad, 2);
@@ -41,7 +43,9 @@ describe("carrito · HE3-HU1 gestionar productos", () => {
     assert.equal(agregarAlCarrito(carrito, perfume, 1), carrito);
     assert.equal(agregarAlCarrito([], { ...perfume, stock: 0 }, 1).length, 0);
   });
+});
 
+describe("HE3-HU3 escenario 1 y HE3-HU4 escenario 1 · modificar y retirar", () => {
   it("ajusta cantidades entre 1 y el stock y elimina productos", () => {
     let carrito = agregarAlCarrito(agregarAlCarrito([], anillos), perfume);
 
@@ -54,7 +58,9 @@ describe("carrito · HE3-HU1 gestionar productos", () => {
 
     assert.deepEqual(eliminarDelCarrito(carrito, anillos.id), [{ producto: perfume, cantidad: 1 }]);
   });
+});
 
+describe("HE3-HU3 · Modificar cantidades · escenario 2", () => {
   it("stockDisponible tolera valores que no son números", () => {
     assert.equal(stockDisponible({ stock: "7" }), 7);
     assert.equal(stockDisponible({ stock: -3 }), 0);
@@ -68,7 +74,9 @@ describe("carrito · HE3-HU1 gestionar productos", () => {
     assert.equal(stockRestante(perfume, [{ producto: perfume, cantidad: 2 }]), 0);
     assert.equal(stockRestante({ ...perfume, stock: undefined }, []), Number.POSITIVE_INFINITY);
   });
+});
 
+describe("HE3-HU6 · Procesar la compra · escenario 4", () => {
   it("valida direcciones con al menos cinco caracteres, una letra y un número", () => {
     for (const direccion of [
       "Calle 10A Norte #25A-03",
@@ -90,7 +98,7 @@ describe("carrito · HE3-HU1 gestionar productos", () => {
   });
 });
 
-describe("carrito · HE3-HU2 resumen de compra", () => {
+describe("HE3-HU6 · Procesar la compra · escenario 1 · resumen y cálculo", () => {
   it("calcula total de productos, subtotal, descuento y total (valores del prototipo)", () => {
     const carrito = [
       { producto: anillos, cantidad: 2 },
@@ -155,7 +163,9 @@ describe("carrito · HE3-HU2 resumen de compra", () => {
       { productoId: 5, cantidad: 1 },
     ]);
   });
+});
 
+describe("HE3-HU6 · Procesar la compra · escenario 2 · solicitud de pago", () => {
   it("cada intento de pago tiene un identificador distinto y válido para el backend", () => {
     const a = crearIdSolicitud();
     const b = crearIdSolicitud();
@@ -165,7 +175,7 @@ describe("carrito · HE3-HU2 resumen de compra", () => {
   });
 });
 
-describe("carrito · coherencia con el inventario del backend", () => {
+describe("HE3-HU6 · Procesar la compra · escenario 2 · coherencia del inventario", () => {
   it("actualiza precio y stock, baja cantidades y retira lo que ya no se puede comprar", () => {
     const carrito = [
       { producto: anillos, cantidad: 6 },

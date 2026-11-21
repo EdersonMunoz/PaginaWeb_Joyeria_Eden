@@ -110,7 +110,7 @@ function App() {
     return respuesta;
   };
 
-  // Sprint 3 · HU1: el carrito sigue en memoria; las reglas están en carrito.js
+  // Sprint 3 · HE3-HU2: el carrito sigue en memoria; las reglas están en carrito.js
   const agregarAlCarrito = (producto, cantidad = 1) => {
     setCarrito((actual) => logicaCarrito.agregarAlCarrito(actual, producto, cantidad));
   };
@@ -123,7 +123,7 @@ function App() {
     setCarrito((actual) => logicaCarrito.eliminarDelCarrito(actual, productoId));
   };
 
-  // Sprint 3 · HU2: la compra ya quedó guardada en el backend. `inventario` es el stock
+  // Sprint 3 · HE3-HU6: la compra ya quedó guardada en el backend. `inventario` es el stock
   // y estado reales que devolvió Oracle ([{ id, stock, estado }]); no se calcula aquí.
   const completarCompra = useCallback((inventario) => {
     setProductos((actuales) => logicaCarrito.aplicarInventario(actuales, inventario));

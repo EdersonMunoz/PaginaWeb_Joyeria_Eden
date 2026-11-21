@@ -1,4 +1,4 @@
-// Pedidos (Sprint 3 · HE3-HU2 procesar compra y HE3-HU3 comprobante).
+// Pedidos (Sprint 3 · HE3-HU6 procesar compra y comprobante).
 // Aquí están las consultas a Oracle de PEDIDO, DETALLE_PEDIDO y CUPON
 // (db/06_migracion_sprint3_compras.sql y db/07_migracion_cupones.sql).
 // Las rutas solo llaman a estas funciones.
@@ -169,7 +169,7 @@ function esDueno(pedido, { sesion, claveConsulta }) {
   return esperado.length === recibido.length && timingSafeEqual(esperado, recibido);
 }
 
-// HE3-HU3 · devuelve el comprobante o null (no existe o no es de quien pregunta).
+// HE3-HU6 (comprobante de la compra) · devuelve el comprobante o null (no existe o no es de quien pregunta).
 export async function buscarComprobante(numero, quien) {
   const encontrado = await leerPedido({ ejecutar }, "p.numero = :numero", { numero });
   if (!encontrado || !esDueno(encontrado.pedido, quien)) return null;

@@ -1,4 +1,4 @@
-// Pruebas · HE3 Carrito, compra y comprobante · Sprint 3  (HE3-S3-PU001 ... PU052)
+// Pruebas · HE3 Épica 3 · Sprint 3 (HE3-S3-PU001 ... PU061)
 // Cada test lleva el ID del caso (docs/pruebas/Sprint3-Unitarias/Casos_HE3-S3.md).
 //
 // Cómo funcionan (patrón AAA):
@@ -51,7 +51,7 @@ function assertSinCambios(productos) {
 }
 
 // ===============================================================
-describe("HE3-HU1 · Gestionar productos del carrito (validación contra el inventario real)", () => {
+describe("HE3-HU6 · Procesar la compra · escenario 2 (validación del inventario)", () => {
   test("HE3-S3-PU001 · (+) Comprar exactamente el stock disponible deja el producto en 0 e Inactivo", async () => {
     const producto = anillos({ stock: 3 });
 
@@ -184,7 +184,7 @@ describe("HE3-HU1 · Gestionar productos del carrito (validación contra el inve
 });
 
 // ===============================================================
-describe("HE3-HU2 · Procesar compra", () => {
+describe("HE3-HU6 · Procesar la compra · escenario 1 · resumen y cálculo", () => {
   test("HE3-S3-PU014 · (+) Compra de un producto: registra pedido, detalle y descuenta inventario", async () => {
     const producto = anillos({ stock: 10 });
 
@@ -248,7 +248,9 @@ describe("HE3-HU2 · Procesar compra", () => {
       bd.pedidos[0].subtotal,
     );
   });
+});
 
+describe("HE3-HU5 · Aplicar cupón de descuento · escenario 1 · cupón válido", () => {
   test("HE3-S3-PU016 · (+) Cupón PROMO2026: 5 % sobre el subtotal (valores del prototipo)", async () => {
     // Prototipo_Usuario_carrito_Descuento: subtotal $7.100.000, descuento $355.000, total $6.745.000
     const a = anillos();
@@ -287,7 +289,9 @@ describe("HE3-HU2 · Procesar compra", () => {
     assert.equal(r.cuerpo.comprobante.total, 346740);
     assert.equal(bd.pedidos[0].descuento + bd.pedidos[0].total, bd.pedidos[0].subtotal);
   });
+});
 
+describe("HE3-HU5 · Aplicar cupón de descuento · escenario 2 · cupón no válido", () => {
   test("HE3-S3-PU018 · (-) Cupón incorrecto: error claro y no se registra la compra", async () => {
     const producto = anillos();
 
@@ -314,7 +318,9 @@ describe("HE3-HU2 · Procesar compra", () => {
     }
     assert.ok(bd.pedidos.every((pedido) => pedido.cupon === null));
   });
+});
 
+describe("HE3-HU5 · Aplicar cupón de descuento · escenario 1 · normalización", () => {
   test("HE3-S3-PU020 · (+) El cupón no distingue mayúsculas ni espacios", async () => {
     const producto = anillos();
 
@@ -326,7 +332,9 @@ describe("HE3-HU2 · Procesar compra", () => {
     assert.equal(r.cuerpo.comprobante.codigoCupon, "PROMO2026");
     assert.equal(r.cuerpo.comprobante.descuento, 122500);
   });
+});
 
+describe("HE3-HU5 · Aplicar cupón de descuento · escenarios 1–5 · endpoint", () => {
   test("HE3-S3-PU021 · (+) POST /api/pedidos/cupon: el porcentaje lo define el servidor", async () => {
     const cliente = agregarUsuario();
     const token = tokenDe(cliente);
@@ -398,7 +406,9 @@ describe("HE3-HU2 · Procesar compra", () => {
     assert.equal(sinSesion.estado, 401);
     assert.equal(sinSesion.cuerpo.mensaje, "Debes iniciar sesión");
   });
+});
 
+describe("HE3-HU5 · Aplicar cupón de descuento · escenario 3 · cupón expirado", () => {
   test("HE3-S3-PU059 · Cupón vencido: rechazo dentro de la compra sin alterar pedido ni inventario", async () => {
     const ana = agregarUsuario();
     const producto = anillos();
@@ -419,7 +429,9 @@ describe("HE3-HU2 · Procesar compra", () => {
     assert.equal(bd.rollbacks, 1);
     assert.equal(bd.bloqueosCupones.size, 0);
   });
+});
 
+describe("HE3-HU5 · Aplicar cupón de descuento · escenarios 4 y 5 · uso por cuenta y límite global", () => {
   test("HE3-S3-PU060 · Uso por cuenta precede al límite global; otra cuenta recibe límite superado", async () => {
     const ana = agregarUsuario({ usuario: "ana-cupon" });
     const bruno = agregarUsuario({ usuario: "bruno-cupon", correo: "bruno@example.com" });
@@ -450,7 +462,9 @@ describe("HE3-HU2 · Procesar compra", () => {
     assert.equal(productoPorId(producto.id).stock, 4);
     assert.equal(bd.bloqueosCupones.size, 0);
   });
+});
 
+describe("HE3-HU5 · Aplicar cupón de descuento · escenario 4 · límite global concurrente", () => {
   test("HE3-S3-PU061 · Dos compras simultáneas no consumen más veces el cupón que su límite", async () => {
     const ana = agregarUsuario({ usuario: "ana-cupon" });
     const bruno = agregarUsuario({ usuario: "bruno-cupon", correo: "bruno@example.com" });
@@ -473,7 +487,9 @@ describe("HE3-HU2 · Procesar compra", () => {
     assert.equal(productoPorId(producto.id).stock, 4);
     assert.equal(bd.bloqueosCupones.size, 0);
   });
+});
 
+describe("HE3-HU6 · Procesar la compra · escenario 2 · pago exitoso simulado", () => {
   test("HE3-S3-PU022 · (-) Seguridad: precio, descuento, total, número y fecha enviados por el navegador se ignoran", async () => {
     const producto = anillos({ stock: 10 });
 
@@ -510,6 +526,20 @@ describe("HE3-HU2 · Procesar compra", () => {
     );
   });
 
+  test("HE3-S3-PU025 · (+) Los 9 métodos de pago del diseño se aceptan (pago simulado)", async () => {
+    const producto = anillos({ stock: 9 });
+    assert.equal(METODOS_PAGO.length, 9);
+
+    for (const metodoPago of METODOS_PAGO) {
+      const r = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }], { metodoPago }));
+      assert.equal(r.estado, 201, metodoPago);
+      assert.equal(r.cuerpo.comprobante.metodoPago, metodoPago);
+    }
+    assert.equal(bd.pedidos.length, 9);
+  });
+});
+
+describe("HE3-HU6 · Procesar la compra · escenario 4 · método de pago o dirección inválidos", () => {
   test("HE3-S3-PU023 · (-) Método de pago vacío, ausente o 'Ninguno'", async () => {
     const producto = anillos();
 
@@ -532,18 +562,6 @@ describe("HE3-HU2 · Procesar compra", () => {
       assert.deepEqual(r.cuerpo.errores, { metodo: true });
     }
     assertSinCambios([[producto, 10]]);
-  });
-
-  test("HE3-S3-PU025 · (+) Los 9 métodos de pago del diseño se aceptan (pago simulado)", async () => {
-    const producto = anillos({ stock: 9 });
-    assert.equal(METODOS_PAGO.length, 9);
-
-    for (const metodoPago of METODOS_PAGO) {
-      const r = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }], { metodoPago }));
-      assert.equal(r.estado, 201, metodoPago);
-      assert.equal(r.cuerpo.comprobante.metodoPago, metodoPago);
-    }
-    assert.equal(bd.pedidos.length, 9);
   });
 
   test("HE3-S3-PU026 · (-) Dirección vacía o ausente", async () => {
@@ -615,7 +633,7 @@ describe("HE3-HU2 · Procesar compra", () => {
 });
 
 // ===============================================================
-describe("Transacción Oracle (simulada): todo o nada", () => {
+describe("HE3-HU6 · Procesar la compra · escenario 2 · transacción Oracle", () => {
   const dosProductos = () => {
     const a = anillos({ stock: 10 });
     const b = pendientes({ stock: 12 });
@@ -746,7 +764,7 @@ describe("Transacción Oracle (simulada): todo o nada", () => {
 });
 
 // ===============================================================
-describe("Concurrencia (simulada): sin sobreventa", () => {
+describe("HE3-HU6 · Procesar la compra · escenario 2 · concurrencia de inventario", () => {
   test("HE3-S3-PU038 · Dos compras simultáneas de la última unidad: solo una se registra", async () => {
     const producto = anillos({ stock: 1 });
     const cuerpo = compraValida([{ productoId: producto.id, cantidad: 1 }]);
@@ -811,7 +829,7 @@ describe("Concurrencia (simulada): sin sobreventa", () => {
 });
 
 // ===============================================================
-describe("Seguridad: sesiones y pedidos ajenos", () => {
+describe("HE3-HU6 · Procesar la compra · escenario 2 · sesión y seguridad", () => {
   test("HE3-S3-PU042 · (+) Usuario autenticado: el pedido queda a nombre de su cuenta con los datos de Oracle", async () => {
     const ana = agregarUsuario();
     const producto = anillos();
@@ -872,6 +890,20 @@ describe("Seguridad: sesiones y pedidos ajenos", () => {
     assertSinCambios([[producto, 10]]);
   });
 
+  test("HE3-S3-PU047 · (-) Compra sin sesión: 401 y no registra pedido ni descuenta inventario", async () => {
+    const producto = anillos();
+
+    const r = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }]), {
+      sinSesion: true,
+    });
+
+    assert.equal(r.estado, 401);
+    assert.equal(r.cuerpo.mensaje, "Debes iniciar sesión");
+    assertSinCambios([[producto, 10]]);
+  });
+});
+
+describe("HE3-HU6 (comprobante de la compra) · escenario 2 · autorización de consulta", () => {
   test("HE3-S3-PU045 · (+) El dueño puede volver a consultar su comprobante", async () => {
     const ana = agregarUsuario();
     const producto = anillos();
@@ -915,18 +947,6 @@ describe("Seguridad: sesiones y pedidos ajenos", () => {
     assert.equal(tokenInvalido.estado, 401);
   });
 
-  test("HE3-S3-PU047 · (-) Compra sin sesión: 401 y no registra pedido ni descuenta inventario", async () => {
-    const producto = anillos();
-
-    const r = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }]), {
-      sinSesion: true,
-    });
-
-    assert.equal(r.estado, 401);
-    assert.equal(r.cuerpo.mensaje, "Debes iniciar sesión");
-    assertSinCambios([[producto, 10]]);
-  });
-
   test("HE3-S3-PU048 · (-) X-Clave-Consulta no sustituye al propietario autenticado", async () => {
     const ana = agregarUsuario();
     const luis = agregarUsuario({ correo: "luis@example.com", usuario: "luis", identificacion: "987" });
@@ -943,7 +963,9 @@ describe("Seguridad: sesiones y pedidos ajenos", () => {
     assert.equal(conClaveDeConsulta.estado, 404);
     assert.equal(conClaveDeConsulta.cuerpo.codigo, "PEDIDO_NO_ENCONTRADO");
   });
+});
 
+describe("HE3-HU6 · Procesar la compra · escenario 2 · idempotencia y protección de datos", () => {
   test("HE3-S3-PU049 · (-) Datos de comprador no permiten comprar sin sesión", async () => {
     const producto = anillos();
     const articulos = [{ productoId: producto.id, cantidad: 1 }];
@@ -1028,7 +1050,7 @@ describe("Seguridad: sesiones y pedidos ajenos", () => {
 });
 
 // ===============================================================
-describe("HE3-HU3 · Comprobante de compra", () => {
+describe("HE3-HU6 (comprobante de la compra) · escenario 2", () => {
   test("HE3-S3-PU053 · (+) La respuesta tiene la estructura que usa Comprobante.jsx", async () => {
     const ana = agregarUsuario();
     const a = anillos();

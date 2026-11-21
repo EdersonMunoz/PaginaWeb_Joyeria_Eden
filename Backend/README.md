@@ -17,8 +17,8 @@ backend/
 │   ├── consultarCatalogo.js   HU3
 │   ├── gestionarEstado.js     HU4
 │   ├── autenticacion.js       Sprint 2 · registro, login y ajustes de cuenta
-│   ├── procesarCompra.js      Sprint 3 · HU2 procesar compra (y validación de inventario de HU1)
-│   └── consultarComprobante.js Sprint 3 · HU3 comprobante
+│   ├── procesarCompra.js      Sprint 3 · HE3-HU6 procesar compra
+│   └── consultarComprobante.js Sprint 3 · HE3-HU6 (comprobante de la compra)
 ├── db/             tablas y datos de prueba
 │   ├── 00_usuario.sql   solo si usan Oracle XE instalado (con Docker no hace falta)
 │   ├── 01_tablas.sql    tablas, secuencias y triggers
@@ -107,9 +107,9 @@ Ctrl+C en las terminales del frontend y del backend, y luego `docker stop eden-o
 | HU2 | `PUT /api/productos/:id` | Modifica un producto (foto nueva opcional) |
 | HU4 | `PATCH /api/productos/:id/estado` | `{ "estado": "Activo" }` o `{ "estado": "Inactivo" }` |
 | Sprint 2 | `POST /api/autenticacion/login`, `POST /api/autenticacion/registro`, `PUT /api/autenticacion/cuenta/:id`, `PATCH /api/autenticacion/cuenta/:id/desactivar` | Cuentas e inicio de sesión |
-| HE3-HU2 | `POST /api/pedidos/cupon` | Requiere sesión; valida vigencia, uso por cuenta y límite global: `{ "codigo": "PROMO2026" }` → `{ "cupon": { "codigo", "porcentaje" } }` |
-| HE3-HU1/HU2 | `POST /api/pedidos` | Requiere sesión; procesa la compra (pago simulado), descuenta el inventario y devuelve el comprobante |
-| HE3-HU3 | `GET /api/pedidos/:numero` | Requiere sesión; vuelve a consultar el comprobante solo para su dueño |
+| HE3-HU5 | `POST /api/pedidos/cupon` | Requiere sesión; valida vigencia, uso por cuenta y límite global: `{ "codigo": "PROMO2026" }` → `{ "cupon": { "codigo", "porcentaje" } }` |
+| HE3-HU6 | `POST /api/pedidos` | Requiere sesión; procesa la compra (pago simulado), descuenta el inventario y devuelve el comprobante |
+| HE3-HU6 (comprobante de la compra) | `GET /api/pedidos/:numero` | Requiere sesión; vuelve a consultar el comprobante solo para su dueño |
 
 ## Sprint 3 · Carrito, compra y comprobante
 

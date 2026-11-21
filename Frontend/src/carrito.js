@@ -1,4 +1,4 @@
-// Lógica del carrito de compras (Sprint 3 · HE3-HU1 y HE3-HU2).
+// Lógica del carrito y compra (Sprint 3 · HE3-HU1 a HE3-HU6).
 // Son funciones puras (sin React ni navegador) para poder probarlas con `npm test`.
 // El carrito sigue viviendo en memoria en App.jsx: [{ producto, cantidad }].
 // Los valores oficiales (precios, descuento, total) los calcula el backend al pagar;
@@ -30,7 +30,7 @@ export function direccionValida(direccion) {
   );
 }
 
-// HU1 escenarios 1, 2 y 5: suma `cantidad` sin pasar del stock.
+// HE3-HU2 escenarios 1 y 2: suma `cantidad` sin pasar del stock.
 // Devuelve el MISMO arreglo si no cambió nada (ya estaba en el máximo).
 export function agregarAlCarrito(carrito, producto, cantidad = 1) {
   const existente = carrito.find((item) => item.producto.id === producto.id);
@@ -50,7 +50,7 @@ export function agregarAlCarrito(carrito, producto, cantidad = 1) {
   return [...carrito, { producto, cantidad: cantidadFinal }];
 }
 
-// HU1 escenarios 3 y 5: cambia la cantidad entre 1 y el stock
+// HE3-HU3 escenarios 1 y 2: cambia la cantidad entre 1 y el stock
 export function actualizarCantidad(carrito, productoId, cantidad) {
   return carrito.map((item) => {
     if (item.producto.id !== productoId) {
@@ -64,11 +64,11 @@ export function actualizarCantidad(carrito, productoId, cantidad) {
   });
 }
 
-// HU1 escenario 4
+// HE3-HU4 escenario 1
 export const eliminarDelCarrito = (carrito, productoId) =>
   carrito.filter((item) => item.producto.id !== productoId);
 
-// HU2 escenarios 1 y 2: lo que muestra "Resumen de compra".
+// HE3-HU6 escenario 1: lo que muestra "Resumen de compra".
 // Mismo redondeo que el backend (validarCompra.js): al peso, la mitad hacia arriba.
 export function calcularResumen(carrito, cupon = null) {
   const cantidadTotal = carrito.reduce((total, item) => total + Number(item.cantidad || 0), 0);
@@ -114,7 +114,7 @@ export function sincronizarCarrito(carrito, productos) {
   return { carrito: cambio ? actualizado : carrito, ajustado };
 }
 
-// HU2 escenario 3: aplica al catálogo el inventario que devolvió el backend tras la compra
+// HE3-HU6 escenario 2: aplica al catálogo el inventario que devolvió el backend tras la compra
 // ([{ id, stock, estado }]). El stock ya no se calcula en el navegador.
 export function aplicarInventario(productos, inventario = []) {
   const porId = new Map(inventario.map((fila) => [fila.id, fila]));

@@ -98,7 +98,7 @@ function Catalogo({ productos, carrito = [], agregarAlCarrito }) {
   }, [notificacionCarrito]);
 
   const agregarProductoAlCarrito = (producto, cantidad = 1) => {
-    // HE3-HU1 escenario 5: lo que ya está en el carrito también cuenta para el stock
+    // HE3-HU3 escenario 2: lo que ya está en el carrito también cuenta para el stock
     const disponibles =
       stockDisponible(producto) - unidadesEnCarrito(carrito, producto.id);
     agregarAlCarrito?.(producto, cantidad);
