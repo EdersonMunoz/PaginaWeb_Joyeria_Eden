@@ -396,7 +396,22 @@ export const compraValida = (articulos, extra = {}) => ({
   ...extra,
 });
 
-export const comprar = (cuerpo, opciones = {}) =>
-  pedir("/api/pedidos", { metodo: "POST", cuerpo, ...opciones });
+const usuarioDePrueba = () =>
+  bd.usuarios.find((usuario) => usuario.usuario === "cliente-prueba") ??
+  agregarUsuario({
+    usuario: "cliente-prueba",
+    identificacion: "999999999",
+    correo: "cliente-prueba@example.com",
+  });
+
+export const comprar = (cuerpo, opciones = {}) => {
+  const { sinSesion = false, token, ...otrasOpciones } = opciones;
+  return pedir("/api/pedidos", {
+    metodo: "POST",
+    cuerpo,
+    ...otrasOpciones,
+    ...(!sinSesion ? { token: token ?? tokenDe(usuarioDePrueba()) } : {}),
+  });
+};
 
 export const consultar = (numero, opciones = {}) => pedir(`/api/pedidos/${numero}`, opciones);

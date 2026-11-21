@@ -103,9 +103,9 @@ Ctrl+C en las terminales del frontend y del backend, y luego `docker stop eden-o
 | HU2 | `PUT /api/productos/:id` | Modifica un producto (foto nueva opcional) |
 | HU4 | `PATCH /api/productos/:id/estado` | `{ "estado": "Activo" }` o `{ "estado": "Inactivo" }` |
 | Sprint 2 | `POST /api/autenticacion/login`, `POST /api/autenticacion/registro`, `PUT /api/autenticacion/cuenta/:id`, `PATCH /api/autenticacion/cuenta/:id/desactivar` | Cuentas e inicio de sesión |
-| HE3-HU2 | `POST /api/pedidos/cupon` | Valida un cupón: `{ "codigo": "PROMO2026" }` → `{ "cupon": { "codigo", "porcentaje" } }` |
-| HE3-HU1/HU2 | `POST /api/pedidos` | Procesa la compra (pago simulado), descuenta el inventario y devuelve el comprobante |
-| HE3-HU3 | `GET /api/pedidos/:numero` | Vuelve a consultar el comprobante de un pedido (solo su dueño) |
+| HE3-HU2 | `POST /api/pedidos/cupon` | Requiere sesión; valida un cupón: `{ "codigo": "PROMO2026" }` → `{ "cupon": { "codigo", "porcentaje" } }` |
+| HE3-HU1/HU2 | `POST /api/pedidos` | Requiere sesión; procesa la compra (pago simulado), descuenta el inventario y devuelve el comprobante |
+| HE3-HU3 | `GET /api/pedidos/:numero` | Requiere sesión; vuelve a consultar el comprobante solo para su dueño |
 
 ## Sprint 3 · Carrito, compra y comprobante
 
@@ -124,9 +124,8 @@ cuando el cliente pulsa **Pagar**.
 }
 ```
 
-- Con `Authorization: Bearer <token>` el pedido queda a nombre de la cuenta (los datos del cliente
-  se leen de la tabla `USUARIO`). Sin cabecera se compra como **invitado**, igual que la ruta
-  pública `/Inicio/Carrito`. Un token inválido responde 401: nunca se convierte en compra de invitado.
+- Requiere `Authorization: Bearer <token>`. El pedido queda a nombre de la cuenta y los datos del
+  cliente se leen de la tabla `USUARIO`. Sin token válido responde 401 (`Debes iniciar sesión`).
 - El navegador solo decide **qué** compra y **cuánto**. Precio, subtotal, descuento, total, número
   de pedido, fecha y cliente los pone el backend; si llegan en el cuerpo, se ignoran.
 - `codigoCupon` e `idSolicitud` son opcionales. `idSolicitud` evita que un doble clic cree dos pedidos.
@@ -154,8 +153,7 @@ Respuesta `201`:
     "descuento": 355000,
     "total": 6745000
   },
-  "inventario": [{ "id": 1, "stock": 8, "estado": "Activo" }, { "id": 4, "stock": 8, "estado": "Activo" }],
-  "claveConsulta": "solo-en-compras-de-invitado"
+  "inventario": [{ "id": 1, "stock": 8, "estado": "Activo" }, { "id": 4, "stock": 8, "estado": "Activo" }]
 }
 ```
 
@@ -166,7 +164,7 @@ Errores (siempre `{ "mensaje", "codigo", ... }`):
 | 400 | `CARRITO_VACIO`, `PRODUCTO_INVALIDO`, `CANTIDAD_INVALIDA` | Carrito vacío o cantidades que no son enteros mayores que cero |
 | 400 | `DATOS_PAGO_INVALIDOS` + `errores: { metodo, direccion }` | Sin método de pago ("Ninguno" no vale) o dirección inválida |
 | 400 | `CUPON_INVALIDO` + `errores: { cupon }` | El código no es `PROMO2026` |
-| 401 / 403 | `SESION_INVALIDA` / `CUENTA_INACTIVA` | Token inválido, cuenta borrada o inactiva |
+| 401 / 403 | `Debes iniciar sesión` / `SESION_INVALIDA` / `CUENTA_INACTIVA` | Token ausente o inválido, cuenta borrada o inactiva |
 | 409 | `STOCK_INSUFICIENTE`, `PRODUCTO_NO_DISPONIBLE` + `conflictos: [{ productoId, nombre, motivo, cantidadSolicitada, stockDisponible }]` | El inventario real no alcanza o el producto está inactivo / no existe |
 | 409 | `SOLICITUD_REPETIDA` | El `idSolicitud` ya lo usó otra persona |
 | 503 | `INVENTARIO_OCUPADO` | Otra compra tuvo bloqueado el producto más de 10 segundos |
@@ -174,10 +172,9 @@ Errores (siempre `{ "mensaje", "codigo", ... }`):
 
 ### `GET /api/pedidos/:numero`
 
-Devuelve `{ "comprobante": { ... } }` con la misma forma. Solo responde al dueño:
-el usuario que compró (por su token) o, si fue una compra de invitado, quien envíe la cabecera
-`X-Clave-Consulta` con la `claveConsulta` que devolvió la compra. En cualquier otro caso responde
-404 (no revela si el pedido existe).
+Requiere `Authorization: Bearer <token>` y devuelve `{ "comprobante": { ... } }` con la misma forma.
+Solo responde al usuario dueño del pedido según su token; en cualquier otro caso responde 404
+(no revela si el pedido existe).
 
 ### Cómo se protege el inventario
 

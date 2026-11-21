@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
 import iconoCampana from "../assets/iconossvg/iconoCampana.svg";
 import iconoCarroVacio from "../assets/iconossvg/iconoCarroVacio.svg";
@@ -56,7 +56,6 @@ function Carrito({
   cupon: cuponAplicado = null,
   cambiarCupon: setCuponAplicado = () => {},
 }) {
-  const location = useLocation();
   const [notificacion, setNotificacion] = useState(null);
   const [codigoCupon, setCodigoCupon] = useState("");
   const [errorCupon, setErrorCupon] = useState("");
@@ -75,9 +74,8 @@ function Carrito({
   const [mostrarMetodosPago, setMostrarMetodosPago] = useState(false);
   const menuMetodosPagoRef = useRef(null);
   const pagoEnCurso = useRef(false);
-  const usuario = location.pathname.startsWith("/Usuario");
-  const rutaInicio = usuario ? "/Usuario" : "/Inicio";
-  const rutaCatalogo = usuario ? "/Usuario/Catalogo" : "/Inicio/Catalogo";
+  const rutaInicio = "/Usuario";
+  const rutaCatalogo = "/Usuario/Catalogo";
   // Resumen que se muestra mientras se arma el carrito. Los valores oficiales del
   // pedido (precios, descuento y total) los calcula el backend al pagar.
   const { cantidadTotal, subtotal, descuento, total } = calcularResumen(
@@ -240,8 +238,7 @@ function Carrito({
   return (
     <main className="pagina-carrito">
       <Encabezado
-        sesionIniciada={usuario}
-        mostrarLogin={!usuario}
+        sesionIniciada
         ocultarCarrito
         ocultarFavoritos
         ocultarIconoBusqueda

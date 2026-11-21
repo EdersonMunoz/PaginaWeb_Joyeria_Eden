@@ -82,7 +82,7 @@ Flujo: **Catálogo → Carrito → Procesar compra → Actualizar inventario →
 - Precios, descuento (cupón `PROMO2026`, 5 %), total, número de pedido y fecha los calcula el servidor.
 - La compra se guarda en una sola transacción (pedido + detalle + inventario): o queda todo o no queda nada.
 - El comprobante se muestra y se descarga (SVG) con los datos guardados en la base.
-- Se puede comprar con sesión iniciada (el pedido queda a nombre de la cuenta) o como invitado.
+- La compra requiere una sesión iniciada y queda asociada a la cuenta autenticada.
 
 ## 👥 Equipo de desarrollo
 

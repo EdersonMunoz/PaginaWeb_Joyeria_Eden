@@ -1,6 +1,5 @@
 // Pruebas · HE3 Carrito, compra y comprobante · Sprint 3  (HE3-S3-PU001 ... PU052)
-// Cada test lleva el ID del caso (docs/pruebas/Sprint3-Unitarias/Casos_HE3-S3.md) y el
-// escenario del Excel "epica3. especificaciones" (HE3-HU1, HU2 y HU3).
+// Cada test lleva el ID del caso (docs/pruebas/Sprint3-Unitarias/Casos_HE3-S3.md).
 //
 // Cómo funcionan (patrón AAA):
 //   Arrange: se prepara un Oracle FALSO en memoria con transacciones (pruebas/ayudasCompras.js).
@@ -328,17 +327,38 @@ describe("HE3-HU2 · Procesar compra", () => {
   });
 
   test("HE3-S3-PU021 · (+) POST /api/pedidos/cupon: el porcentaje lo define el servidor", async () => {
-    const valido = await pedir("/api/pedidos/cupon", { metodo: "POST", cuerpo: { codigo: "promo2026" } });
+    const cliente = agregarUsuario();
+    const token = tokenDe(cliente);
+    const valido = await pedir("/api/pedidos/cupon", {
+      metodo: "POST",
+      cuerpo: { codigo: "promo2026" },
+      token,
+    });
     assert.equal(valido.estado, 200);
     assert.deepEqual(valido.cuerpo.cupon, { codigo: "PROMO2026", porcentaje: 5 });
 
-    const invalido = await pedir("/api/pedidos/cupon", { metodo: "POST", cuerpo: { codigo: "REGALO" } });
+    const invalido = await pedir("/api/pedidos/cupon", {
+      metodo: "POST",
+      cuerpo: { codigo: "REGALO" },
+      token,
+    });
     assert.equal(invalido.estado, 400);
     assert.equal(invalido.cuerpo.mensaje, "El código de cupón no es válido.");
 
-    const vacio = await pedir("/api/pedidos/cupon", { metodo: "POST", cuerpo: { codigo: "  " } });
+    const vacio = await pedir("/api/pedidos/cupon", {
+      metodo: "POST",
+      cuerpo: { codigo: "  " },
+      token,
+    });
     assert.equal(vacio.estado, 400);
     assert.equal(vacio.cuerpo.mensaje, "Ingresa un código de cupón.");
+
+    const sinSesion = await pedir("/api/pedidos/cupon", {
+      metodo: "POST",
+      cuerpo: { codigo: "PROMO2026" },
+    });
+    assert.equal(sinSesion.estado, 401);
+    assert.equal(sinSesion.cuerpo.mensaje, "Debes iniciar sesión");
   });
 
   test("HE3-S3-PU022 · (-) Seguridad: precio, descuento, total, número y fecha enviados por el navegador se ignoran", async () => {
@@ -370,7 +390,11 @@ describe("HE3-HU2 · Procesar compra", () => {
     assert.equal(comprobante.numeroPedido, "ED-00000001");
     assert.equal(comprobante.estado, "Pagado");
     assert.ok(Math.abs(Date.now() - new Date(comprobante.fechaEmision).getTime()) < 60000);
-    assert.equal(bd.pedidos[0].usuarioId, null, "sin token la compra es de invitado, no del usuario 77");
+    assert.equal(
+      bd.pedidos[0].usuarioId,
+      bd.usuarios[0].id,
+      "la compra queda vinculada al usuario de sesión, no al usuarioId enviado",
+    );
   });
 
   test("HE3-S3-PU023 · (-) Método de pago vacío, ausente o 'Ninguno'", async () => {
@@ -664,7 +688,7 @@ describe("Concurrencia (simulada): sin sobreventa", () => {
 });
 
 // ===============================================================
-describe("Seguridad: sesiones, invitados y pedidos ajenos", () => {
+describe("Seguridad: sesiones y pedidos ajenos", () => {
   test("HE3-S3-PU042 · (+) Usuario autenticado: el pedido queda a nombre de su cuenta con los datos de Oracle", async () => {
     const ana = agregarUsuario();
     const producto = anillos();
@@ -686,10 +710,10 @@ describe("Seguridad: sesiones, invitados y pedidos ajenos", () => {
       telefono: "3001234567",
       correo: "ana@example.com",
     });
-    assert.equal("claveConsulta" in r.cuerpo, false, "la clave de consulta es solo para invitados");
+    assert.equal("claveConsulta" in r.cuerpo, false, "no se devuelve una clave de consulta");
   });
 
-  test("HE3-S3-PU043 · (-) Token inválido o manipulado: 401 y la compra NO se procesa como invitado", async () => {
+  test("HE3-S3-PU043 · (-) Token inválido o manipulado: 401 y la compra no se procesa", async () => {
     const ana = agregarUsuario();
     const producto = anillos();
     const [payload, firma] = tokenDe(ana).split(".");
@@ -700,6 +724,11 @@ describe("Seguridad: sesiones, invitados y pedidos ajenos", () => {
       assert.equal(r.estado, 401);
       assert.equal(r.cuerpo.mensaje, "Debes iniciar sesión");
     }
+    const sinToken = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }]), {
+      sinSesion: true,
+    });
+    assert.equal(sinToken.estado, 401);
+    assert.equal(sinToken.cuerpo.mensaje, "Debes iniciar sesión");
     assertSinCambios([[producto, 10]]);
   });
 
@@ -747,81 +776,62 @@ describe("Seguridad: sesiones, invitados y pedidos ajenos", () => {
     const otroUsuario = await consultar(numeroPedido, { token: tokenDe(luis) });
     const administrador = await consultar(numeroPedido, { token: tokenDe(admin) });
     const sinSesion = await consultar(numeroPedido);
-    const conClaveInventada = await consultar(numeroPedido, { cabeceras: { "X-Clave-Consulta": "cualquiera" } });
+    const conClaveInventada = await consultar(numeroPedido, {
+      token: tokenDe(luis),
+      cabeceras: { "X-Clave-Consulta": "cualquiera" },
+    });
     const tokenInvalido = await consultar(numeroPedido, { token: "token-invalido" });
 
-    for (const r of [otroUsuario, administrador, sinSesion, conClaveInventada]) {
+    for (const r of [otroUsuario, administrador, conClaveInventada]) {
       assert.equal(r.estado, 404);
       assert.equal(r.cuerpo.codigo, "PEDIDO_NO_ENCONTRADO");
       assert.equal("comprobante" in r.cuerpo, false);
     }
+    assert.equal(sinSesion.estado, 401);
+    assert.equal(sinSesion.cuerpo.mensaje, "Debes iniciar sesión");
     assert.equal(tokenInvalido.estado, 401);
   });
 
-  test("HE3-S3-PU047 · (+) Compra como invitado: se registra sin usuario y con clave de consulta", async () => {
+  test("HE3-S3-PU047 · (-) Compra sin sesión: 401 y no registra pedido ni descuenta inventario", async () => {
     const producto = anillos();
 
-    const r = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }]));
+    const r = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }]), {
+      sinSesion: true,
+    });
 
-    assert.equal(r.estado, 201);
-    assert.equal(bd.pedidos[0].usuarioId, null);
-    assert.equal(r.cuerpo.comprobante.cliente, null);
-    assert.match(r.cuerpo.claveConsulta, /^[\w-]{32}$/);
-    // En la base solo queda el hash de la clave, nunca la clave
-    assert.match(bd.pedidos[0].claveConsultaHash, /^[a-f\d]{64}$/);
-    assert.notEqual(bd.pedidos[0].claveConsultaHash, r.cuerpo.claveConsulta);
-    assert.equal(JSON.stringify(r.cuerpo).includes(bd.pedidos[0].claveConsultaHash), false);
+    assert.equal(r.estado, 401);
+    assert.equal(r.cuerpo.mensaje, "Debes iniciar sesión");
+    assertSinCambios([[producto, 10]]);
   });
 
-  test("HE3-S3-PU048 · Invitado: solo quien tiene la clave puede volver a ver el comprobante", async () => {
+  test("HE3-S3-PU048 · (-) X-Clave-Consulta no sustituye al propietario autenticado", async () => {
     const ana = agregarUsuario();
+    const luis = agregarUsuario({ correo: "luis@example.com", usuario: "luis", identificacion: "987" });
     const producto = anillos();
-    const compra = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }]));
-    const otra = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }]));
+    const compra = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }]), {
+      token: tokenDe(ana),
+    });
     const { numeroPedido } = compra.cuerpo.comprobante;
 
-    const conClave = await consultar(numeroPedido, {
-      cabeceras: { "X-Clave-Consulta": compra.cuerpo.claveConsulta },
+    const conClaveDeConsulta = await consultar(numeroPedido, {
+      token: tokenDe(luis),
+      cabeceras: { "X-Clave-Consulta": "clave-legacy" },
     });
-    assert.equal(conClave.estado, 200);
-    assert.deepEqual(conClave.cuerpo.comprobante, compra.cuerpo.comprobante);
-
-    const sinClave = await consultar(numeroPedido);
-    const claveDeOtroPedido = await consultar(numeroPedido, {
-      cabeceras: { "X-Clave-Consulta": otra.cuerpo.claveConsulta },
-    });
-    const usuarioConSesion = await consultar(numeroPedido, { token: tokenDe(ana) });
-    for (const r of [sinClave, claveDeOtroPedido, usuarioConSesion]) assert.equal(r.estado, 404);
+    assert.equal(conClaveDeConsulta.estado, 404);
+    assert.equal(conClaveDeConsulta.cuerpo.codigo, "PEDIDO_NO_ENCONTRADO");
   });
 
-  test("HE3-S3-PU049 · Invitado: los datos del comprador son opcionales, se validan y se guardan", async () => {
+  test("HE3-S3-PU049 · (-) Datos de comprador no permiten comprar sin sesión", async () => {
     const producto = anillos();
     const articulos = [{ productoId: producto.id, cantidad: 1 }];
 
-    const invalido = await comprar(
+    const sinSesion = await comprar(
       compraValida(articulos, { comprador: { nombre: "Carlos Gómez", correo: "carlos.example.com" } }),
+      { sinSesion: true },
     );
-    assert.equal(invalido.estado, 400);
-    assert.equal(invalido.cuerpo.codigo, "COMPRADOR_INVALIDO");
-
-    const valido = await comprar(
-      compraValida(articulos, {
-        comprador: {
-          nombre: " Carlos Gómez ",
-          identificacion: "1061234567",
-          telefono: "3109876543",
-          correo: "Carlos@Example.com",
-        },
-      }),
-    );
-    assert.equal(valido.estado, 201);
-    assert.deepEqual(valido.cuerpo.comprobante.cliente, {
-      nombre: "Carlos Gómez",
-      identificacion: "1061234567",
-      telefono: "3109876543",
-      correo: "carlos@example.com",
-    });
-    assert.equal(bd.pedidos[0].usuarioId, null);
+    assert.equal(sinSesion.estado, 401);
+    assert.equal(sinSesion.cuerpo.mensaje, "Debes iniciar sesión");
+    assertSinCambios([[producto, 10]]);
   });
 
   test("HE3-S3-PU050 · Solicitud repetida (doble clic): un solo pedido y un solo descuento", async () => {
@@ -858,10 +868,10 @@ describe("Seguridad: sesiones, invitados y pedidos ajenos", () => {
     await comprar(cuerpo, { token: tokenDe(ana) });
 
     const deLuis = await comprar(cuerpo, { token: tokenDe(luis) });
-    const deInvitado = await comprar(cuerpo);
+    const deOtroUsuario = await comprar(cuerpo);
     const malFormada = await comprar({ ...cuerpo, idSolicitud: "corta" });
 
-    for (const r of [deLuis, deInvitado]) {
+    for (const r of [deLuis, deOtroUsuario]) {
       assert.equal(r.estado, 409);
       assert.equal(r.cuerpo.codigo, "SOLICITUD_REPETIDA");
       assert.equal("comprobante" in r.cuerpo, false);
@@ -887,7 +897,9 @@ describe("Seguridad: sesiones, invitados y pedidos ajenos", () => {
       "ninguna sentencia lleva datos del usuario concatenados",
     );
 
-    const numero = await consultar("ED-00000001' OR '1'='1");
+    const numero = await consultar("ED-00000001' OR '1'='1", {
+      token: tokenDe(bd.usuarios[0]),
+    });
     assert.equal(numero.estado, 404);
   });
 });
@@ -986,8 +998,9 @@ describe("HE3-HU3 · Comprobante de compra", () => {
   });
 
   test("HE3-S3-PU056 · (-) Pedido inexistente o número con formato inválido: 404", async () => {
+    const token = tokenDe(agregarUsuario());
     for (const numero of ["ED-00000099", "ED-1", "99", "ed-abc"]) {
-      const r = await consultar(numero);
+      const r = await consultar(numero, { token });
       assert.equal(r.estado, 404);
       assert.equal(r.cuerpo.mensaje, "El pedido no existe.");
     }

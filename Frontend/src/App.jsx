@@ -5,6 +5,7 @@ import * as logicaCarrito from "./carrito";
 import Inicio from "./paginas/Inicio";
 import InicioUsuario from "./paginas/InicioUsuario";
 import InicioAdmin from "./paginas/InicioAdmin";
+import { decidirAcceso, obtenerUsuario } from "./sesion";
 import Catalogo from "./paginas/Catalogo";
 import GestionProductos from "./paginas/GestionProductos";
 import RegistrarProducto from "./paginas/RegistrarProducto";
@@ -14,6 +15,20 @@ import RegistroCuenta from "./paginas/RegistroCuenta";
 import AjustesCuenta from "./paginas/AjustesCuenta";
 import Carrito from "./paginas/Carrito";
 import RutaProtegida from "./componentes/RutaProtegida";
+
+function RedireccionRutaInicio({ destinoCliente }) {
+  const acceso = decidirAcceso(obtenerUsuario(), "cliente");
+  if (acceso === "/InicioSesion") {
+    return <Navigate to={acceso} replace />;
+  }
+
+  return (
+    <Navigate
+      to={acceso === "/Admin" ? "/Admin/Catalogo" : destinoCliente}
+      replace
+    />
+  );
+}
 
 function App() {
   // Los productos vienen de la base de datos Oracle a través del backend
@@ -156,13 +171,7 @@ function App() {
         />
         <Route
           path="/Inicio/Catalogo"
-          element={
-            <Catalogo
-              productos={productos}
-              carrito={carrito}
-              agregarAlCarrito={agregarAlCarrito}
-            />
-          }
+          element={<RedireccionRutaInicio destinoCliente="/Usuario/Catalogo" />}
         />
         <Route
           path="/Admin/Catalogo"
@@ -190,9 +199,7 @@ function App() {
         />
         <Route
           path="/Inicio/Carrito"
-          element={
-            <Carrito {...propiedadesCarrito} />
-          }
+          element={<RedireccionRutaInicio destinoCliente="/Usuario/Carrito" />}
         />
         <Route
           path="/Usuario/Carrito"

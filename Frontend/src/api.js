@@ -157,22 +157,17 @@ const JSON_POST = (cuerpo) => ({
 
 // HE3-HU2 · el backend dice si el cupón existe y cuánto descuenta: { cupon: { codigo, porcentaje } }
 export const validarCupon = (codigo) =>
-  realizarPeticion(`${RUTA_PEDIDOS}/cupon`, JSON_POST({ codigo }), {
-    publica: true,
-    sinSesion: true,
-  });
+  realizarPeticion(`${RUTA_PEDIDOS}/cupon`, JSON_POST({ codigo }));
 
 // HE3-HU2 · procesa la compra (pago simulado) y devuelve el comprobante guardado en Oracle.
 // compra = { articulos: [{ productoId, cantidad }], metodoPago, direccion, codigoCupon, idSolicitud }
-// Con sesión iniciada el pedido queda a nombre de la cuenta; sin sesión se compra como invitado.
+// Requiere sesión iniciada; el pedido queda a nombre de la cuenta.
 export const procesarCompra = (compra) =>
   realizarPeticion(RUTA_PEDIDOS, JSON_POST(compra));
 
-// HE3-HU3 · vuelve a consultar un comprobante. La clave solo aplica a compras de invitado.
-export const consultarComprobante = (numeroPedido, claveConsulta) =>
-  realizarPeticion(`${RUTA_PEDIDOS}/${encodeURIComponent(numeroPedido)}`, {
-    headers: claveConsulta ? { "X-Clave-Consulta": claveConsulta } : {},
-  });
+// HE3-HU3 · vuelve a consultar un comprobante de la cuenta autenticada.
+export const consultarComprobante = (numeroPedido) =>
+  realizarPeticion(`${RUTA_PEDIDOS}/${encodeURIComponent(numeroPedido)}`);
 
 // HU1 · registrar
 export const registrarProducto = (campos, archivo) =>

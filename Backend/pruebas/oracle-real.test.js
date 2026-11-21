@@ -17,6 +17,7 @@ import "dotenv/config";
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { cerrarBaseDatos, ejecutar, iniciarBaseDatos } from "../baseDatos.js";
+import { crearToken } from "../sesion.js";
 
 const activa = process.env.PRUEBA_ORACLE === "1" || process.argv.includes("--oracle");
 
@@ -25,13 +26,17 @@ describe("Sprint 3 contra Oracle real", { skip: !activa && "se ejecuta con: npm 
   const pedidosCreados = [];
   let servidor;
   let API;
+  let tokenSesion;
   let ultimaUnidad;
   let conStock;
 
   const comprar = async (articulos, extra = {}) => {
     const respuesta = await fetch(`${API}/api/pedidos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenSesion}`,
+      },
       body: JSON.stringify({
         articulos,
         metodoPago: "Itaú Colombia", // con tilde: comprueba también la restricción CHECK
@@ -64,6 +69,14 @@ describe("Sprint 3 contra Oracle real", { skip: !activa && "se ejecuta con: npm 
 
   before(async () => {
     await iniciarBaseDatos();
+    const clientes = await ejecutar(
+      `SELECT id, rol FROM usuario WHERE estado = 'Activo' AND rol = 'cliente' ORDER BY id FETCH FIRST 1 ROWS ONLY`,
+    );
+    assert.ok(clientes.filas[0], "La prueba Oracle requiere una cuenta de cliente activa");
+    tokenSesion = crearToken({
+      id: Number(clientes.filas[0].id),
+      rol: clientes.filas[0].rol,
+    });
     const { filas } = await ejecutar(
       `SELECT COUNT(*) AS "cantidad" FROM user_tables WHERE table_name IN ('PEDIDO', 'DETALLE_PEDIDO')`,
     );
@@ -135,7 +148,7 @@ describe("Sprint 3 contra Oracle real", { skip: !activa && "se ejecuta con: npm 
     const r = await comprar([{ productoId: conStock.id, cantidad: 2 }], { codigoCupon: "PROMO2026" });
 
     assert.equal(r.estado, 201);
-    const { comprobante, claveConsulta } = r.cuerpo;
+    const { comprobante } = r.cuerpo;
     assert.match(comprobante.numeroPedido, /^ED-\d{8}$/);
     assert.equal(comprobante.subtotal, 1100000);
     assert.equal(comprobante.descuento, 55000);
@@ -145,12 +158,12 @@ describe("Sprint 3 contra Oracle real", { skip: !activa && "se ejecuta con: npm 
     assert.equal((await producto(`${marca}B`)).stock, 3);
 
     const consulta = await fetch(`${API}/api/pedidos/${comprobante.numeroPedido}`, {
-      headers: { "X-Clave-Consulta": claveConsulta },
+      headers: { Authorization: `Bearer ${tokenSesion}` },
     });
     assert.equal(consulta.status, 200);
     assert.deepEqual((await consulta.json()).comprobante, comprobante);
 
     const sinClave = await fetch(`${API}/api/pedidos/${comprobante.numeroPedido}`);
-    assert.equal(sinClave.status, 404);
+    assert.equal(sinClave.status, 401);
   });
 });
