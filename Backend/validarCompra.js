@@ -27,7 +27,7 @@ export const LINEAS_MAXIMAS = 100; // productos distintos en una misma compra
 
 export const MENSAJE_ERROR_PAGO =
   "Error al realizar el pago de la compra. Por favor completa todos los campos obligatorios y/o corrige la información";
-export const MENSAJE_CUPON_INVALIDO = "El código de cupón no es válido.";
+export const MENSAJE_CUPON_INVALIDO = "El cupón ingresado no es válido";
 export const MENSAJE_CUPON_VACIO = "Ingresa un código de cupón.";
 
 const texto = (valor) =>

@@ -296,7 +296,7 @@ describe("HE3-HU2 · Procesar compra", () => {
 
     assert.equal(r.estado, 400);
     assert.equal(r.cuerpo.codigo, "CUPON_INVALIDO");
-    assert.equal(r.cuerpo.mensaje, "El código de cupón no es válido.");
+    assert.equal(r.cuerpo.mensaje, "El cupón ingresado no es válido");
     assert.deepEqual(r.cuerpo.errores, { cupon: true });
     assertSinCambios([[producto, 10]]);
   });
@@ -343,7 +343,7 @@ describe("HE3-HU2 · Procesar compra", () => {
       token,
     });
     assert.equal(invalido.estado, 400);
-    assert.equal(invalido.cuerpo.mensaje, "El código de cupón no es válido.");
+    assert.equal(invalido.cuerpo.mensaje, "El cupón ingresado no es válido");
 
     const vacio = await pedir("/api/pedidos/cupon", {
       metodo: "POST",

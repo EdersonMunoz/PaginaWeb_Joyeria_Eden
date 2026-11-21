@@ -7,6 +7,7 @@ import iconoCarga from "../assets/iconossvg/iconoCarga.svg";
 import iconoLapiz from "../assets/iconossvg/iconoLapiz.svg";
 import iconoBorrar from "../assets/iconossvg/iconoBorrar.svg";
 import iconoBasura from "../assets/iconossvg/IconoBasura.svg";
+import iconoCupon from "../assets/iconossvg/iconoCupon.svg";
 import * as api from "../api";
 import {
   articulosParaCompra,
@@ -141,7 +142,9 @@ function Carrito({
     const codigo = codigoCupon.trim().toUpperCase();
 
     if (!codigo) {
-      setErrorCupon("Ingresa un código de cupón.");
+      const mensaje = "Ingresa un código de cupón.";
+      setErrorCupon(mensaje);
+      setNotificacion({ tipo: "cupon-error", mensaje });
       return;
     }
     if (validandoCupon) {
@@ -156,10 +159,16 @@ function Carrito({
       setCuponAplicado(respuesta.cupon);
       setCodigoCupon("");
       setErrorCupon("");
+      setNotificacion({
+        tipo: "cupon-exito",
+        mensaje: "Cupón aplicado correctamente",
+      });
       return;
     }
 
-    setErrorCupon(respuesta.mensaje ?? "El código de cupón no es válido.");
+    const mensaje = respuesta.mensaje ?? "El cupón ingresado no es válido";
+    setErrorCupon(mensaje);
+    setNotificacion({ tipo: "cupon-error", mensaje });
   };
 
   const mostrarErrorPago = (mensaje = MENSAJE_ERROR_PAGO) => {
@@ -222,7 +231,9 @@ function Carrito({
     });
     if (respuesta.errores?.cupon) {
       setCuponAplicado(null);
-      setErrorCupon(respuesta.mensaje ?? "El código de cupón no es válido.");
+      const mensaje = respuesta.mensaje ?? "El cupón ingresado no es válido";
+      setErrorCupon(mensaje);
+      setNotificacion({ tipo: "cupon-error", mensaje });
     }
     if (respuesta.estado === 409) {
       // El inventario cambió (otra compra, producto inactivado...): se actualiza el carrito
@@ -352,7 +363,7 @@ function Carrito({
                           }
                           setNotificacion({
                             tipo: "eliminar",
-                            mensaje: "Se eliminó el producto al carrito",
+                            mensaje: "Se borró el producto del carrito",
                           });
                         }}
                       >
@@ -393,7 +404,6 @@ function Carrito({
                   id="carrito-codigo-cupon"
                   aria-label="Código de cupón"
                   aria-invalid={Boolean(errorCupon)}
-                  aria-describedby={errorCupon ? "carrito-error-cupon" : undefined}
                   type="text"
                   value={codigoCupon}
                   onChange={(event) => {
@@ -404,11 +414,6 @@ function Carrito({
                 <button type="submit" disabled={validandoCupon}>Aplicar</button>
               </span>
             </form>
-            {errorCupon && (
-              <p className="carrito-cupon-error" id="carrito-error-cupon" role="alert">
-                {errorCupon}
-              </p>
-            )}
             {cuponAplicado && (
               <div className="carrito-cupon-aplicado">
                 <span>{cuponAplicado.codigo}</span>
@@ -558,7 +563,13 @@ function Carrito({
           aria-live="polite"
         >
           <img
-            src={notificacion.tipo === "stock" ? iconoCampana : iconoBasura}
+            src={
+              notificacion.tipo === "stock"
+                ? iconoCampana
+                : notificacion.tipo.startsWith("cupon-")
+                  ? iconoCupon
+                  : iconoBasura
+            }
             alt=""
           />
           <span>{notificacion.mensaje}</span>
