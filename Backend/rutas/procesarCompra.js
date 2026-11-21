@@ -15,32 +15,34 @@
 import { Router } from "express";
 import { requiereSesion } from "../sesion.js";
 import {
-  buscarCupon,
   validarCompra,
-  MENSAJE_CUPON_INVALIDO,
   MENSAJE_CUPON_VACIO,
 } from "../validarCompra.js";
-import { ErrorCompra, registrarCompra } from "../pedidos.js";
+import { buscarCupon, ErrorCompra, registrarCompra } from "../pedidos.js";
 
 const router = Router();
 
 const MENSAJE_EXITO = "Pago exitoso, compra realizada.";
 
 // HE3-HU2 escenario 2: el porcentaje lo decide el servidor, no la página
-router.post("/cupon", requiereSesion, (req, res) => {
-  const codigo = typeof req.body?.codigo === "string" ? req.body.codigo.trim() : "";
+router.post("/cupon", requiereSesion, async (req, res) => {
+  const codigo = typeof req.body?.codigo === "string" ? req.body.codigo.trim().toUpperCase() : "";
   if (!codigo) {
     return res
       .status(400)
       .json({ mensaje: MENSAJE_CUPON_VACIO, codigo: "CUPON_VACIO", errores: { cupon: true } });
   }
-  const cupon = buscarCupon(codigo);
-  if (!cupon) {
+  const validacion = await buscarCupon(codigo, req.sesion.id);
+  if (validacion.error) {
     return res
       .status(400)
-      .json({ mensaje: MENSAJE_CUPON_INVALIDO, codigo: "CUPON_INVALIDO", errores: { cupon: true } });
+      .json({
+        mensaje: validacion.error.mensaje,
+        codigo: validacion.error.codigo,
+        errores: { cupon: true },
+      });
   }
-  return res.json({ cupon });
+  return res.json({ cupon: validacion.cupon });
 });
 
 // HE3-HU2 escenarios 3 y 4

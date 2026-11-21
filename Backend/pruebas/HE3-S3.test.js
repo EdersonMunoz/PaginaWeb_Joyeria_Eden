@@ -47,6 +47,7 @@ function assertSinCambios(productos) {
     assert.equal(productoPorId(producto.id).stock, stock, `el stock de ${producto.ref} no debe cambiar`);
   });
   assert.equal(bd.bloqueos.size, 0, "no deben quedar filas bloqueadas");
+  assert.equal(bd.bloqueosCupones.size, 0, "no deben quedar cupones bloqueados");
 }
 
 // ===============================================================
@@ -343,7 +344,44 @@ describe("HE3-HU2 · Procesar compra", () => {
       token,
     });
     assert.equal(invalido.estado, 400);
+    assert.equal(invalido.cuerpo.codigo, "CUPON_INVALIDO");
     assert.equal(invalido.cuerpo.mensaje, "El cupón ingresado no es válido");
+    assert.deepEqual(invalido.cuerpo.errores, { cupon: true });
+
+    const expirado = await pedir("/api/pedidos/cupon", {
+      metodo: "POST",
+      cuerpo: { codigo: "VENCIDO2025" },
+      token,
+    });
+    assert.equal(expirado.estado, 400);
+    assert.equal(expirado.cuerpo.codigo, "CUPON_EXPIRADO");
+    assert.equal(expirado.cuerpo.mensaje, "El cupón ingresado ha expirado");
+    assert.deepEqual(expirado.cuerpo.errores, { cupon: true });
+
+    bd.pedidos.push({ cupon: "LIMITE1", usuarioId: cliente.id });
+    const yaUtilizado = await pedir("/api/pedidos/cupon", {
+      metodo: "POST",
+      cuerpo: { codigo: "LIMITE1" },
+      token,
+    });
+    assert.equal(yaUtilizado.estado, 400);
+    assert.equal(yaUtilizado.cuerpo.codigo, "CUPON_YA_UTILIZADO");
+    assert.equal(yaUtilizado.cuerpo.mensaje, "Ya has utilizado este cupón anteriormente");
+    assert.deepEqual(yaUtilizado.cuerpo.errores, { cupon: true });
+
+    const otraCuenta = agregarUsuario({ usuario: "otra-cuenta", correo: "otra@example.com" });
+    const limiteSuperado = await pedir("/api/pedidos/cupon", {
+      metodo: "POST",
+      cuerpo: { codigo: "LIMITE1" },
+      token: tokenDe(otraCuenta),
+    });
+    assert.equal(limiteSuperado.estado, 400);
+    assert.equal(limiteSuperado.cuerpo.codigo, "CUPON_LIMITE_SUPERADO");
+    assert.equal(
+      limiteSuperado.cuerpo.mensaje,
+      "Este cupón ya superó el límite de usos permitidos",
+    );
+    assert.deepEqual(limiteSuperado.cuerpo.errores, { cupon: true });
 
     const vacio = await pedir("/api/pedidos/cupon", {
       metodo: "POST",
@@ -359,6 +397,81 @@ describe("HE3-HU2 · Procesar compra", () => {
     });
     assert.equal(sinSesion.estado, 401);
     assert.equal(sinSesion.cuerpo.mensaje, "Debes iniciar sesión");
+  });
+
+  test("HE3-S3-PU059 · Cupón vencido: rechazo dentro de la compra sin alterar pedido ni inventario", async () => {
+    const ana = agregarUsuario();
+    const producto = anillos();
+    bd.pedidos.push({ cupon: "VENCIDO2025", usuarioId: ana.id });
+
+    const r = await comprar(
+      compraValida([{ productoId: producto.id, cantidad: 1 }], { codigoCupon: "VENCIDO2025" }),
+      { token: tokenDe(ana) },
+    );
+
+    assert.equal(r.estado, 400);
+    assert.equal(r.cuerpo.codigo, "CUPON_EXPIRADO");
+    assert.equal(r.cuerpo.mensaje, "El cupón ingresado ha expirado");
+    assert.deepEqual(r.cuerpo.errores, { cupon: true });
+    assert.equal(bd.pedidos.length, 1, "solo permanece el pedido previo usado para comprobar el orden");
+    assert.equal(bd.detalles.length, 0);
+    assert.equal(productoPorId(producto.id).stock, 10);
+    assert.equal(bd.rollbacks, 1);
+    assert.equal(bd.bloqueosCupones.size, 0);
+  });
+
+  test("HE3-S3-PU060 · Uso por cuenta precede al límite global; otra cuenta recibe límite superado", async () => {
+    const ana = agregarUsuario({ usuario: "ana-cupon" });
+    const bruno = agregarUsuario({ usuario: "bruno-cupon", correo: "bruno@example.com" });
+    const producto = anillos({ stock: 5 });
+    const compra = compraValida(
+      [{ productoId: producto.id, cantidad: 1 }],
+      { codigoCupon: "LIMITE1" },
+    );
+
+    const primera = await comprar(compra, { token: tokenDe(ana) });
+    assert.equal(primera.estado, 201);
+    assert.equal(primera.cuerpo.comprobante.porcentajeDescuento, 10);
+
+    const repetidaPorAna = await comprar(compra, { token: tokenDe(ana) });
+    assert.equal(repetidaPorAna.estado, 400);
+    assert.equal(repetidaPorAna.cuerpo.codigo, "CUPON_YA_UTILIZADO");
+    assert.equal(repetidaPorAna.cuerpo.mensaje, "Ya has utilizado este cupón anteriormente");
+    assert.deepEqual(repetidaPorAna.cuerpo.errores, { cupon: true });
+
+    const usadaPorBruno = await comprar(compra, { token: tokenDe(bruno) });
+    assert.equal(usadaPorBruno.estado, 400);
+    assert.equal(usadaPorBruno.cuerpo.codigo, "CUPON_LIMITE_SUPERADO");
+    assert.equal(usadaPorBruno.cuerpo.mensaje, "Este cupón ya superó el límite de usos permitidos");
+    assert.deepEqual(usadaPorBruno.cuerpo.errores, { cupon: true });
+
+    assert.equal(bd.pedidos.length, 1);
+    assert.equal(bd.detalles.length, 1);
+    assert.equal(productoPorId(producto.id).stock, 4);
+    assert.equal(bd.bloqueosCupones.size, 0);
+  });
+
+  test("HE3-S3-PU061 · Dos compras simultáneas no consumen más veces el cupón que su límite", async () => {
+    const ana = agregarUsuario({ usuario: "ana-cupon" });
+    const bruno = agregarUsuario({ usuario: "bruno-cupon", correo: "bruno@example.com" });
+    const producto = anillos({ stock: 5 });
+    const compra = compraValida(
+      [{ productoId: producto.id, cantidad: 1 }],
+      { codigoCupon: "LIMITE1" },
+    );
+
+    const respuestas = await Promise.all([
+      comprar(compra, { token: tokenDe(ana) }),
+      comprar(compra, { token: tokenDe(bruno) }),
+    ]);
+
+    assert.deepEqual(respuestas.map((respuesta) => respuesta.estado).sort(), [201, 400]);
+    const rechazada = respuestas.find((respuesta) => respuesta.estado === 400);
+    assert.equal(rechazada.cuerpo.codigo, "CUPON_LIMITE_SUPERADO");
+    assert.equal(bd.pedidos.length, 1);
+    assert.equal(bd.detalles.length, 1);
+    assert.equal(productoPorId(producto.id).stock, 4);
+    assert.equal(bd.bloqueosCupones.size, 0);
   });
 
   test("HE3-S3-PU022 · (-) Seguridad: precio, descuento, total, número y fecha enviados por el navegador se ignoran", async () => {

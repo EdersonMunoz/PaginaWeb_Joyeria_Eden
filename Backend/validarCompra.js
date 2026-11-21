@@ -17,9 +17,6 @@ export const METODOS_PAGO = [
   "Banco Popular",
 ];
 
-// Cupones vigentes: código -> porcentaje de descuento sobre el subtotal
-export const CUPONES = { PROMO2026: 5 };
-
 // Máximos que caben en las columnas de Oracle
 const CANTIDAD_MAXIMA = 99999999; // producto.stock NUMBER(8)
 const DIRECCION_MAXIMA = 300; // igual que usuario.direccion
@@ -28,6 +25,9 @@ export const LINEAS_MAXIMAS = 100; // productos distintos en una misma compra
 export const MENSAJE_ERROR_PAGO =
   "Error al realizar el pago de la compra. Por favor completa todos los campos obligatorios y/o corrige la información";
 export const MENSAJE_CUPON_INVALIDO = "El cupón ingresado no es válido";
+export const MENSAJE_CUPON_EXPIRADO = "El cupón ingresado ha expirado";
+export const MENSAJE_CUPON_YA_UTILIZADO = "Ya has utilizado este cupón anteriormente";
+export const MENSAJE_CUPON_LIMITE_SUPERADO = "Este cupón ya superó el límite de usos permitidos";
 export const MENSAJE_CUPON_VACIO = "Ingresa un código de cupón.";
 
 const texto = (valor) =>
@@ -48,15 +48,6 @@ export function direccionValida(direccion) {
     /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(normalizada) &&
     /\d/.test(normalizada)
   );
-}
-
-// Devuelve { codigo, porcentaje } o null si el código no existe.
-// No distingue mayúsculas ni espacios alrededor ("promo2026 " sirve).
-export function buscarCupon(codigo) {
-  const normalizado = texto(codigo).toUpperCase();
-  return Object.hasOwn(CUPONES, normalizado)
-    ? { codigo: normalizado, porcentaje: CUPONES[normalizado] }
-    : null;
 }
 
 // Un entero positivo: 3 o "3". Rechaza 0, -1, 2.5, "2.5", "1e3", "0x10", null, true...
@@ -130,15 +121,9 @@ export function validarCompra(cuerpo) {
     return error(400, "DATOS_PAGO_INVALIDOS", MENSAJE_ERROR_PAGO, erroresPago);
   }
 
-  // --- Cupón (opcional) --------------------------------------------------
-  const codigoCupon = texto(datos.codigoCupon);
-  let cupon = null;
-  if (codigoCupon !== "") {
-    cupon = buscarCupon(codigoCupon);
-    if (!cupon) {
-      return error(400, "CUPON_INVALIDO", MENSAJE_CUPON_INVALIDO, { cupon: true });
-    }
-  }
+  // El estado del cupón depende de Oracle y se valida al aplicarlo y dentro
+  // de la transacción que registra la compra.
+  const codigoCupon = texto(datos.codigoCupon).toUpperCase();
 
   // --- Identificador de la solicitud (opcional, evita compras repetidas) ---
   let idSolicitud = null;
@@ -162,7 +147,7 @@ export function validarCompra(cuerpo) {
         .sort((a, b) => a.productoId - b.productoId),
       metodoPago,
       direccion,
-      cupon,
+      codigoCupon,
       idSolicitud,
       comprador: comprador.valores,
     },

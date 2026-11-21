@@ -25,6 +25,11 @@ export const bd = {};
 export function reiniciarBase() {
   Object.assign(bd, {
     productos: [], // datos CONFIRMADOS (lo que vería cualquier otra conexión)
+    cupones: [
+      { codigo: "PROMO2026", porcentaje: 5, fechaVencimiento: "2027-12-31", maxUsos: 1000 },
+      { codigo: "VENCIDO2025", porcentaje: 10, fechaVencimiento: "2025-12-31", maxUsos: 1000 },
+      { codigo: "LIMITE1", porcentaje: 10, fechaVencimiento: "2027-12-31", maxUsos: 1 },
+    ],
     usuarios: [],
     pedidos: [],
     detalles: [],
@@ -32,6 +37,7 @@ export function reiniciarBase() {
     siguienteProducto: 1,
     siguienteDetalle: 1,
     bloqueos: new Map(), // productoId -> { dueno, espera: [funciones] }
+    bloqueosCupones: new Map(), // codigo -> { dueno, espera: [funciones] }
     sentencias: [], // todo lo que se ejecutó dentro de transacciones
     conexiones: 0,
     commits: 0,
@@ -140,6 +146,32 @@ function leerPedidos(sql, datos, pedidos, detalles) {
   return null;
 }
 
+function leerCupon(sql, datos, pedidos) {
+  if (sql.includes("FROM cupon c")) {
+    const cupon = bd.cupones.find((fila) => fila.codigo === datos.codigo);
+    if (!cupon) return { rows: [] };
+    const fechaActual = new Date().toISOString().slice(0, 10);
+    return {
+      rows: [{
+        codigo: cupon.codigo,
+        porcentaje: cupon.porcentaje,
+        maxUsos: cupon.maxUsos,
+        expirado: fechaActual > cupon.fechaVencimiento ? 1 : 0,
+      }],
+    };
+  }
+  if (sql.includes('AS "usosGlobales"')) {
+    const pedidosConCupon = pedidos.filter((pedido) => pedido.cupon === datos.codigo);
+    return {
+      rows: [{
+        usosGlobales: pedidosConCupon.length,
+        usosCuenta: pedidosConCupon.filter((pedido) => pedido.usuarioId === datos.usuarioId).length,
+      }],
+    };
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------
 // Conexión falsa: misma interfaz que usa enTransaccion() del driver oracledb
 // ---------------------------------------------------------------
@@ -150,6 +182,7 @@ function crearConexionFalsa() {
     pedidosNuevos: [],
     detallesNuevos: [],
     bloqueados: new Set(),
+    cuponesBloqueados: new Set(),
     cerrada: false,
   };
 
@@ -170,6 +203,18 @@ function crearConexionFalsa() {
     conexion.bloqueados.add(id);
   };
 
+  const bloquearCupon = async (codigo) => {
+    for (;;) {
+      const bloqueo = bd.bloqueosCupones.get(codigo);
+      if (!bloqueo || bloqueo.dueno === conexion) break;
+      await new Promise((seguir) => bloqueo.espera.push(seguir));
+    }
+    if (!bd.bloqueosCupones.has(codigo)) {
+      bd.bloqueosCupones.set(codigo, { dueno: conexion, espera: [] });
+    }
+    conexion.cuponesBloqueados.add(codigo);
+  };
+
   const soltarBloqueos = () => {
     for (const id of conexion.bloqueados) {
       const bloqueo = bd.bloqueos.get(id);
@@ -177,6 +222,12 @@ function crearConexionFalsa() {
       bloqueo?.espera.forEach((seguir) => seguir());
     }
     conexion.bloqueados.clear();
+    for (const codigo of conexion.cuponesBloqueados) {
+      const bloqueo = bd.bloqueosCupones.get(codigo);
+      bd.bloqueosCupones.delete(codigo);
+      bloqueo?.espera.forEach((seguir) => seguir());
+    }
+    conexion.cuponesBloqueados.clear();
   };
 
   const descartar = () => {
@@ -195,6 +246,19 @@ function crearConexionFalsa() {
       bd.sentencias.push({ sql, datos });
       await new Promise((seguir) => setImmediate(seguir)); // como una ida y vuelta a Oracle
       if (bd.fallarEn?.(sql, datos)) throw errorOracle(3113, "falla simulada por la prueba");
+
+      // --- CUPON ---
+      if (sql.includes("FROM cupon c")) {
+        if (sql.includes("FOR UPDATE")) await bloquearCupon(datos.codigo);
+        const resultado = leerCupon(sql, datos, bd.pedidos);
+        if (resultado) return resultado;
+      }
+      const lecturaCupon = leerCupon(
+        sql,
+        datos,
+        [...bd.pedidos, ...conexion.pedidosNuevos],
+      );
+      if (lecturaCupon) return lecturaCupon;
 
       // --- PRODUCTO ---
       if (sql.includes("FROM producto p") && sql.includes("FOR UPDATE")) {
@@ -326,6 +390,8 @@ export function instalarBaseFalsa(otrasConsultas) {
   usarEjecutorDePrueba(async (sql, datos) => {
     const adicional = await otrasConsultas?.(sql, datos);
     if (adicional) return adicional;
+    const cupon = leerCupon(sql, datos, bd.pedidos);
+    if (cupon) return { filas: cupon.rows, afectadas: 0 };
     const lectura = leerPedidos(sql, datos, bd.pedidos, bd.detalles);
     if (lectura) return { filas: lectura.rows, afectadas: 0 };
     if (sql.includes("WHERE p.id = :id")) {
