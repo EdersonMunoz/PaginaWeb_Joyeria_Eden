@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Pruebas unitarias de caja negra para la Épica 3 (carrito, compra y comprobante), Sprint 3: gestionar productos del carrito (HE3-HU1), procesar la compra (HE3-HU2) y generar el comprobante digital (HE3-HU3). Son 20 casos, PU001–PU020, y todos se ejecutaron en la página del frontend.
+Pruebas unitarias de caja negra para la Épica 3 (Sprint 3): visualizar el estado del carrito (HE3-HU1), agregar producto (HE3-HU2), modificar cantidades (HE3-HU3), retirar productos (HE3-HU4), aplicar cupón (HE3-HU5) y procesar la compra (HE3-HU6). Los casos manuales y su mapeo están en [Casos_HE3-S3.md](Casos_HE3-S3.md).
 
 ## Cómo ejecutar
 

@@ -155,17 +155,17 @@ const JSON_POST = (cuerpo) => ({
   body: JSON.stringify(cuerpo),
 });
 
-// HE3-HU2 · el backend dice si el cupón existe y cuánto descuenta: { cupon: { codigo, porcentaje } }
+// HE3-HU5 · el backend valida el cupón y devuelve su porcentaje: { cupon: { codigo, porcentaje } }
 export const validarCupon = (codigo) =>
   realizarPeticion(`${RUTA_PEDIDOS}/cupon`, JSON_POST({ codigo }));
 
-// HE3-HU2 · procesa la compra (pago simulado) y devuelve el comprobante guardado en Oracle.
+// HE3-HU6 · procesa la compra (pago simulado) y devuelve el comprobante guardado en Oracle.
 // compra = { articulos: [{ productoId, cantidad }], metodoPago, direccion, codigoCupon, idSolicitud }
 // Requiere sesión iniciada; el pedido queda a nombre de la cuenta.
 export const procesarCompra = (compra) =>
   realizarPeticion(RUTA_PEDIDOS, JSON_POST(compra));
 
-// HE3-HU3 · vuelve a consultar un comprobante de la cuenta autenticada.
+// HE3-HU6 (comprobante de la compra) · vuelve a consultar el comprobante de la cuenta autenticada.
 export const consultarComprobante = (numeroPedido) =>
   realizarPeticion(`${RUTA_PEDIDOS}/${encodeURIComponent(numeroPedido)}`);
 

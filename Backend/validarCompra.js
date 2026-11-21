@@ -1,4 +1,4 @@
-// Reglas de la compra (Sprint 3 · HE3-HU1 carrito, HE3-HU2 procesar compra).
+// Reglas de validación del pago y la compra (Sprint 3 · HE3-HU6).
 // Igual que validar.js para los productos: aquí NO se toca la base de datos.
 // Son las mismas reglas que muestra el frontend (Carrito.jsx); el backend las
 // repite y además calcula el dinero, para que nadie pueda saltarse la página.
@@ -111,7 +111,7 @@ export function validarCompra(cuerpo) {
     });
   }
 
-  // --- Método de pago y dirección (HE3-HU2 escenario 4) ------------------
+  // --- Método de pago y dirección (HE3-HU6 escenario 4) ------------------
   const metodoPago = texto(datos.metodoPago);
   const direccion = typeof datos.direccion === "string" ? datos.direccion.trim() : "";
   const erroresPago = {};

@@ -151,7 +151,7 @@ function Carrito({
     return () => window.clearTimeout(temporizador);
   }, [estadoPago]);
 
-  // HE3-HU2 escenario 2: el backend valida el código y define el porcentaje
+  // HE3-HU5 escenarios 1–5: el backend valida el código y define el porcentaje
   const aplicarCupon = async (event) => {
     event.preventDefault();
     const codigo = codigoCupon.trim().toUpperCase();

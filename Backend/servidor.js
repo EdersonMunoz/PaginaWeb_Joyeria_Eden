@@ -12,8 +12,8 @@ import registrarProducto from "./rutas/registrarProducto.js"; // HU1
 import modificarProducto from "./rutas/modificarProducto.js"; // HU2
 import gestionarEstado from "./rutas/gestionarEstado.js"; // HU4
 import autenticacion from "./rutas/autenticacion.js"; // Sprint 2 · cuentas e inicio de sesión
-import procesarCompra from "./rutas/procesarCompra.js"; // Sprint 3 · HU2 (y validación de HU1)
-import consultarComprobante from "./rutas/consultarComprobante.js"; // Sprint 3 · HU3
+import procesarCompra from "./rutas/procesarCompra.js"; // Sprint 3 · HE3-HU6
+import consultarComprobante from "./rutas/consultarComprobante.js"; // Sprint 3 · HE3-HU6 (comprobante de la compra)
 
 export function crearApp() {
   const app = express();

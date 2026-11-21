@@ -1,5 +1,5 @@
-// HE3-HU2-CA002 · Procesar la compra de los productos seleccionados
-// (y la validación definitiva de HE3-HU1: cantidades contra el inventario real)
+// HE3-HU6 · Procesar la compra de los productos seleccionados
+// (incluye la validación definitiva de cantidades contra el inventario real)
 //
 // POST /api/pedidos          procesa la compra (pago SIMULADO: no se contacta ningún banco)
 //   cuerpo JSON: {
@@ -24,7 +24,7 @@ const router = Router();
 
 const MENSAJE_EXITO = "Pago exitoso, compra realizada.";
 
-// HE3-HU2 escenario 2: el porcentaje lo decide el servidor, no la página
+// HE3-HU5 escenarios 1–5: el porcentaje y la validez los decide el servidor.
 router.post("/cupon", requiereSesion, async (req, res) => {
   const codigo = typeof req.body?.codigo === "string" ? req.body.codigo.trim().toUpperCase() : "";
   if (!codigo) {
@@ -45,7 +45,7 @@ router.post("/cupon", requiereSesion, async (req, res) => {
   return res.json({ cupon: validacion.cupon });
 });
 
-// HE3-HU2 escenarios 3 y 4
+// HE3-HU6 escenarios 2 y 4
 router.post("/", requiereSesion, async (req, res) => {
   const { valores, error } = validarCompra(req.body);
   if (error) {
