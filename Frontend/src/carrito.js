@@ -18,6 +18,18 @@ export const cantidadEnCarrito = (carrito, productoId) =>
 export const stockRestante = (producto, carrito) =>
   Math.max(0, stockDisponible(producto) - cantidadEnCarrito(carrito, producto.id));
 
+export function direccionValida(direccion) {
+  if (typeof direccion !== "string") return false;
+  const normalizada = direccion.trim();
+  return (
+    normalizada.length >= 5 &&
+    normalizada.length <= 300 &&
+    !/^(?:calle|carrera|cra\.?|avenida|av\.?)\s*0(?:\s|#|$)/i.test(normalizada) &&
+    /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(normalizada) &&
+    /\d/.test(normalizada)
+  );
+}
+
 // HU1 escenarios 1, 2 y 5: suma `cantidad` sin pasar del stock.
 // Devuelve el MISMO arreglo si no cambió nada (ya estaba en el máximo).
 export function agregarAlCarrito(carrito, producto, cantidad = 1) {

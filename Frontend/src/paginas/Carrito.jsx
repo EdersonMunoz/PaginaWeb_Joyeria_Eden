@@ -9,10 +9,12 @@ import iconoBorrar from "../assets/iconossvg/iconoBorrar.svg";
 import iconoBasura from "../assets/iconossvg/IconoBasura.svg";
 import iconoCupon from "../assets/iconossvg/iconoCupon.svg";
 import * as api from "../api";
+import { obtenerUsuario } from "../sesion";
 import {
   articulosParaCompra,
   calcularResumen,
   crearIdSolicitud,
+  direccionValida,
 } from "../carrito";
 import Comprobante from "./Comprobante";
 import "./Carrito.css";
@@ -33,20 +35,12 @@ const metodosPago = [
   "Banco Popular",
 ];
 
-const direccionValida = (direccion) => {
-  const normalizada = direccion.trim();
-  return (
-    normalizada.length >= 5 &&
-    !/^(?:calle|carrera|cra\.?|avenida|av\.?)\s*0(?:\s|#|$)/i.test(
-      normalizada,
-    )
-  );
-};
-
 const MENSAJE_ERROR_PAGO =
   "Error al realizar el pago de la compra. Por favor completa todos los campos obligatorios y/o corrige la información";
 // Tiempo mínimo que se muestra "Procesando Compra" (el pago es simulado)
 const ESPERA_MINIMA_PAGO = 1200;
+const TIEMPO_PARA_CANCELAR = 3000;
+const TIEMPO_CANCELANDO_PAGO = 1500;
 
 function Carrito({
   carrito = [],
@@ -62,19 +56,24 @@ function Carrito({
   const [errorCupon, setErrorCupon] = useState("");
   const [validandoCupon, setValidandoCupon] = useState(false);
   const [mensajeErrorPago, setMensajeErrorPago] = useState(MENSAJE_ERROR_PAGO);
-  const [direccion, setDireccion] = useState("Calle 10A Norte #25A-03");
+  const [direccion, setDireccion] = useState(() => {
+    const direccionPerfil = obtenerUsuario()?.direccion;
+    return typeof direccionPerfil === "string" ? direccionPerfil : "";
+  });
   const [erroresPago, setErroresPago] = useState({
     metodo: false,
     direccion: false,
   });
   const [estadoPago, setEstadoPago] = useState(null);
+  const [puedeCancelarPago, setPuedeCancelarPago] = useState(false);
   const [datosComprobante, setDatosComprobante] = useState(null);
-  const [metodoPago, setMetodoPago] = useState(
-    carrito.length === 0 ? "Ninguno" : "Daviplata",
-  );
+  const [metodoPago, setMetodoPago] = useState("Ninguno");
   const [mostrarMetodosPago, setMostrarMetodosPago] = useState(false);
   const menuMetodosPagoRef = useRef(null);
   const pagoEnCurso = useRef(false);
+  const montado = useRef(false);
+  const temporizadorPagoRef = useRef(null);
+  const temporizadorCancelacionRef = useRef(null);
   const rutaInicio = "/Usuario";
   const rutaCatalogo = "/Usuario/Catalogo";
   // Resumen que se muestra mientras se arma el carrito. Los valores oficiales del
@@ -124,6 +123,22 @@ function Carrito({
     document.addEventListener("pointerdown", cerrarSiFuera);
     return () => document.removeEventListener("pointerdown", cerrarSiFuera);
   }, [mostrarMetodosPago]);
+
+  useEffect(() => {
+    montado.current = true;
+    return () => {
+      montado.current = false;
+      if (temporizadorPagoRef.current !== null) {
+        window.clearTimeout(temporizadorPagoRef.current);
+      }
+      if (temporizadorCancelacionRef.current !== null) {
+        window.clearTimeout(temporizadorCancelacionRef.current);
+      }
+      temporizadorPagoRef.current = null;
+      temporizadorCancelacionRef.current = null;
+      pagoEnCurso.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (estadoPago !== "exitoso" && estadoPago !== "error") {
@@ -176,26 +191,7 @@ function Carrito({
     setEstadoPago("error");
   };
 
-  // HE3-HU2 escenarios 3 y 4: el pago (simulado) lo procesa y lo guarda el backend
-  const iniciarPago = async () => {
-    const errores = {
-      metodo: metodoPago === "Ninguno",
-      direccion: !direccionValida(direccion),
-    };
-
-    setErroresPago(errores);
-    if (errores.metodo || errores.direccion) {
-      mostrarErrorPago();
-      return;
-    }
-    if (pagoEnCurso.current) {
-      return;
-    }
-
-    pagoEnCurso.current = true;
-    setEstadoPago("procesando");
-    // Solo se envía QUÉ se compra y CUÁNTO: precios, descuento, total, número de
-    // pedido, fecha y cliente los pone el backend.
+  const enviarCompra = async () => {
     const [respuesta] = await Promise.all([
       api.procesarCompra({
         articulos: articulosParaCompra(carrito),
@@ -209,15 +205,18 @@ function Carrito({
     pagoEnCurso.current = false;
 
     if (respuesta.ok && respuesta.comprobante) {
-      // El comprobante se muestra con los datos que quedaron guardados en la base
-      setDatosComprobante(respuesta.comprobante);
       completarCompra(respuesta.inventario ?? []);
+      if (!montado.current) return;
+
+      setDatosComprobante(respuesta.comprobante);
       setMetodoPago("Ninguno");
       setMostrarMetodosPago(false);
       setCodigoCupon("");
       setEstadoPago("exitoso");
       return;
     }
+
+    if (!montado.current) return;
 
     if (respuesta.estado === 401 || respuesta.estado === 403) {
       // La sesión venció: api.js ya cerró la sesión y está llevando al inicio de sesión
@@ -238,12 +237,56 @@ function Carrito({
     if (respuesta.estado === 409) {
       // El inventario cambió (otra compra, producto inactivado...): se actualiza el carrito
       await actualizarInventario?.();
+      if (!montado.current) return;
     }
     mostrarErrorPago(
       respuesta.errores?.metodo || respuesta.errores?.direccion
         ? MENSAJE_ERROR_PAGO
         : (respuesta.mensaje ?? MENSAJE_ERROR_PAGO),
     );
+  };
+
+  const iniciarPago = () => {
+    const errores = {
+      metodo: metodoPago === "Ninguno",
+      direccion: !direccionValida(direccion),
+    };
+
+    setErroresPago(errores);
+    if (errores.metodo || errores.direccion) {
+      mostrarErrorPago();
+      return;
+    }
+    if (pagoEnCurso.current) {
+      return;
+    }
+
+    pagoEnCurso.current = true;
+    setPuedeCancelarPago(true);
+    setEstadoPago("procesando");
+    temporizadorPagoRef.current = window.setTimeout(() => {
+      temporizadorPagoRef.current = null;
+      if (!montado.current || !pagoEnCurso.current) return;
+      setPuedeCancelarPago(false);
+      setEstadoPago("enviando");
+      void enviarCompra();
+    }, TIEMPO_PARA_CANCELAR);
+  };
+
+  const cancelarPago = () => {
+    if (temporizadorPagoRef.current === null || !pagoEnCurso.current) return;
+
+    window.clearTimeout(temporizadorPagoRef.current);
+    temporizadorPagoRef.current = null;
+    setPuedeCancelarPago(false);
+    setEstadoPago("cancelando");
+    temporizadorCancelacionRef.current = window.setTimeout(() => {
+      temporizadorCancelacionRef.current = null;
+      pagoEnCurso.current = false;
+      if (montado.current) {
+        setEstadoPago(null);
+      }
+    }, TIEMPO_CANCELANDO_PAGO);
   };
 
   return (
@@ -546,7 +589,10 @@ function Carrito({
               <button
                 className="carrito-boton-pagar"
                 type="button"
-                disabled={carrito.length === 0 || estadoPago === "procesando"}
+                disabled={
+                  carrito.length === 0 ||
+                  ["procesando", "enviando", "cancelando"].includes(estadoPago)
+                }
                 onClick={iniciarPago}
               >
                 Pagar
@@ -587,10 +633,12 @@ function Carrito({
                 ? mensajeErrorPago
                 : estadoPago === "exitoso"
                   ? "Pago exitoso, compra realizada."
-                  : "Procesando Compra"
+                  : estadoPago === "cancelando"
+                    ? "Cancelando compra, por favor, espere un momento"
+                    : "Procesando Compra"
             }
           >
-            {estadoPago === "procesando" && (
+            {["procesando", "enviando", "cancelando"].includes(estadoPago) && (
               <img className="carrito-modal-cargando" src={iconoCarga} alt="" />
             )}
             {estadoPago === "error" && (
@@ -618,8 +666,20 @@ function Carrito({
                 <p>Pago exitoso, compra realizada.</p>
               </>
             )}
-            {estadoPago === "procesando" && (
+            {["procesando", "enviando"].includes(estadoPago) && (
               <h2>Procesando Compra</h2>
+            )}
+            {estadoPago === "cancelando" && (
+              <p>Cancelando compra, por favor, espere un momento</p>
+            )}
+            {estadoPago === "procesando" && puedeCancelarPago && (
+              <button
+                className="carrito-modal-cancelar"
+                type="button"
+                onClick={cancelarPago}
+              >
+                Cancelar
+              </button>
             )}
           </section>
         </div>

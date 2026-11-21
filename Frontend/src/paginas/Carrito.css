@@ -565,6 +565,7 @@
 }
 
 .carrito-modal {
+  position: relative;
   display: flex;
   width: min(550px, 100%);
   flex-direction: column;
@@ -575,6 +576,30 @@
   border-radius: 20px;
   box-shadow: 0 18px 50px rgb(0 0 0 / 25%);
   text-align: center;
+}
+
+.carrito-modal-procesando {
+  margin-bottom: 24px;
+}
+
+.carrito-modal-cancelar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  padding: 11px 34px;
+  color: #fff;
+  background: #1a1a1a;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  transform: translate(-50%, 50%);
+}
+
+.carrito-modal-cancelar:focus-visible {
+  outline: 2px solid #1b4d3e;
+  outline-offset: 3px;
 }
 
 .carrito-modal h2 {
