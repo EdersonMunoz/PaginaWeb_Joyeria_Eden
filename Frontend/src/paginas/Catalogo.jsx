@@ -365,6 +365,7 @@ function Catalogo({ productos, carrito = [], agregarAlCarrito }) {
       {productoSeleccionado && (
         <DetalleProducto
           producto={productoSeleccionado}
+          carrito={carrito}
           vistaAdminSoloLectura={vistaAdminSoloLectura}
           onAgregarCarrito={agregarProductoAlCarrito}
           onCerrar={() => {

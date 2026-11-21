@@ -15,6 +15,9 @@ export function stockDisponible(producto) {
 export const cantidadEnCarrito = (carrito, productoId) =>
   carrito.find((item) => item.producto.id === productoId)?.cantidad ?? 0;
 
+export const stockRestante = (producto, carrito) =>
+  Math.max(0, stockDisponible(producto) - cantidadEnCarrito(carrito, producto.id));
+
 // HU1 escenarios 1, 2 y 5: suma `cantidad` sin pasar del stock.
 // Devuelve el MISMO arreglo si no cambió nada (ya estaba en el máximo).
 export function agregarAlCarrito(carrito, producto, cantidad = 1) {

@@ -11,6 +11,7 @@ import {
   eliminarDelCarrito,
   sincronizarCarrito,
   stockDisponible,
+  stockRestante,
 } from "./carrito.js";
 
 const anillos = { id: 1, ref: "ANI00001", nombre: "Anillos Dualis Blue", precio: 2450000, stock: 10, estado: "Activo" };
@@ -57,6 +58,14 @@ describe("carrito · HE3-HU1 gestionar productos", () => {
     assert.equal(stockDisponible({ stock: "7" }), 7);
     assert.equal(stockDisponible({ stock: -3 }), 0);
     assert.equal(stockDisponible({ stock: undefined }), Number.POSITIVE_INFINITY);
+  });
+
+  it("calcula el stock restante restando las unidades que ya están en el carrito", () => {
+    const carrito = [{ producto: perfume, cantidad: 1 }];
+
+    assert.equal(stockRestante(perfume, carrito), 1);
+    assert.equal(stockRestante(perfume, [{ producto: perfume, cantidad: 2 }]), 0);
+    assert.equal(stockRestante({ ...perfume, stock: undefined }, []), Number.POSITIVE_INFINITY);
   });
 });
 

@@ -233,6 +233,14 @@
   background: #3a2118;
 }
 
+.carrito-notificacion-cupon-exito {
+  background: #004d40;
+}
+
+.carrito-notificacion-cupon-error {
+  background: #362219;
+}
+
 .carrito-notificacion img {
   width: 38px;
   height: 38px;
@@ -350,15 +358,10 @@
   font-size: 15px;
 }
 
-.carrito-cupon-error,
 .carrito-error-campo {
   color: #a32121;
   font-size: 14px;
   font-weight: 500;
-}
-
-.carrito-cupon-error {
-  margin: 8px 0 0;
 }
 
 .carrito-cupon-aplicado {

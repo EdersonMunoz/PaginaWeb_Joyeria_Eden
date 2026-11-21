@@ -5,6 +5,7 @@ import iconoCorazon from "../assets/iconossvg/iconocorazon2.svg";
 import iconoLapiz from "../assets/iconossvg/iconoLapiz.svg";
 import iconoActivar from "../assets/iconoActivar.png";
 import iconoBloquear from "../assets/iconoBloquear.png";
+import { stockRestante } from "../carrito";
 import "./DetalleProducto.css";
 
 const formatoPrecio = new Intl.NumberFormat("es-CO", {
@@ -23,14 +24,20 @@ function DetalleProducto({
   onCancelarCambioEstado,
   onConfirmarCambioEstado,
   onAgregarCarrito,
+  carrito = [],
 }) {
-  const [cantidad, setCantidad] = useState(1);
+  const cantidadMaxima = stockRestante(producto, carrito);
+  const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
+  const cantidad =
+    cantidadMaxima === 0
+      ? 0
+      : Math.min(cantidadSeleccionada, cantidadMaxima);
+  const alertaStockAutomatica =
+    !administrador &&
+    !vistaAdminSoloLectura &&
+    (cantidadMaxima === 0 || cantidadSeleccionada > cantidadMaxima);
   const [favorito, setFavorito] = useState(false);
   const [alertaStock, setAlertaStock] = useState(null);
-  const stock = Number(producto.stock);
-  const cantidadMaxima = Number.isFinite(stock)
-    ? Math.max(0, Math.floor(stock))
-    : Number.POSITIVE_INFINITY;
 
   useEffect(() => {
     const manejarEscape = (event) => {
@@ -58,12 +65,12 @@ function DetalleProducto({
 
   const aumentarCantidad = () => {
     if (cantidad >= cantidadMaxima) {
-      setCantidad(cantidadMaxima);
+      setCantidadSeleccionada(cantidadMaxima);
       setAlertaStock({ mensaje: "Stock máximo alcanzado" });
       return;
     }
 
-    setCantidad((actual) => Math.min(cantidadMaxima, actual + 1));
+    setCantidadSeleccionada(Math.min(cantidadMaxima, cantidad + 1));
   };
 
   return (
@@ -190,7 +197,9 @@ function DetalleProducto({
                       type="button"
                       aria-label="Disminuir cantidad"
                       disabled={vistaAdminSoloLectura || cantidad <= 1}
-                      onClick={() => setCantidad((valor) => Math.max(1, valor - 1))}
+                      onClick={() =>
+                        setCantidadSeleccionada(Math.max(1, cantidad - 1))
+                      }
                     >
                       −
                     </button>
@@ -211,11 +220,7 @@ function DetalleProducto({
                 <button
                   className="detalle-producto-comprar"
                   type="button"
-                  disabled={
-                    vistaAdminSoloLectura ||
-                    (Number.isFinite(Number(producto.stock)) &&
-                      Number(producto.stock) <= 0)
-                  }
+                  disabled={vistaAdminSoloLectura || cantidadMaxima === 0}
                   onClick={() => onAgregarCarrito?.(producto, cantidad)}
                 >
                   <img src={iconoCarrito} alt="" />
@@ -225,10 +230,10 @@ function DetalleProducto({
             )}
           </div>
         </div>
-        {alertaStock && (
+        {(alertaStock || alertaStockAutomatica) && (
           <div className="detalle-producto-alerta-stock" role="status" aria-live="polite">
             <img src={iconoCampana} alt="" />
-            <span>{alertaStock.mensaje}</span>
+            <span>{alertaStock?.mensaje ?? "Stock máximo alcanzado"}</span>
           </div>
         )}
       </section>
