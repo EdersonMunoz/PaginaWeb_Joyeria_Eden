@@ -90,10 +90,10 @@ describe("validarCompra · método de pago, dirección y cupón", () => {
   });
 
   test("direccionValida: mismas reglas que el frontend", () => {
-    for (const valida of ["Calle 10A Norte #25A-03", "Calle 10 # 5-20", "Carrera 7 # 12-34", "Calle 05 # 1-2", "Vereda El Tablón casa 4", "Cll 0 # 2"]) {
+    for (const valida of ["Calle 10A Norte #25A-03", "Calle 10 # 5-20", "Carrera 7 # 12-34", "Calle 05 # 1-2", "Vereda El Tablón, casa 4"]) {
       assert.equal(direccionValida(valida), true, valida);
     }
-    for (const invalida of ["", "    ", "abc", "Calle 0 #25A-03", "calle 0", "CARRERA 0 # 2-3", "Cra. 0 # 2", "Avenida 0", "Av 0 # 1", null, undefined, 12345678, {}, "a".repeat(301)]) {
+    for (const invalida of ["", "    ", "abc", "hola mundo", "12345", "Calle 0 #25A-03", "calle 0", "CARRERA 0 # 2-3", "Cra. 0 # 2", "Avenida 0", "Av 0 # 1", null, undefined, 12345678, {}, "a".repeat(301)]) {
       assert.equal(direccionValida(invalida), false, String(invalida));
     }
   });

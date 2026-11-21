@@ -33,7 +33,8 @@ export const MENSAJE_CUPON_VACIO = "Ingresa un código de cupón.";
 const texto = (valor) =>
   typeof valor === "string" || typeof valor === "number" ? String(valor).trim() : "";
 
-// Misma regla que Carrito.jsx: al menos 5 caracteres y la vía no puede ser "0"
+// Misma regla que el frontend: al menos 5 caracteres, una letra y un número;
+// la vía no puede ser "0"
 // (el diseño usa "Calle 0 #25A-03" como ejemplo de dirección inválida).
 // No se exige un formato exacto para no rechazar direcciones reales
 // ("Vereda El Tablón, casa 4", "Km 3 vía al Bordo"...).
@@ -43,7 +44,9 @@ export function direccionValida(direccion) {
   return (
     normalizada.length >= 5 &&
     normalizada.length <= DIRECCION_MAXIMA &&
-    !/^(?:calle|carrera|cra\.?|avenida|av\.?)\s*0(?:\s|#|$)/i.test(normalizada)
+    !/^(?:calle|carrera|cra\.?|avenida|av\.?)\s*0(?:\s|#|$)/i.test(normalizada) &&
+    /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(normalizada) &&
+    /\d/.test(normalizada)
   );
 }
 

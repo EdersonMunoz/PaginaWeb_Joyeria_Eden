@@ -448,7 +448,17 @@ describe("HE3-HU2 · Procesar compra", () => {
   test("HE3-S3-PU027 · (-) Dirección inválida del prototipo: 'Calle 0 #25A-03'", async () => {
     const producto = anillos();
 
-    for (const direccion of ["Calle 0 #25A-03", "Calle 0  #25A-03", "carrera 0 # 1-1", "Cra 0", "x".repeat(301)]) {
+    for (const direccion of [
+      "Calle 0 #25A-03",
+      "Calle 0  #25A-03",
+      "carrera 0 # 1-1",
+      "Cra 0",
+      "hola mundo",
+      "12345",
+      "Calle diez # casa",
+      "1234 # 5-6",
+      "x".repeat(301),
+    ]) {
       const r = await comprar(compraValida([{ productoId: producto.id, cantidad: 1 }], { direccion }));
       assert.equal(r.estado, 400, direccion);
       assert.deepEqual(r.cuerpo.errores, { direccion: true });

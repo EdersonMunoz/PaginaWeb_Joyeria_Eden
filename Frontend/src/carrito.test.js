@@ -8,6 +8,7 @@ import {
   calcularResumen,
   cantidadEnCarrito,
   crearIdSolicitud,
+  direccionValida,
   eliminarDelCarrito,
   sincronizarCarrito,
   stockDisponible,
@@ -66,6 +67,26 @@ describe("carrito · HE3-HU1 gestionar productos", () => {
     assert.equal(stockRestante(perfume, carrito), 1);
     assert.equal(stockRestante(perfume, [{ producto: perfume, cantidad: 2 }]), 0);
     assert.equal(stockRestante({ ...perfume, stock: undefined }, []), Number.POSITIVE_INFINITY);
+  });
+
+  it("valida direcciones con al menos cinco caracteres, una letra y un número", () => {
+    for (const direccion of [
+      "Calle 10A Norte #25A-03",
+      "Vereda El Tablón, casa 4",
+    ]) {
+      assert.equal(direccionValida(direccion), true, direccion);
+    }
+
+    for (const direccion of [
+      "hola mundo",
+      "12345",
+      "Calle 0 #25A-03",
+      "Calle",
+      "a".repeat(301),
+      "",
+    ]) {
+      assert.equal(direccionValida(direccion), false, direccion);
+    }
   });
 });
 
