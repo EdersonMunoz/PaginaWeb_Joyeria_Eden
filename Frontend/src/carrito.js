@@ -18,6 +18,16 @@ export const cantidadEnCarrito = (carrito, productoId) =>
 export const stockRestante = (producto, carrito) =>
   Math.max(0, stockDisponible(producto) - cantidadEnCarrito(carrito, producto.id));
 
+export function migaCarrito(origen) {
+  const niveles = [{ nombre: "Inicio", ruta: "/Usuario" }];
+
+  if (origen === "catalogo") {
+    niveles.push({ nombre: "Catálogo", ruta: "/Usuario/Catalogo" });
+  }
+
+  return [...niveles, { nombre: "Carrito", ruta: "/Usuario/Carrito" }];
+}
+
 export function direccionValida(direccion) {
   if (typeof direccion !== "string") return false;
   const normalizada = direccion.trim();

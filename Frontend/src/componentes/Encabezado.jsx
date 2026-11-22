@@ -253,6 +253,13 @@ function Encabezado({
             <Link
               className="icono-subrayado encabezado-carrito"
               to={rutaCarrito}
+              state={{
+                origen: location.pathname.endsWith("/Carrito")
+                  ? location.state?.origen
+                  : location.pathname.endsWith("/Catalogo")
+                    ? "catalogo"
+                    : "inicio",
+              }}
               aria-label={`Abrir carrito: ${carritoCantidad} ${carritoCantidad === 1 ? "producto" : "productos"}`}
             >
               <img src={iconoCarrito} alt="" className="encabezado-icono" />
