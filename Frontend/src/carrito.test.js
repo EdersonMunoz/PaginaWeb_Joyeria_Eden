@@ -10,6 +10,7 @@ import {
   crearIdSolicitud,
   direccionValida,
   eliminarDelCarrito,
+  migaCarrito,
   sincronizarCarrito,
   stockDisponible,
   stockRestante,
@@ -94,6 +95,46 @@ describe("HE3-HU6 · Procesar la compra · escenario 4", () => {
       "",
     ]) {
       assert.equal(direccionValida(direccion), false, direccion);
+    }
+  });
+});
+
+describe("HE3-HU1 · miga de pan del carrito · escenarios 1 y 2", () => {
+  it("incluye el catálogo cuando el origen inmediato es el catálogo", () => {
+    assert.deepEqual(migaCarrito("catalogo"), [
+      { nombre: "Inicio", ruta: "/Usuario" },
+      { nombre: "Catálogo", ruta: "/Usuario/Catalogo" },
+      { nombre: "Carrito", ruta: "/Usuario/Carrito" },
+    ]);
+  });
+
+  it("muestra Inicio y Carrito al venir del inicio o directamente", () => {
+    const esperada = [
+      { nombre: "Inicio", ruta: "/Usuario" },
+      { nombre: "Carrito", ruta: "/Usuario/Carrito" },
+    ];
+
+    assert.deepEqual(migaCarrito("inicio"), esperada);
+    assert.deepEqual(migaCarrito("directo"), esperada);
+  });
+
+  it("usa Inicio y Carrito cuando no se informa origen", () => {
+    assert.deepEqual(migaCarrito(), [
+      { nombre: "Inicio", ruta: "/Usuario" },
+      { nombre: "Carrito", ruta: "/Usuario/Carrito" },
+    ]);
+  });
+
+  it("usa el valor por defecto para un origen desconocido", () => {
+    assert.deepEqual(migaCarrito("desconocido"), [
+      { nombre: "Inicio", ruta: "/Usuario" },
+      { nombre: "Carrito", ruta: "/Usuario/Carrito" },
+    ]);
+  });
+
+  it("nunca supera los tres niveles", () => {
+    for (const origen of ["catalogo", "inicio", "directo", "desconocido", undefined]) {
+      assert.ok(migaCarrito(origen).length <= 3);
     }
   });
 });

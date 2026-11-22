@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigationType } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
 import iconoCampana from "../assets/iconossvg/iconoCampana.svg";
 import iconoCarroVacio from "../assets/iconossvg/iconoCarroVacio.svg";
@@ -15,6 +15,7 @@ import {
   calcularResumen,
   crearIdSolicitud,
   direccionValida,
+  migaCarrito,
 } from "../carrito";
 import Comprobante from "./Comprobante";
 import "./Carrito.css";
@@ -51,6 +52,13 @@ function Carrito({
   cupon: cuponAplicado = null,
   cambiarCupon: setCuponAplicado = () => {},
 }) {
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const origen =
+    navigationType === "PUSH" || navigationType === "REPLACE"
+      ? location.state?.origen
+      : undefined;
+  const nivelesMiga = migaCarrito(origen);
   const [notificacion, setNotificacion] = useState(null);
   const [codigoCupon, setCodigoCupon] = useState("");
   const [errorCupon, setErrorCupon] = useState("");
@@ -74,8 +82,6 @@ function Carrito({
   const montado = useRef(false);
   const temporizadorPagoRef = useRef(null);
   const temporizadorCancelacionRef = useRef(null);
-  const rutaInicio = "/Usuario";
-  const rutaCatalogo = "/Usuario/Catalogo";
   // Resumen que se muestra mientras se arma el carrito. Los valores oficiales del
   // pedido (precios, descuento y total) los calcula el backend al pagar.
   const { cantidadTotal, subtotal, descuento, total } = calcularResumen(
@@ -301,11 +307,16 @@ function Carrito({
 
       <div className="carrito-contenido">
         <p className="carrito-miga-pan">
-          <Link to={rutaInicio}>Inicio</Link>
-          <span aria-hidden="true">\</span>
-          <Link to={rutaCatalogo}>Catálogo</Link>
-          <span aria-hidden="true">\</span>
-          Carrito
+          {nivelesMiga.map((nivel, indice) => (
+            <Fragment key={nivel.nombre}>
+              {indice > 0 && <span aria-hidden="true">\</span>}
+              {indice === nivelesMiga.length - 1 ? (
+                nivel.nombre
+              ) : (
+                <Link to={nivel.ruta}>{nivel.nombre}</Link>
+              )}
+            </Fragment>
+          ))}
         </p>
 
         <div className="carrito-layout">
