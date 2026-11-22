@@ -1,6 +1,8 @@
 # Casos de prueba HE3-S3
 
-Excel de referencia: [Excel de pruebas unitarias · Iteración 1](https://docs.google.com/spreadsheets/d/1gT_d_7CfNVxbYUVyGnacO9tk7HS3Dr-bPltWbOT1sxg/edit?gid=22589911#gid=22589911).
+Excel de referencia: [Iteración 2 (versión actual)](https://docs.google.com/spreadsheets/d/1o__4Gfn-6TWRNwCaI0YEUQb-fTBRzcM8oabvak6n3Lk/edit?gid=68337349#gid=68337349) · [Iteración 1](https://docs.google.com/spreadsheets/d/1gT_d_7CfNVxbYUVyGnacO9tk7HS3Dr-bPltWbOT1sxg/edit?gid=22589911#gid=22589911).
+
+PU001–PU020 se ejecutaron en la Iteración 1 y se volvieron a ejecutar en la Iteración 2 con los resultados esperados actualizados (PU004, PU010, PU011, PU013, PU016, PU018). PU021–PU032 se incorporaron en la Iteración 2.
 
 | ID | Historia / escenario | Campos | Valores | Resultado esperado | Evidencia |
 |---|---|---|---|---|---|
