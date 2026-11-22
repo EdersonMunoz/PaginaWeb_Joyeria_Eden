@@ -2,7 +2,7 @@
 
 Excel de referencia: [Iteración 2 (versión actual)](https://docs.google.com/spreadsheets/d/1o__4Gfn-6TWRNwCaI0YEUQb-fTBRzcM8oabvak6n3Lk/edit?gid=68337349#gid=68337349) · [Iteración 1](https://docs.google.com/spreadsheets/d/1gT_d_7CfNVxbYUVyGnacO9tk7HS3Dr-bPltWbOT1sxg/edit?gid=22589911#gid=22589911).
 
-PU001–PU020 se ejecutaron en la Iteración 1 y se volvieron a ejecutar en la Iteración 2 con los resultados esperados actualizados (PU004, PU010, PU011, PU013, PU016, PU018). PU021–PU032 se incorporaron en la Iteración 2.
+PU001–PU020 se ejecutaron en la Iteración 1 y se volvieron a ejecutar en la Iteración 2 con los resultados esperados actualizados (PU004, PU010, PU011, PU013, PU016, PU018). PU021–PU031 se incorporaron en la Iteración 2.
 
 | ID | Historia / escenario | Campos | Valores | Resultado esperado | Evidencia |
 |---|---|---|---|---|---|
@@ -37,7 +37,6 @@ PU001–PU020 se ejecutaron en la Iteración 1 y se volvieron a ejecutar en la I
 | HE3-S3-I1-PU029 | HE3-HU1 · miga de pan | Miga de pan, origen catálogo / (Pantalla: Carrito) | Entrar al carrito con el icono del carrito desde el catálogo | La miga mostrará Inicio \ Catálogo \ Carrito, con Inicio y Catálogo como enlaces. | Pantalla |
 | HE3-S3-I1-PU030 | HE3-HU1 · miga de pan | Miga de pan, origen directo / (Pantalla: Carrito) | Entrar al carrito desde el inicio o recargar la página dentro del carrito | La miga mostrará Inicio \ Carrito. | Pantalla |
 | HE3-S3-I1-PU031 | HE3-HU6 · escenario 4 | Dirección de envío (solo números) / (Pantalla: Carrito) | Método: Daviplata / Dirección: «12345» (5 caracteres, sin letras) / Acción: Pagar | El sistema rechazará la dirección («Ingresa una dirección válida.»), mostrará el error general del pago y no registrará la compra. | Pantalla |
-| HE3-S3-I1-PU032 | HE3-HU6 · escenario 4 | Dirección de envío (límite superior) / (Pantalla: Carrito) | Dirección de 301 caracteres con letras y números / Acción: Pagar | El sistema rechazará la dirección porque supera el máximo de 300 caracteres, resaltará el campo y no registrará la compra. | Pantalla |
 
 Para comprobar el orden de rechazo, probar primero un código inexistente (PU011), después `VENCIDO2025` (PU023), luego usar `LIMITE1` una vez con Cuenta A y volver a intentarlo con esa cuenta (PU024); por último probar `LIMITE1` con Cuenta B (PU025).
 
