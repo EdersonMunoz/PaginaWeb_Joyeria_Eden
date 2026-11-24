@@ -167,7 +167,11 @@ export const procesarCompra = (compra) =>
 
 // HE3-HU6 (comprobante de la compra) · vuelve a consultar el comprobante de la cuenta autenticada.
 export const consultarComprobante = (numeroPedido) =>
-  realizarPeticion(`${RUTA_PEDIDOS}/${encodeURIComponent(numeroPedido)}`);
+  realizarPeticion(`${RUTA_PEDIDOS}/${encodeURIComponent(numeroPedido)}`, {});
+
+// Sprint 4 · HE4-HU2 · historial de pedidos de la cuenta que inició sesión.
+// Devuelve { pedidos: [{ numeroPedido, totalProductos, fecha }] } del más reciente al más antiguo.
+export const listarPedidos = () => realizarPeticion(RUTA_PEDIDOS, {});
 
 // HU1 · registrar
 export const registrarProducto = (campos, archivo) =>
