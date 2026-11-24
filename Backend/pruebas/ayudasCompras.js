@@ -126,6 +126,21 @@ const filaDetalle = (d) => ({
 
 // Consultas de solo lectura sobre PEDIDO / DETALLE_PEDIDO (sirven dentro y fuera de transacción)
 function leerPedidos(sql, datos, pedidos, detalles) {
+  // Sprint 4 · HE4-HU2: historial de la cuenta (SELECT_HISTORIAL de pedidos.js)
+  if (sql.includes('AS "totalProductos"')) {
+    return {
+      rows: pedidos
+        .filter((p) => p.usuarioId === datos.usuarioId)
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha) || b.id - a.id)
+        .map((p) => ({
+          numeroPedido: p.numero,
+          fecha: p.fecha,
+          totalProductos: detalles
+            .filter((d) => d.pedidoId === p.id)
+            .reduce((suma, d) => suma + d.cantidad, 0),
+        })),
+    };
+  }
   if (sql.includes("FROM pedido p")) {
     let encontrado;
     if (sql.includes("p.numero = :numero")) encontrado = pedidos.find((p) => p.numero === datos.numero);
