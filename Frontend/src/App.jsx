@@ -155,7 +155,7 @@ function App() {
         <Route path="/Registro" element={<RegistroCuenta />} />
         <Route
           path="/Usuario/Ajustes_cuenta"
-          element={<RutaProtegida rol="cliente"><AjustesCuenta /></RutaProtegida>}
+          element={<RutaProtegida rol="cliente"><AjustesCuenta carrito={carrito} /></RutaProtegida>}
         />
         <Route
           path="/Admin/Ajustes_cuenta"
@@ -163,7 +163,7 @@ function App() {
         />
         <Route
           path="/Usuario"
-          element={<RutaProtegida rol="cliente"><InicioUsuario productos={productos} /></RutaProtegida>}
+          element={<RutaProtegida rol="cliente"><InicioUsuario productos={productos} carrito={carrito} /></RutaProtegida>}
         />
         <Route
           path="/Admin"

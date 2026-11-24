@@ -8,10 +8,14 @@ import { esPasswordValida, esTelefonoValido } from "../validacionesCuenta";
 import "./AjustesCuenta.css";
 import "../componentes/EncabezadoFigma.css";
 
-function AjustesCuenta() {
+function AjustesCuenta({ carrito = [] }) {
   const navigate = useNavigate();
   const location = useLocation();
   const esAdministrador = location.pathname.startsWith("/Admin/");
+  const cantidadEnCarrito = carrito.reduce(
+    (total, item) => total + item.cantidad,
+    0,
+  );
   const cuenta = obtenerUsuario();
   const nombreGuardado = cuenta?.nombre?.trim() ?? "";
   const partesNombre = nombreGuardado.split(/\s+/);
@@ -171,6 +175,7 @@ function AjustesCuenta() {
       <Encabezado
         administrador={esAdministrador}
         sesionIniciada
+        carritoCantidad={esAdministrador ? 0 : cantidadEnCarrito}
         ocultarIconoBusqueda
         ocultarCarrito={esAdministrador}
         ocultarTendencias
