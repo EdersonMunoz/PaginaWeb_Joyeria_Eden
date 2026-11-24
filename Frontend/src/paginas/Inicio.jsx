@@ -59,7 +59,12 @@ const productosMasVendidos = [
   },
 ];
 
-function Inicio({ administrador = false, usuario = false, productos = [] }) {
+function Inicio({
+  administrador = false,
+  usuario = false,
+  productos = [],
+  carrito = [],
+}) {
   const location = useLocation();
   const navigate = useNavigate();
   const mensajeCuentaDesactivada = location.state?.varianteMensaje === "cuenta-desactivada";
@@ -81,6 +86,10 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
           ).includes(consultaNormalizada),
       )
     : [];
+  const cantidadEnCarrito = carrito.reduce(
+    (total, item) => total + item.cantidad,
+    0,
+  );
 
   useEffect(() => {
     if (!location.state?.mensaje) return undefined;
@@ -136,6 +145,7 @@ function Inicio({ administrador = false, usuario = false, productos = [] }) {
         </p>
       )}
       <Encabezado
+        carritoCantidad={cantidadEnCarrito}
         busquedaAbierta={busquedaAbierta}
         consulta={consulta}
         contenidoBusqueda={
