@@ -4,6 +4,7 @@ import {
   actualizarCantidad,
   agregarAlCarrito,
   aplicarInventario,
+  avisoRecompra,
   articulosParaCompra,
   calcularResumen,
   cantidadEnCarrito,
@@ -11,6 +12,8 @@ import {
   direccionValida,
   eliminarDelCarrito,
   migaCarrito,
+  notificacionRecompra,
+  recomprarPedido,
   sincronizarCarrito,
   stockDisponible,
   stockRestante,
@@ -267,5 +270,98 @@ describe("HE3-HU6 · Procesar la compra · escenario 2 · coherencia del inventa
       ],
     );
     assert.equal(productos[1], pendientes);
+  });
+});
+
+// ---------------------------------------------------------------
+// Sprint 4 · HE4-HU4 · Volver a comprar desde el historial de pedidos
+// ---------------------------------------------------------------
+describe("HE4-HU4 · recomprarPedido", () => {
+  const pedido = [
+    { producto: { id: 1, nombre: "Anillos Dualis Blue" }, cantidad: 2 },
+    { producto: { id: 4, nombre: "Pendientes Flora Celeste" }, cantidad: 2 },
+  ];
+
+  it("escenario 1: con stock suficiente agrega todos los productos y cantidades del pedido", () => {
+    const r = recomprarPedido([], pedido, [anillos, pendientes]);
+
+    assert.deepEqual(r.carrito.map((i) => [i.producto.id, i.cantidad]), [[1, 2], [4, 2]]);
+    assert.equal(r.omitidos.length, 0);
+    assert.equal(avisoRecompra(r), "completa");
+  });
+
+  it("escenario 2: agrega solo los productos con stock suficiente y deja fuera los demás", () => {
+    const sinStock = { ...pendientes, stock: 1 }; // el pedido llevaba 2
+    const r = recomprarPedido([], pedido, [anillos, sinStock]);
+
+    assert.deepEqual(r.carrito.map((i) => [i.producto.id, i.cantidad]), [[1, 2]]);
+    assert.deepEqual(r.omitidos.map((p) => p.id), [4]);
+    assert.equal(avisoRecompra(r), "parcial");
+  });
+
+  it("no agrega productos inactivos ni los que ya no existen en el catálogo", () => {
+    const inactivo = { ...pendientes, estado: "Inactivo" };
+
+    assert.deepEqual(recomprarPedido([], pedido, [anillos, inactivo]).omitidos.map((p) => p.id), [4]);
+    assert.deepEqual(recomprarPedido([], pedido, [anillos]).omitidos.map((p) => p.id), [4]);
+  });
+
+  it("usa el precio y el stock actuales del catálogo, no los del pedido", () => {
+    const conPrecioNuevo = { ...anillos, precio: 3000000 };
+    const r = recomprarPedido([], [pedido[0]], [conPrecioNuevo]);
+
+    assert.equal(r.carrito[0].producto.precio, 3000000);
+  });
+
+  it("suma al carrito que ya existe si el stock alcanza", () => {
+    const r = recomprarPedido([{ producto: anillos, cantidad: 1 }], [pedido[0]], [anillos]);
+
+    assert.deepEqual(r.carrito.map((i) => [i.producto.id, i.cantidad]), [[1, 3]]);
+  });
+
+  it("no pasa del stock cuando el carrito ya tiene unidades del producto", () => {
+    const justo = { ...anillos, stock: 3 };
+    const r = recomprarPedido([{ producto: justo, cantidad: 2 }], [pedido[0]], [justo]);
+
+    assert.equal(r.carrito[0].cantidad, 2);
+    assert.equal(r.omitidos.length, 1);
+    assert.equal(avisoRecompra(r), "parcial");
+  });
+
+  it("si no se puede agregar nada devuelve el mismo carrito", () => {
+    const carrito = [{ producto: anillos, cantidad: 1 }];
+    const r = recomprarPedido(carrito, [pedido[1]], []);
+
+    assert.equal(r.carrito, carrito);
+    assert.equal(r.agregados.length, 0);
+  });
+
+  it("no modifica el carrito original", () => {
+    const carrito = [{ producto: anillos, cantidad: 1 }];
+    recomprarPedido(carrito, pedido, [anillos, pendientes]);
+
+    assert.equal(carrito[0].cantidad, 1);
+    assert.equal(carrito.length, 1);
+  });
+});
+
+describe("HE4-HU4 · notificacionRecompra", () => {
+  it("recompra completa: Se agregó el producto al carrito", () => {
+    assert.deepEqual(notificacionRecompra("completa"), {
+      tipo: "agregado",
+      mensaje: "Se agregó el producto al carrito",
+    });
+  });
+
+  it("recompra parcial: Algunos productos no se agregaron por falta de disponibilidad", () => {
+    assert.deepEqual(notificacionRecompra("parcial"), {
+      tipo: "agregado-parcial",
+      mensaje: "Algunos productos no se agregaron por falta de disponibilidad",
+    });
+  });
+
+  it("sin aviso no hay notificación", () => {
+    assert.equal(notificacionRecompra(undefined), null);
+    assert.equal(notificacionRecompra("otro"), null);
   });
 });

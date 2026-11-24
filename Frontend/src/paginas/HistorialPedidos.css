@@ -1,0 +1,264 @@
+/* Historial de pedidos · medidas tomadas del Figma sprint4
+   (Prototipo_Usuario_HistorialPedidos y ..._Sin_Pedidos, lienzo de 1440 px). */
+.pagina-historial {
+  min-height: 100vh;
+  color: #1a1a1a;
+  background: #fbf9f4;
+  font-family: Poppins, system-ui, sans-serif;
+}
+
+.historial-contenido {
+  width: min(1336px, calc(100% - 72px));
+  margin: 14px auto 60px;
+}
+
+.historial-miga-pan {
+  margin: 0 0 48px 20px;
+  color: #004d40;
+  font-size: 19px;
+}
+
+.historial-miga-pan a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.historial-miga-pan a:hover,
+.historial-miga-pan a:focus-visible {
+  text-decoration: underline;
+}
+
+.historial-miga-pan span {
+  margin: 0 3px;
+}
+
+.historial-listado {
+  /* 1090 px de la tabla + 30 px de separación + 223 px del botón "Volver a comprar" (Figma) */
+  --ancho-recomprar: 223px;
+  --separacion-recomprar: 30px;
+  max-width: 1343px;
+  margin-left: 0;
+}
+
+.historial-listado h1 {
+  margin: 0 0 36px 14px;
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+/* Las mismas 4 columnas para los títulos y para cada fila: así quedan alineados */
+.historial-columnas,
+.historial-pedido {
+  display: grid;
+  grid-template-columns: 1.15fr 1.3fr 1.3fr 1.45fr;
+  align-items: center;
+  text-align: center;
+}
+
+.historial-columnas {
+  max-width: calc(100% - var(--ancho-recomprar) - var(--separacion-recomprar));
+  margin-bottom: 26px;
+  padding: 0 4px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.historial-columnas span {
+  margin: 0 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #222;
+}
+
+.historial-lista {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historial-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--separacion-recomprar);
+}
+
+.historial-pedido {
+  flex: 1 1 auto;
+  min-height: 117px;
+  padding: 0 4px;
+  border-radius: 28px;
+  color: #fff;
+  background: #004d40;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.historial-numero {
+  overflow-wrap: anywhere;
+}
+
+.historial-ver-detalle {
+  justify-self: center;
+  padding: 0 0 2px;
+  border: 0;
+  border-bottom: 2px solid #fff;
+  color: #fff;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.historial-ver-detalle:hover {
+  opacity: 0.85;
+}
+
+.historial-ver-detalle:focus-visible,
+.historial-boton:focus-visible {
+  outline: 3px solid #d9b46a;
+  outline-offset: 3px;
+}
+
+.historial-recomprar {
+  flex: 0 0 var(--ancho-recomprar);
+  width: var(--ancho-recomprar);
+  padding: 14px 8px;
+  border: 3px solid #004d40;
+  border-radius: 12px;
+  color: #1a1a1a;
+  background: #fff;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.historial-recomprar:hover:not(:disabled) {
+  color: #fff;
+  background: #004d40;
+}
+
+.historial-recomprar:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.historial-recomprar:focus-visible {
+  outline: 3px solid #d9b46a;
+  outline-offset: 3px;
+}
+
+.historial-error-recompra {
+  margin: 24px 0 0;
+  color: #8a1c1c;
+  text-align: center;
+  font-size: 18px;
+}
+
+.historial-estado {
+  margin: 56px 0 0;
+  text-align: center;
+  font-size: 20px;
+}
+
+.historial-vacio h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.historial-vacio p {
+  margin: 0 0 28px;
+}
+
+.historial-boton {
+  display: inline-block;
+  padding: 12px 34px;
+  border: 2px solid #004d40;
+  border-radius: 10px;
+  color: #004d40;
+  background: #fff;
+  font: inherit;
+  font-size: 20px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.historial-boton:hover {
+  color: #fff;
+  background: #004d40;
+}
+
+@media (max-width: 720px) {
+  .historial-contenido {
+    width: calc(100% - 28px);
+  }
+
+  .historial-miga-pan {
+    margin-left: 0;
+    font-size: 15px;
+  }
+
+  .historial-listado h1 {
+    margin-left: 0;
+    font-size: 28px;
+  }
+
+  .historial-columnas,
+  .historial-pedido {
+    font-size: 13px;
+  }
+
+  .historial-columnas span {
+    margin: 0 2px;
+  }
+
+  .historial-pedido {
+    min-height: 84px;
+    border-radius: 20px;
+  }
+
+  .historial-columnas {
+    max-width: 100%;
+  }
+
+  .historial-fila {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .historial-recomprar {
+    width: 100%;
+    flex-basis: auto;
+    font-size: 16px;
+  }
+}
+
+/* Ventana de "cargando" y de error del detalle del pedido (el recibo usa Comprobante.css) */
+.historial-detalle-aviso {
+  width: min(420px, 100%);
+  padding: 32px 28px;
+  border: 2px solid #004d40;
+  border-radius: 22px;
+  color: #1a1a1a;
+  background: #fff;
+  box-shadow: 0 15px 40px rgb(0 0 0 / 18%);
+  text-align: center;
+  font-size: 18px;
+}
+
+.historial-detalle-aviso p {
+  margin: 0 0 20px;
+}
+
+.historial-detalle-aviso p:last-child {
+  margin-bottom: 0;
+}
+
+.historial-detalle-acciones {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
