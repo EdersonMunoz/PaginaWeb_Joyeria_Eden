@@ -3,6 +3,7 @@ import "./Encabezado.css";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
+import { rutaHistorialDesde } from "../historial";
 import { cerrarSesion, obtenerUsuario } from "../sesion";
 import iconoOpciones from "../assets/iconossvg/iconoOpciones.svg";
 import iconoLupa from "../assets/iconossvg/iconobuscar.svg";
@@ -346,7 +347,12 @@ function Encabezado({
                 </>
               ) : (
                 <>
-                  <button type="button">Historial de pedidos</button>
+                  <Link
+                    to={rutaHistorialDesde(location.pathname)}
+                    onClick={() => setMenuAbierto(false)}
+                  >
+                    Historial de pedidos
+                  </Link>
                   <button type="button">Mis favoritos</button>
                 </>
               )}
