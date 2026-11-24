@@ -177,6 +177,29 @@ export async function buscarComprobante(numero, quien) {
 }
 
 // ---------------------------------------------------------------
+// Sprint 4 · HE4-HU2: historial de pedidos de una cuenta
+// ---------------------------------------------------------------
+const SELECT_HISTORIAL = `
+  SELECT p.numero AS "numeroPedido", p.fecha AS "fecha",
+         NVL(SUM(d.cantidad), 0) AS "totalProductos"
+    FROM pedido p
+    LEFT JOIN detalle_pedido d ON d.pedido_id = p.id
+   WHERE p.usuario_id = :usuarioId
+   GROUP BY p.id, p.numero, p.fecha
+   ORDER BY p.fecha DESC, p.id DESC`;
+
+// Pedidos de la cuenta, del más reciente al más antiguo. Solo trae lo básico que muestra
+// el listado (número, cantidad de productos y fecha); el detalle se consulta aparte.
+export async function listarPedidosDeUsuario(usuarioId) {
+  const { filas } = await ejecutar(SELECT_HISTORIAL, { usuarioId: Number(usuarioId) });
+  return filas.map((fila) => ({
+    numeroPedido: fila.numeroPedido,
+    totalProductos: Number(fila.totalProductos),
+    fecha: fila.fecha instanceof Date ? fila.fecha.toISOString() : fila.fecha,
+  }));
+}
+
+// ---------------------------------------------------------------
 // Registro de la compra: UNA sola transacción
 // ---------------------------------------------------------------
 const SELECT_PRODUCTO_BLOQUEADO = `

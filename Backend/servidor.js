@@ -14,6 +14,7 @@ import gestionarEstado from "./rutas/gestionarEstado.js"; // HU4
 import autenticacion from "./rutas/autenticacion.js"; // Sprint 2 · cuentas e inicio de sesión
 import procesarCompra from "./rutas/procesarCompra.js"; // Sprint 3 · HE3-HU6
 import consultarComprobante from "./rutas/consultarComprobante.js"; // Sprint 3 · HE3-HU6 (comprobante de la compra)
+import consultarHistorial from "./rutas/consultarHistorial.js"; // Sprint 4 · HE4-HU2 (historial de pedidos)
 
 export function crearApp() {
   const app = express();
@@ -44,6 +45,7 @@ export function crearApp() {
   app.use("/api/autenticacion", autenticacion); // Sprint 2 · Registro, login y ajustes de cuenta
   app.use("/api/pedidos", procesarCompra); //       Sprint 3 · Procesar compra y validar cupón
   app.use("/api/pedidos", consultarComprobante); // Sprint 3 · Consultar comprobante
+  app.use("/api/pedidos", consultarHistorial); //   Sprint 4 · Historial de pedidos
 
   app.use((_req, res) => res.status(404).json({ mensaje: "Ruta no encontrada" }));
 
