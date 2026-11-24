@@ -1,0 +1,47 @@
+/* Botón flotante de WhatsApp (Figma sprint4: círculo verde de 80 px, abajo a la derecha).
+   Capas: z-index 1050 lo deja por encima del detalle de producto (900) y de los filtros
+   (1000), y por debajo de las notificaciones (1100), los modales (1200) y el comprobante (1250). */
+.boton-whatsapp {
+  position: fixed;
+  z-index: 1050;
+  right: 18px;
+  bottom: 27px;
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.boton-whatsapp:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.boton-whatsapp:focus-visible {
+  outline: 3px solid #014f3f;
+  outline-offset: 3px;
+}
+
+.boton-whatsapp-icono {
+  width: 46px;
+  height: 46px;
+}
+
+@media (max-width: 600px) {
+  .boton-whatsapp {
+    right: 12px;
+    bottom: 16px;
+    width: 56px;
+    height: 56px;
+  }
+
+  .boton-whatsapp-icono {
+    width: 32px;
+    height: 32px;
+  }
+}
