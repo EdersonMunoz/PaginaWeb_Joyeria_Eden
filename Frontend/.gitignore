@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Configuración local (número de WhatsApp, URL del backend)
+.env
