@@ -78,6 +78,54 @@ export function actualizarCantidad(carrito, productoId, cantidad) {
 export const eliminarDelCarrito = (carrito, productoId) =>
   carrito.filter((item) => item.producto.id !== productoId);
 
+// Sprint 4 · HE4-HU4: "Volver a comprar" un pedido del historial.
+// Agrega al carrito los productos del pedido que HOY tienen unidades suficientes
+// (stock actual menos lo que ya hay en el carrito); los que no alcanzan, están inactivos
+// o ya no existen no se agregan. Se usa el producto actual del catálogo (precio y stock de hoy),
+// no la fotografía guardada en el pedido.
+// `articulos` es la lista del detalle del pedido: [{ producto: { id }, cantidad }].
+// Devuelve { carrito, agregados, omitidos }; si no se pudo agregar nada, el MISMO carrito.
+export function recomprarPedido(carrito, articulos = [], productos = []) {
+  const porId = new Map(productos.map((producto) => [producto.id, producto]));
+  let resultado = carrito;
+  const agregados = [];
+  const omitidos = [];
+
+  for (const { producto: enPedido, cantidad } of articulos) {
+    const unidades = enteroPositivo(cantidad);
+    const actual = porId.get(enPedido.id);
+    const disponible =
+      actual && actual.estado !== "Inactivo" ? stockRestante(actual, resultado) : 0;
+
+    if (!actual || disponible < unidades) {
+      omitidos.push(enPedido);
+      continue;
+    }
+
+    resultado = agregarAlCarrito(resultado, actual, unidades);
+    agregados.push(actual);
+  }
+
+  return { carrito: resultado, agregados, omitidos };
+}
+
+// "completa" si entró todo el pedido; "parcial" si algún producto quedó por fuera.
+export const avisoRecompra = ({ omitidos }) => (omitidos.length === 0 ? "completa" : "parcial");
+
+// Notificación que muestra el carrito al llegar desde "Volver a comprar" (null si no aplica).
+export function notificacionRecompra(aviso) {
+  if (aviso === "completa") {
+    return { tipo: "agregado", mensaje: "Se agregó el producto al carrito" };
+  }
+  if (aviso === "parcial") {
+    return {
+      tipo: "agregado-parcial",
+      mensaje: "Algunos productos no se agregaron por falta de disponibilidad",
+    };
+  }
+  return null;
+}
+
 // HE3-HU6 escenario 1: lo que muestra "Resumen de compra".
 // Mismo redondeo que el backend (validarCompra.js): al peso, la mitad hacia arriba.
 export function calcularResumen(carrito, cupon = null) {

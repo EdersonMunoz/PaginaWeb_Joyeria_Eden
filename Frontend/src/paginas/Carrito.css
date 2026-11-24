@@ -233,6 +233,14 @@
   background: #3a2118;
 }
 
+.carrito-notificacion-agregado {
+  background: #004d40;
+}
+
+.carrito-notificacion-agregado-parcial {
+  background: #3a2118;
+}
+
 .carrito-notificacion-cupon-exito {
   background: #004d40;
 }

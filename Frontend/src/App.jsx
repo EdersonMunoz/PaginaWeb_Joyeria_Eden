@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import * as api from "./api";
 import * as logicaCarrito from "./carrito";
 import Inicio from "./paginas/Inicio";
@@ -14,7 +14,10 @@ import InicioSesion from "./paginas/InicioSesion";
 import RegistroCuenta from "./paginas/RegistroCuenta";
 import AjustesCuenta from "./paginas/AjustesCuenta";
 import Carrito from "./paginas/Carrito";
+import HistorialPedidos from "./paginas/HistorialPedidos";
 import RutaProtegida from "./componentes/RutaProtegida";
+import BotonWhatsApp from "./componentes/BotonWhatsApp";
+import { rutaConBotonWhatsApp } from "./whatsapp";
 
 function RedireccionRutaInicio({ destinoCliente }) {
   const acceso = decidirAcceso(obtenerUsuario(), "cliente");
@@ -31,6 +34,12 @@ function RedireccionRutaInicio({ destinoCliente }) {
 }
 
 function App() {
+  const { pathname } = useLocation();
+  // Sprint 4 · HE4-HU1: el botón de WhatsApp es solo del cliente con sesión iniciada y
+  // aparece en las pantallas que muestra el Figma (inicio, catálogo y carrito).
+  const mostrarBotonWhatsApp =
+    rutaConBotonWhatsApp(pathname) && decidirAcceso(obtenerUsuario(), "cliente") === "permitir";
+
   // Los productos vienen de la base de datos Oracle a través del backend
   const [productos, setProductos] = useState([]);
   const [errorConexion, setErrorConexion] = useState("");
@@ -131,6 +140,32 @@ function App() {
     setCuponCarrito(null);
   }, []);
 
+  // Sprint 4 · HE4-HU4: "Volver a comprar" desde el historial. Consulta el pedido y el inventario
+  // actual (Oracle), agrega al carrito solo lo que alcanza y devuelve { ok, aviso } o { ok:false, mensaje }.
+  // La regla está en carrito.js (recomprarPedido).
+  const recomprarPedido = useCallback(async (numeroPedido) => {
+    const detalle = await api.consultarComprobante(numeroPedido);
+    if (!detalle.ok) {
+      return { ok: false, mensaje: detalle.mensaje };
+    }
+
+    const catalogo = await api.listarProductos();
+    if (!catalogo.ok) {
+      return { ok: false, mensaje: catalogo.mensaje ?? "No se pudo consultar el inventario" };
+    }
+    setProductos(catalogo.productos);
+    setErrorConexion("");
+
+    const resultado = logicaCarrito.recomprarPedido(
+      carritoActual.current,
+      detalle.comprobante.articulos,
+      catalogo.productos,
+    );
+    carritoActual.current = resultado.carrito;
+    setCarrito(resultado.carrito);
+    return { ok: true, aviso: logicaCarrito.avisoRecompra(resultado) };
+  }, []);
+
   const propiedadesCarrito = {
     carrito,
     actualizarCantidad: actualizarCantidadCarrito,
@@ -210,6 +245,14 @@ function App() {
           }
         />
         <Route
+          path="/Usuario/Historial_Pedidos"
+          element={<RutaProtegida rol="cliente"><HistorialPedidos recomprarPedido={recomprarPedido} /></RutaProtegida>}
+        />
+        <Route
+          path="/Usuario/Catalogo/Historial_Pedidos"
+          element={<RutaProtegida rol="cliente"><HistorialPedidos recomprarPedido={recomprarPedido} /></RutaProtegida>}
+        />
+        <Route
           path="/Admin/RegistrarProducto"
           element={
             <RutaProtegida rol="admin">
@@ -245,6 +288,7 @@ function App() {
           }
         />
       </Routes>
+      {mostrarBotonWhatsApp && <BotonWhatsApp />}
     </>
   );
 }

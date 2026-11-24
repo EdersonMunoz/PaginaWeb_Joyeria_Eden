@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigationType } from "react-router-dom";
+import { Link, useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import Encabezado from "../componentes/Encabezado";
+import iconoBolsa from "../assets/iconossvg/iconoBolsa.svg";
 import iconoCampana from "../assets/iconossvg/iconoCampana.svg";
 import iconoCarroVacio from "../assets/iconossvg/iconoCarroVacio.svg";
 import iconoCarga from "../assets/iconossvg/iconoCarga.svg";
@@ -16,6 +17,7 @@ import {
   crearIdSolicitud,
   direccionValida,
   migaCarrito,
+  notificacionRecompra,
 } from "../carrito";
 import Comprobante from "./Comprobante";
 import "./Carrito.css";
@@ -59,7 +61,14 @@ function Carrito({
       ? location.state?.origen
       : undefined;
   const nivelesMiga = migaCarrito(origen);
-  const [notificacion, setNotificacion] = useState(null);
+  const navegar = useNavigate();
+  // Sprint 4 · HE4-HU4: al llegar desde "Volver a comprar" (solo en una navegación nueva, no al recargar)
+  // se muestra el aviso de la recompra completa o parcial.
+  const avisoRecompra =
+    navigationType === "PUSH" || navigationType === "REPLACE"
+      ? location.state?.avisoRecompra
+      : undefined;
+  const [notificacion, setNotificacion] = useState(() => notificacionRecompra(avisoRecompra));
   const [codigoCupon, setCodigoCupon] = useState("");
   const [errorCupon, setErrorCupon] = useState("");
   const [validandoCupon, setValidandoCupon] = useState(false);
@@ -105,6 +114,13 @@ function Carrito({
       vigente = false;
     };
   }, [actualizarInventario]);
+
+  // El aviso se consume una vez: se quita del historial de navegación para que no reaparezca
+  // al volver atrás o recargar la página.
+  useEffect(() => {
+    if (!avisoRecompra) return;
+    navegar(location.pathname, { replace: true, state: { origen: location.state?.origen } });
+  }, [avisoRecompra, navegar, location.pathname, location.state?.origen]);
 
   useEffect(() => {
     if (!notificacion) {
@@ -623,7 +639,9 @@ function Carrito({
             src={
               notificacion.tipo === "stock"
                 ? iconoCampana
-                : notificacion.tipo.startsWith("cupon-")
+                : notificacion.tipo.startsWith("agregado")
+                  ? iconoBolsa
+                  : notificacion.tipo.startsWith("cupon-")
                   ? iconoCupon
                   : iconoBasura
             }
