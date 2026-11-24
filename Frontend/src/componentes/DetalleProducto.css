@@ -433,6 +433,12 @@
   object-fit: contain;
 }
 
+@media (min-width: 641px) {
+  main:has(> .detalle-producto-fondo) > .catalogo-notificacion-carrito {
+    bottom: clamp(80px, 17vh, 176px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .detalle-producto-cerrar svg,
   .detalle-producto-favorito img,
