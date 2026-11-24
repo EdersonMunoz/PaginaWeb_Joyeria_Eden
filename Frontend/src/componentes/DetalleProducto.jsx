@@ -35,7 +35,7 @@ function DetalleProducto({
   const alertaStockAutomatica =
     !administrador &&
     !vistaAdminSoloLectura &&
-    (cantidadMaxima === 0 || cantidadSeleccionada > cantidadMaxima);
+    cantidadMaxima === 0;
   const [favorito, setFavorito] = useState(false);
   const [alertaStock, setAlertaStock] = useState(null);
 
@@ -221,7 +221,10 @@ function DetalleProducto({
                   className="detalle-producto-comprar"
                   type="button"
                   disabled={vistaAdminSoloLectura || cantidadMaxima === 0}
-                  onClick={() => onAgregarCarrito?.(producto, cantidad)}
+                  onClick={() => {
+                    onAgregarCarrito?.(producto, cantidad);
+                    setCantidadSeleccionada(1);
+                  }}
                 >
                   <img src={iconoCarrito} alt="" />
                   Comprar
